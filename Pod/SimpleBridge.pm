@@ -414,7 +414,7 @@ Sean M. Burke <F<sburke@cpan.org>>, with bits of Tk code cribbed from
 the old Tk::Pod::Text code that Nick Ing-Simmons
 <F<nick@ni-s.u-net.com>> originally wrote.
 
-Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>.
+Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
 
 =cut
 

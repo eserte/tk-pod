@@ -1,14 +1,14 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.11 2002/08/14 09:51:07 eserte Exp $
+# $Id: Tree.pm,v 1.12 2003/01/29 11:57:22 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: slaven.rezic@berlin.de
+# Mail: slaven@rezic.de
 # WWW:  http://www.rezic.de/eserte/
 #
 
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -393,7 +393,7 @@ Tk::Tree(3), Tk::Pod(3), tkpod(1), Tk::Pod::FindPods(3).
 
 =head1 AUTHOR
 
-Slaven Rezic <F<slaven.rezic@berlin.de>>
+Slaven Rezic <F<slaven@rezic.de>>
 
 Copyright (c) 2001 Slaven Rezic.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

@@ -1,14 +1,14 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.7 2002/10/07 19:06:36 eserte Exp $
+# $Id: FindPods.pm,v 1.8 2003/01/29 11:57:19 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: slaven.rezic@berlin.de
+# Mail: slaven@rezic.de
 # WWW:  http://www.rezic.de/eserte/
 #
 
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -300,7 +300,7 @@ Tk::Tree(3).
 
 =head1 AUTHOR
 
-Slaven Rezic <F<slaven.rezic@berlin.de>>
+Slaven Rezic <F<slaven@rezic.de>>
 
 Copyright (c) 2001 Slaven Rezic.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

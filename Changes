@@ -1,6 +1,9 @@
 History for Tk::Pod
 
 version 0.99_13
+	o changed email address
+
+version 0.99_13
 	o Tk::Pod::Cache was missing in the distribution :-(
 	o new environment variable TKPODEDITOR
 

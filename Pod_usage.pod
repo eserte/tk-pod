@@ -121,7 +121,7 @@ pod, browser, tk, hypertext
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
 
-Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>
+Current maintainer is Slaven Rezic <F<slaven@rezic.de>>
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This
 documentation is free software; you can redistribute it and/or modify
