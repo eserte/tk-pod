@@ -1,5 +1,22 @@
 History for Tk::Pod
 
+version 0.9927
+	o new script tkmore (installed by default)
+	o experimental: menu icons (only with Tk::ToolBar installed
+          and with Tk804)
+	o fix: Back/Forward menu items are disabled if not applicable
+	o WidgetDump menu entry in debug mode
+	o Use a ligther background color for Text/Tree areas of Tk::Pod.
+	  The -background option is now disabled. This is very experimental
+	  and will change.
+	o experimental: new internal man viewer
+	o experimental: "Open by Name" accepts "-f ..." for displaying
+	  functions and "-q ..." for FAQ questions
+	o Pod::Simple requirement increased to 2.05 because of bugs in
+	  earlier versions
+	o pod_find in Tk::Pod::FindPods now works with softlinked
+	  directories
+
 version 0.9926
 	o changed search order: .pod files first, then .pm, .pl and
 	  extension-less files
