@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 1.4 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 2.1 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -168,7 +168,6 @@ sub Populate
     $p->Subwidget('scrolled')->bind('<Double-1>',      [$w, 'DoubleClick']);
     $p->Subwidget('scrolled')->bind('<Shift-Double-1>',[$w, 'ShiftDoubleClick']);
 
-
  $p->configure(-font => $w->Font(family => 'courier'));
  $p->tag('configure','text', -font => $w->Font(family => 'times'));
  $p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
@@ -264,23 +263,22 @@ sub Link
 {
  my ($w,$how,$index,$link) = @_;
 
- my (@range) = $w->tag('nextrange',$link, '1.0');
- @range = $w->tag('nextrange',"\"$link\"",'1.0') unless @range == 2;
+ # If clicking on a Link, the <Leave> binding is never called, so it
+ # have to be done here:
+ $w->LeaveLink;
 
- my ($man,$sec);
- if (@range == 2) # not an internal link
+ require Pod::ParseUtils;
+ my $l = Pod::Hyperlink->new($link);
+ if ($l->type eq 'hyperlink')
   {
-   $man = "";
-   $sec = $link;
-  }
- else
-  {
-   $man = $link;
-   ($man,$sec) = split(m|/|,$link) if ($link =~ m|/|);
-   $man =~ s/::/\//g;
+   $w->messageBox(-message => 'Hyperlinks are not supported (yet)');
+   die;
   }
 
- if ($how eq 'reuse' && $man ne "")
+ my $man = $l->page;
+ my $sec = $l->node;
+
+ if ($how eq 'reuse' && $man ne '')
   {
    my $file = $w->cget('-file');
    $w->configure('-file' => $man)
@@ -295,11 +293,16 @@ sub Link
   }
   # XXX big docs like Tk::Text take too long until they return
 
- if (defined $sec)
+ if ($sec ne '' && $man eq '') # XXX reuse vs. new`
+  {
+   $w->history_modify_entry;
+  }
+
+ if ($sec ne '')
   {
    my $start = ($w->tag('nextrange',$sec, '1.0'))[0];
    $start = ($w->tag('nextrange',"\"$link\"",'1.0'))[0] unless defined $start;
-   $start = $w->search(qw/-exact -nocase --/, $sec, '1.0');
+   $start = $w->search(qw/-exact -nocase --/, $sec, '1.0') unless defined $start;
    unless (defined $start)
     {
      $w->messageBox(-message => "Section '$sec' not found\n");
@@ -307,6 +310,22 @@ sub Link
     }
    $w->yview("$start linestart");
   }
+
+ if ($sec ne '' && $man eq '') # XXX reuse vs. new`
+  {
+   $w->history_add($w->cget(-path), $w->index('@0,0'));
+  }
+
+}
+
+sub EnterLink {
+    my $w = shift;
+    $w->configure(-cursor=>'hand2');
+}
+
+sub LeaveLink {
+    my $w = shift;
+    $w->configure(-cursor=>undef);
 }
 
 sub SearchFullText {
@@ -334,14 +353,15 @@ sub Print {
 	$w->messageBox(-message => "Cannot find file `$path`");
 	die;
     }
-    if (!eval { require File::Temp; 1 }) {
-	$w->messageBox(-message => "The perl module File::Temp is missing");
+    if (!eval { require POSIX; 1 }) {
+	$w->messageBox(-message => "The perl module POSIX is missing");
 	die;
     }
     if (is_in_path("pod2man") && is_in_path("groff")) {
-	my $gv = is_in_path("Xgv") || is_in_path("Xghostview") || is_in_path("XXXggv") || is_in_path("kghostview");
+	my $gv = is_in_path("gv") || is_in_path("ghostview") || is_in_path("XXXggv") || is_in_path("kghostview");
 	if ($gv) {
-	    my $temp = (File::Temp::tempfile(UNLINK => 1))[1];
+	    my $temp = POSIX::tmpnam();
+	    # XXX $temp is never deleted...
 	    system("pod2man $path | groff -man -Tps > $temp");
 	    system("$gv $temp &");
 	    return;
@@ -382,8 +402,8 @@ sub _expand
 		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
        $w->tag('bind',$tag, '<ButtonRelease-2>',
 		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
-       $w->tag('bind',$tag, '<Enter>' => [$w, 'configure', -cursor=>'hand2']);
-       $w->tag('bind',$tag, '<Leave>' => [$w, 'configure', -cursor=>undef]);
+       $w->tag('bind',$tag, '<Enter>' => [$w, 'EnterLink']);
+       $w->tag('bind',$tag, '<Leave>' => [$w, 'LeaveLink']);
        $w->tag('configure',$tag,
 		-underline  => 1,
 		-foreground => 'blue',
@@ -663,9 +683,11 @@ sub history_forward {
 sub _history_update {
     my($w, $hist_entry) = @_;
     if ($hist_entry) {
-	$w->privateData()->{'from_history'} = 1;
-	$w->configure('-file' => $hist_entry->file);
-	$w->privateData()->{'from_history'} = 0;
+	if ($w->cget('-path') ne $hist_entry->file) {
+	    $w->privateData()->{'from_history'} = 1;
+	    $w->configure('-file' => $hist_entry->file);
+	    $w->privateData()->{'from_history'} = 0;
+	}
 	$w->afterIdle(sub { $w->see($hist_entry->index) })
 	    if $hist_entry->index;
     }
