@@ -35,6 +35,8 @@ BEGIN
 
   };
 
+$ENV{TKPODDEBUG} = 0;
+
 eval { require Tk; };
 ok($@, "", "loading Tk module");
 
