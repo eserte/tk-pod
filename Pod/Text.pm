@@ -8,14 +8,29 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 1.1 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.2 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
 
-BEGIN { @POD = (@INC, grep(-d, split($Config{path_sep}, 
+BEGIN { @POD = (@INC, grep(-d, split($Config{path_sep},
 				     $ENV{'PATH'}))); $IDX = undef; };
 
+use Class::Struct;
+struct '_HistoryEntry' => [
+    file  => '$',
+    index => '$',
+];
+sub _HistoryEntry::create {
+    my $o = shift->new;
+    $o->file(shift);
+    $o->index(shift);
+    $o;
+}
+
+use constant HISTORY_DIALOG_ARGS => [-icon => 'info',
+				     -title => 'History Error',
+				     -type => 'OK'];
 sub Dir
 {
  my $class = shift;
@@ -25,6 +40,7 @@ sub Dir
 sub Find
 {
  my ($file) = @_;
+ return $file if (-f $file);
  my $dir;
  foreach $dir ("",@POD)
   {
@@ -46,8 +62,14 @@ sub Find
 
 sub findpod {
     my ($w,$name) = @_;
-    $w->BackTrace("Invalid path/file/module name: '$name'") if $name !~ /^[-_+:.\/A-Za-z0-9]+$/;
-    Find($name) or $w->BackTrace("Can't find POD Invalid file/module name: '$name'");
+    if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
+	$w->messageBox(-message => "Invalid path/file/module name: '$name'\n");
+	die;
+    }
+    Find($name) or do {
+	$w->messageBox(-message => "Can't find POD Invalid file/module name: '$name'\n");
+	die;
+    };
 }
 
 sub file {
@@ -58,8 +80,10 @@ sub file {
       my $file = shift;
       $w->{'File'} = $file;
       my $path = $w->findpod($file);
-      my $last = $w->cget('-path');
-      $w->history_add($last) if $last;
+      if (!$w->privateData()->{'from_history'}) {
+	  $w->history_modify_entry;
+	  $w->history_add($path, "1.0");
+      }
       $w->configure('-path' => $path);
       $w->delete('1.0' => 'end');
       #use Benchmark;
@@ -90,25 +114,32 @@ sub edit
 {
  my ($w) = @_;
  my $path = $w->cget('-path');
- my $edit = $ENV{XEDITOR} || $ENV{VISUAL} || $ENV{'EDITOR'} || 'vi';
- if (defined $edit)
+ if (1||$^O eq 'MSWin32') # XXX what is right?
   {
-   if (fork)
+   system("ptked $path");
+  }
+ else
+  {
+   my $edit = $ENV{XEDITOR} || $ENV{VISUAL} || $ENV{'EDITOR'} || 'vi';
+   if (defined $edit)
     {
-     wait; # parent
-    }
-   else
-    {
-     #child
      if (fork)
       {
-       # still child
-       exec("true");
+       wait; # parent
       }
      else
       {
-       # grandchild 
-       exec("$edit $path");
+       #child
+       if (fork)
+        {
+         # still child
+         exec("true");
+        }
+       else
+        {
+         # grandchild
+         exec("$edit $path");
+        }
       }
     }
   }
@@ -123,8 +154,9 @@ sub Populate
     $w->SUPER::Populate($args);
 
     $w->privateData()->{history} = [];
-     
-    my $p = $w->Scrolled('More', -scrollbars => 'w');
+    $w->privateData()->{history_index} = -1;
+
+    my $p = $w->Scrolled('More', -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w');
     $w->Advertise('more' => $p->Subwidget('more'));
     $p->pack(-expand => 1, -fill => 'both');
     # XXX Subwidget stuff needed because Scrolled does not
@@ -150,15 +182,11 @@ sub Populate
  $w->{Length}  = 64;
  $w->{Indent}  = {}; # tags for various indents
 
-    my $m = $p->Menu(-tearoff => 0);
+    my $m = $p->Menu(-tearoff => $Tk::platform ne 'MSWin32');
     $p->Subwidget('scrolled')->bind('<Button-3>', sub {
 		$m->Popup(-popover => 'cursor', -popanchor => 'nw')});
-    $m->command(-label => 'Back', -command =>
-		sub {
-		    $w->configure('-file' => $w->history_back)
-			 if $w->history_size;
-		    $w->history_back; # XXX arrgh, logic!. Todo: Forward (cmp Tk/Web.pm)
-		} );
+    $m->command(-label => 'Back',    -command => [$w, 'history_move', -1]);
+    $m->command(-label => 'Forward', -command => [$w, 'history_move', +1]);
     $m->command(-label => 'Reload', -command => sub{$w->reload} );
     $m->command(-label => 'Edit',   -command => sub{$w->edit} );
     $m->command(-label => 'Search...', -command => ['SearchFullText', $w]);
@@ -174,7 +202,7 @@ sub Populate
             '-wrap'       => [ $p, qw(wrap       Wrap       word) ],
 	    # -font ignored because it does not change the other fonts
 	    #'-font'	  => [ 'PASSIVE', undef, undef, undef],
-            '-scrollbars' => [ $p, qw(scrollbars Scrollbars w   ) ],
+            '-scrollbars' => [ $p, qw(scrollbars Scrollbars), $Tk::platform eq 'MSWin32' ? 'e' : 'w' ],
 
             'DEFAULT'     => [ $p ],
             );
@@ -207,7 +235,8 @@ sub ShiftDoubleClick
    if ($file = $w->findpod($sel)) {
        $w->MainWindow->Pod('-file' => $sel);
    } else {
-       $w->BackTrace("No POD documentation found for '$sel'");
+       $w->messageBox(-message => "No POD documentation found for '$sel'\n");
+       die;
    }
   }
 }
@@ -222,7 +251,8 @@ sub DoubleClick
    if ($file = $w->findpod($sel)) {
        $w->configure('-file'=>$file);
    } else {
-       $w->BackTrace("No POD documentation found for '$sel'");
+       $w->messageBox(-message => "No POD documentation found for '$sel'\n");
+       die;
    }
   }
 }
@@ -231,48 +261,48 @@ sub Link
 {
  my ($w,$how,$index,$link) = @_;
 
- #print STDERR "how=$how|index=$index|link=$link|\n";
- # FIX another ugly hack, breaks with $how
- $link =~ s|^/||;
  my (@range) = $w->tag('nextrange',$link, '1.0');
  @range = $w->tag('nextrange',"\"$link\"",'1.0') unless @range == 2;
- # XXX wrong if mode is 'new'  
- if (@range == 2)
+
+ my ($man,$sec);
+ if (@range == 2) # not an internal link
   {
-   #print "range $range[0], $range[1], |", $w->get(@range), "|\n";
-   $w->yview("$range[0] linestart");
+   $man = "";
+   $sec = $link;
   }
  else
   {
-   my $man = $link;
-   #   $man =~ s/^"/\/"/;  # L<"sec"> ==> L</"sec">
-   my $sec;
-   ($man,$sec) = split(m#/#,$link) if ($link =~ m#/#);
+   $man = $link;
+   ($man,$sec) = split(m|/|,$link) if ($link =~ m|/|);
    $man =~ s/::/\//g;
-   if ($how eq 'reuse')
+  }
+
+ if ($how eq 'reuse' && $man ne "")
+  {
+   my $file = $w->cget('-file');
+   $w->configure('-file' => $man)
+    unless ( defined $file and ($file =~ /$man\.\w+$/ or $file eq $man) );
+  }
+
+ if ($how eq 'new')
+  {
+   $man = $w->cget('-file') if ($man eq "");
+   my $tree = eval { $w->parent->cget(-tree) };
+   $w = $w->MainWindow->Pod('-file' => $man, '-tree' => $tree);
+  }
+  # XXX big docs like Tk::Text take too long until they return
+
+ if (defined $sec)
+  {
+   my $start = ($w->tag('nextrange',$sec, '1.0'))[0];
+   $start = ($w->tag('nextrange',"\"$link\"",'1.0'))[0] unless defined $start;
+   $start = $w->search(qw/-exact -nocase --/, $sec, '1.0');
+   unless (defined $start)
     {
-     my $file = $w->cget('-file');
-     #print "man=($man) file=(",$file,")\n";
-     $w->configure('-file' => $man)
-	unless ( defined $file and ($file =~ /$man\.\w+$/ or $file eq $man) );
+     $w->messageBox(-message => "Section '$sec' not found\n");
+     die;
     }
-   else
-    {
-     #print "after  man=($man)\n";
-     $man = $w->cget('-file') if ($man eq "");
-     #print "before man=($man)\n";
-     $w = $w->MainWindow->Pod('-file' => $man);
-    }
-   # XXX big docs like Tk::Text take too long until
-   #     they return
-   if (defined $sec)
-     {   
-        #print "end  man=($sec)\n";
-        # handle sections: head1, head2 and items
-        my $start = ($w->tag('nextrange',$sec, '1.0'))[0];
-        $w->BackTrace("Section '$sec' not found\n") unless (defined $start);
-        $w->yview("$start linestart");
-     }
+   $w->yview("$start linestart");
   }
 }
 
@@ -292,23 +322,31 @@ sub SearchFullText {
     $IDX->deiconify;
     $IDX->raise;
     (($IDX->children)[0])->focus;
-} 
+}
 
-my %translate =
-(
- 'lt'    => '<',
- 'gt'    => '>',
- 'amp'   => '&',
- 'auml'  => 'ä',
- 'Auml'  => 'Ä',
- 'ouml'  => 'ö',
- 'Ouml'  => 'Ö',
- 'uuml'  => 'ü',
- 'Uuml'  => 'Ü',
- 'space' => ' ',
- 'szlig' => 'ß',
- 'tab'   => "\t",
- );
+sub Print {
+    my $w = shift;
+    my $path = $w->cget(-path);
+    if (!-r $path) {
+	$w->messageBox(-message => "Cannot find file `$path`");
+	die;
+    }
+    if (!eval { require File::Temp; 1 }) {
+	$w->messageBox(-message => "The perl module File::Temp is missing");
+	die;
+    }
+    if (is_in_path("pod2man") && is_in_path("groff")) {
+	my $gv = is_in_path("Xgv") || is_in_path("Xghostview") || is_in_path("XXXggv") || is_in_path("kghostview");
+	if ($gv) {
+	    my $temp = (File::Temp::tempfile(UNLINK => 1))[1];
+	    system("pod2man $path | groff -man -Tps > $temp");
+	    system("$gv $temp &");
+	    return;
+	}
+    }
+    $w->messageBox(-message => "Can't print on your system.\nEither pod2man, groff,\ngv or ghostview are missing.");
+    die;
+}
 
 # '<' and '>' have been replaced with \x7f because E<..> have been
 # turned into real characters.
@@ -322,14 +360,14 @@ sub _expand
    $w->insert('end -1c',$pre);
     {
      my $start = $w->index('end -1c');
-     $what = $w->_expand($what);         
+     $what = $w->_expand($what);
      if ($tag eq 'L')
       {
        if ($what =~ s/^([^|\x7f]+)\|//) # L<showthis|man/sec>
          {
             my $show = $1;
             # print "man/sec=($what) show=($show)\n";
-            $w->delete("$start +".length($show)."c", "end -1c");	
+            $w->delete("$start +".length($show)."c", "end -1c");
          }
        $tag = '!'.$what;
        # XXX: ButtonRelease is same as Button due to tag('nextrange'...)
@@ -341,6 +379,8 @@ sub _expand
 		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
        $w->tag('bind',$tag, '<ButtonRelease-2>',
 		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
+       $w->tag('bind',$tag, '<Enter>' => [$w, 'configure', -cursor=>'hand2']);
+       $w->tag('bind',$tag, '<Leave>' => [$w, 'configure', -cursor=>undef]);
        $w->tag('configure',$tag,
 		-underline  => 1,
 		-foreground => 'blue',
@@ -364,7 +404,7 @@ sub expand
 
  $line =~ s/[<>]/\x7f/g;
 
- $line =~ s/E\x7f([A-Za-z]*)\x7f/$translate{$1}/g;
+ $line =~ s/E\x7f([A-Za-z]\w*)\x7f/$Tk::Parse::Escapes{$1}/g;
  return (_expand ($w, $line));
 }
 
@@ -538,6 +578,7 @@ sub process
        my $head = $1;
        my $arg = $arg;
        $arg =~ s/E<([^>]+)>/$Tk::Parse::Escapes{$1}/g;
+       $arg =~ s/[IBSCLFXZ]<([^>]+)>/$1/g; # XXX better, but not perfect...
        push @{$w->{'sections'}}, [$head, $arg, $w->index('end')];
    }
    $w->$cmd($arg);
@@ -554,32 +595,173 @@ sub process
  @ARGV = @save;
 }
 
+# Add the file $file (with optional text index position $index) to the
+# history.
 sub history_add {
-    my ($w,$file) = @_;
-    #print STDERR "History add  = '$file'\n";
-    $w->BackTrace("Not a text file '$file'. Can't add to history\n")
-	    unless -f $file;
+    my ($w,$file,$index) = @_;
+    unless (-f $file) {
+	$w->messageBox(-message => "Not a file '$file'. Can't add to history\n",
+		       @{&HISTORY_DIALOG_ARGS});
+	return;
+    }
     my $hist = $w->privateData()->{history};
-    push @$hist, $file;
+    my $hist_entry = _HistoryEntry->create($file, $index);
+    $hist->[++$w->privateData()->{history_index}] = $hist_entry;
+    splice @$hist, $w->privateData()->{history_index}+1;
+    $w->history_view_update;
+    $w->history_view_select;
     undef;
 }
 
+# Perform a "history back" operation, if possible. The current page is
+# updated in the history.
 sub history_back {
     my ($w) = @_;
     my $hist = $w->privateData()->{history};
-    if (@$hist) {
-        #print STDERR "History last = ", $w->privateData()->{history}->[-1], "\n";
-    	return pop(@$hist)
-    } else {
-        $w->BackTrace("History is empty");
+    if (!@$hist) {
+        $w->messageBox(-message => "History is empty",
+		       @{&HISTORY_DIALOG_ARGS});
+	return;
+    }
+    if ($w->privateData()->{history_index} <= 0) {
+	$w->messageBox(-message => "Can't go back",
+		       @{&HISTORY_DIALOG_ARGS});
+	return;
+    }
+
+    $w->history_modify_entry;
+
+    $hist->[--$w->privateData()->{history_index}];
+}
+
+# Perform a "history forward" operation, if possible. The current page is
+# updated in the history.
+sub history_forward {
+    my ($w) = @_;
+    my $hist = $w->privateData()->{history};
+    if (!@$hist) {
+        $w->messageBox(-message => "History is empty",
+		       @{&HISTORY_DIALOG_ARGS});
+	return;
+    }
+    if ($w->privateData()->{history_index} >= $#$hist) {
+	$w->messageBox(-message => "Can't go forward",
+		       @{&HISTORY_DIALOG_ARGS});
+	return;
+    }
+
+    $w->history_modify_entry;
+
+    $hist->[++$w->privateData()->{history_index}];
+}
+
+# Private method: update the pod view if called from a history back/forward
+# operation. This method will set the specified _HistoryEntry object.
+sub _history_update {
+    my($w, $hist_entry) = @_;
+    if ($hist_entry) {
+	$w->privateData()->{'from_history'} = 1;
+	$w->configure('-file' => $hist_entry->file);
+	$w->privateData()->{'from_history'} = 0;
+	$w->afterIdle(sub { $w->see($hist_entry->index) })
+	    if $hist_entry->index;
     }
 }
 
-sub history_size {
-    my ($w) = @_;
-    #print STDERR "History size = ", scalar(@{ $w->privateData()->{history} }), "\n";
-    scalar @{ $w->privateData()->{history} };
+# Move the history backward ($inc == -1) or forward ($inc == +1)
+sub history_move {
+    my($w, $inc) = @_;
+    my $hist_entry = ($inc == -1 ? $w->history_back : $w->history_forward);
+    $w->_history_update($hist_entry);
+    $w->history_view_select;
 }
+
+# Set the history to the given index $inx.
+sub history_set {
+    my($w, $inx) = @_;
+    if ($inx >= 0 && $inx <= $#{$w->privateData()->{history}}) {
+	$w->history_modify_entry;
+	$w->privateData()->{history_index} = $inx;
+	$w->_history_update($w->privateData()->{history}->[$inx]);
+    }
+}
+
+# Modify the index (position) information of the current history entry.
+sub history_modify_entry {
+    my $w = shift;
+    if ($w->privateData()->{'history_index'} >= 0) {
+	my $old_entry = _HistoryEntry->create($w->cget('-path'),
+					      $w->index('@0,0'));
+	$w->privateData()->{'history'}->[$w->privateData()->{'history_index'}] = $old_entry;
+    }
+}
+
+# Create a new history view toplevel or reuse an old one.
+sub history_view {
+    my $w = shift;
+    my $t = $w->privateData()->{'history_view_toplevel'};
+    if (!$t || !Tk::Exists($t)) {
+	$t = $w->Toplevel(-title => 'History');
+	$w->privateData()->{'history_view_toplevel'} = $t;
+	my $lb = $t->Scrolled("Listbox", -scrollbars => 'oso'.$Tk::platform eq 'MSWin32'?'e':'w')->pack(-fill => "both", -expand => 1);
+	$t->Advertise(Lb => $lb);
+	$lb->bind("<1>" => sub {
+		      my $lb = shift;
+		      my $y = $lb->XEvent->y;
+		      $w->history_set($lb->nearest($y));
+		  });
+    }
+    $t->deiconify;
+    $t->raise;
+    $w->history_view_update;
+}
+
+# Re-fill the history view with the current history array.
+sub history_view_update {
+    my $w = shift;
+    my $t = $w->privateData()->{'history_view_toplevel'};
+    if ($t && Tk::Exists($t)) {
+	my $lb = $t->Subwidget('Lb');
+	$lb->delete(0, "end");
+	foreach my $histentry (@{$w->privateData()->{'history'}}) {
+	    (my $basename = $histentry->file) =~ s|^.*/([^/]+)$|$1|;
+	    $lb->insert("end", $basename);
+	}
+    }
+}
+
+# Move the history view selection to the current selected history entry.
+sub history_view_select {
+    my $w = shift;
+    my $t = $w->privateData()->{'history_view_toplevel'};
+    if ($t && Tk::Exists($t)) {
+	my $lb = $t->Subwidget('Lb');
+	$lb->selectionClear(0, "end");
+	$lb->selectionSet($w->privateData()->{history_index});
+    }
+}
+
+# REPO BEGIN
+# REPO NAME is_in_path /home/e/eserte/src/repository 
+# REPO MD5 1b42243230d92021e6c361e37c9771d1
+
+sub is_in_path {
+    my($prog) = @_;
+    require Config;
+    my $sep = $Config::Config{'path_sep'} || ':';
+    foreach (split(/$sep/o, $ENV{PATH})) {
+	if ($^O eq 'MSWin32') {
+	    return "$_\\$prog"
+		if (-x "$_\\$prog.bat" ||
+		    -x "$_\\$prog.com" ||
+		    -x "$_\\$prog.exe");
+	} else {
+	    return "$_/$prog" if (-x "$_/$prog");
+	}
+    }
+    undef;
+}
+# REPO END
 
 1;
 
