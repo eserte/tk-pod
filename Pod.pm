@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.1 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 1.2 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -15,19 +15,33 @@ sub Populate
  my ($w,$args) = @_;
 
  require Tk::Pod::Text;
+ require Tk::Pod::Tree;
  require Tk::Menubar;
 
  $w->SUPER::Populate($args);
+
+ my $tree;
+
+ if (delete $args->{-tree}) {
+     $tree= $w->Scrolled('PodTree', -scrollbars => 'oso'.$Tk::platform eq 'MSWin32'?'e':'w')->packAdjust(-side => "left", -fill => 'y');
+     $w->Advertise(tree => $tree);
+     $tree->Fill;
+ }
+
  my $searchcase = 0;
  my $p = $w->Component('PodText' => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
+
+ $tree->configure(-showcommand => sub { $p->configure(-file => $_[1]->{File}) }) if $tree;
 
  my $mbar = $w->Component('Menubar' => 'menubar');
  my $file = $mbar->Component('Menubutton' => 'file', '-text' => 'File', '-underline' => 0);
  $file->command('-label'=>'Open...', '-underline'=>0, '-command' => ['openfile',$w]);
  $file->command('-label'=>'Re-Read', '-underline'=>0, '-command' => ['reload',$p] );
  $file->command('-label'=>'Edit',    '-underline'=>0, '-command' => ['edit',$p] );
+ $file->command('-label'=>'Print',   '-underline'=>0, '-command' => ['Print',$p] );
  $file->separator;
  $file->command('-label'=>'Close',    '-underline'=>0, '-command' => ['quit',$w] );
+ $file->command('-label'=>'Exit',     '-underline'=>1, '-command' => sub { Tk::exit } );
 
  my $search = $mbar->Component('Menubutton' => 'search', '-text' => 'Search', '-underline' => 0);
  $search->command('-label'=>'Search', '-underline'=>0, '-accelerator' => '/', '-command' => ['Search', $p, 'Next']);
@@ -37,6 +51,11 @@ sub Populate
  $search->checkbutton('-label'=>'Case sensitive', '-underline'=>0, -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) });
  $search->separator;
  $search->command('-label'=>'Search full text', '-underline'=>7, '-command' => ['SearchFullText', $p, 'Prev']);
+
+ my $history = $mbar->Component('Menubutton' => 'History', '-text' => 'History', '-underline' => 1);
+ $history->command('-label'=>'Back', '-underline'=>0, '-accelerator' => 'Alt-Left', '-command' => ['history_move', $p, -1]);
+ $history->command('-label'=>'Forward', '-underline'=>0,  '-accelerator' => 'Alt-Right', '-command' => ['history_move', $p, +1]);
+ $history->command('-label'=>'View', '-underline'=>0,  '-command' => ['history_view', $p]);
 
  my $help = $mbar->Component('Menubutton' => 'help', -side=>'right', '-text' => 'Help', '-underline' => 0);
  # xxx restructure to not reference to tkpod
@@ -57,7 +76,13 @@ sub Populate
        }
   }
  $w->Delegates('Menubutton' => $mbar, DEFAULT => $p);
- $w->ConfigSpecs('DEFAULT' => [$p]);
+ $w->ConfigSpecs(
+    -tree => ['PASSIVE', undef, undef, !!$tree], # XXX better solution
+    'DEFAULT' => [$p],
+ );
+
+ $w->bind('<Alt-Left>'  => [$p, 'history_move', -1]);
+ $w->bind('<Alt-Right>' => [$p, 'history_move', +1]);
 
  # $w->process($path);
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
@@ -67,15 +92,29 @@ my $fsbox;
 
 sub openfile {
     my ($cw,$p) = @_;
-    unless (defined $fsbox && $fsbox->IsWidget) {
-	require Tk::FileSelect;
-	$fsbox = $cw->FileSelect();
-    } 
-    my $file = $fsbox->Show();
+    my $file;
+    if ($cw->can("getOpenFile")) {
+	$file = $cw->getOpenFile(-title => "Choose POD file",
+				 -defaultextension => 'pod',
+				 -filetypes => [['POD files', '*.pod'],
+						['Perl scripts', '*.pl'],
+						['Perl modules', '*.pm'],
+						['All files', '*']]);
+    } else {
+	unless (defined $fsbox && $fsbox->IsWidget) {
+	    require Tk::FileSelect;
+	    $fsbox = $cw->FileSelect();
+	} 
+	$file = $fsbox->Show();
+    }
     $cw->configure(-file => $file) if defined $file && -r $file;
 }
-	
-sub Dir { require Tk::Pod::Text; Tk::Pod::Text::Dir(@_) } 
+
+sub Dir {
+    require Tk::Pod::Text;
+    Tk::Pod::Text::Dir(@_);
+    Tk::Pod::Tree::Dir(@_);
+}
 
 
 sub quit { shift->destroy }
@@ -133,7 +172,8 @@ Tk::Pod - POD browser toplevel widget
     Tk::Pod->Dir(@dirs)			# add dirs to search path for POD
 
     $pod = $parent->Pod(
-		-file = > $name		# search and display POD for name
+		-file = > $name,	# search and display POD for name
+		-tree = > $bool		# display pod file tree
 		);
 
 
