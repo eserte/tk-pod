@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.99_08
+	o fixed typo in Tk::Pod::Text --- links to head1 sections should
+	  work now
+
 version 0.99_07
 	o cygwin compatibility
 	o bugfix in Tk::Pod::Text (thanks, John Cerney!)
