@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.9916
+	o new cmdline.t test
+	o server cleanup on SIGTERM
+	o fixed option handling in tkpod (-I switch not available anymore)
+	o bugfix for perllocal.pod handling
+	o another workaround for Tk::Pod::FindPods on MSWin32
+
 version 0.9915
 	o use Tk::HistEntry in fulltext search dialog, if available
 	o tree view: now automatically jumping to the current leaf
