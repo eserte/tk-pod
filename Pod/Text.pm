@@ -24,7 +24,7 @@ use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.20 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.21 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -32,7 +32,7 @@ BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
 Construct Tk::Widget 'PodText';
 
 BEGIN {
-  @POD = (
+  unshift @POD, (
    @INC,
    $ENV{'PATH'} ?
      grep(-d, split($Config{path_sep}, $ENV{'PATH'}))
@@ -601,6 +601,7 @@ sub Print_MSWin {
   $temp =~ tr{/}{\\};
   $temp =~ s/\.$//;
   DEBUG and warn "Using $temp as the temp file for hardcopying\n";
+  # XXX cleanup of temp file?
 
   if($is_old) { # so we can't assume that write.exe can handle RTF
     require Pod::Simple::Text;
