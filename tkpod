@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree);
 
-$VERSION = substr(q$Revision: 1.3 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.4 $ , 10) + 1 . "";
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
@@ -91,7 +91,7 @@ tkpod - Perl/Tk POD browser
 
 =head1 SYNOPSIS
 
-    tkpod  [-tk]  [directory]|name [...]
+    tkpod  [-tk] [[-no]tree]  [directory]|name [...]
 
 
 =head1 DESCRIPTION
@@ -118,6 +118,12 @@ Useful for perl/Tk documentation.  When specified it adds all
 C<Tk> subdirectories in C<@INC> to the POD search path.   This way
 when C<Scrolled> is selected in the browser the C<Tk/Scrolled>
 documentation is found.
+
+=item B<-tree>
+
+By default, tkpod will show a tree window with all available PODs.
+However, this is slow on startup. With the option B<-notree> only the
+plain POD will be shown.
 
 =back
 
