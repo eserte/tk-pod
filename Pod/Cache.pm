@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Cache.pm,v 1.4 2003/02/11 11:17:24 eserte Exp $
+# $Id: Cache.pm,v 1.5 2003/02/22 09:15:20 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2002 Slaven Rezic. All rights reserved.
@@ -26,7 +26,7 @@ BEGIN {  # Make a DEBUG constant very first thing...
   }
 }
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
 
 $MAX_CACHE = 20; # documents # XXX not yet used, LRU etc...
 
@@ -48,6 +48,14 @@ sub get_from_cache {
     DEBUG and warn "Restore contents for $pod from cache.\n";
     $w->restore_contents($CACHE{$pod});
     1;
+}
+
+sub delete_from_cache {
+    my($w, $pod) = @_;
+    $pod = $w->cget(-path) if !defined $pod;
+    return if !defined $pod;
+    DEBUG and warn "Delete contents for $pod from cache.\n";
+    delete $CACHE{$pod};
 }
 
 sub clear_cache {
@@ -145,3 +153,11 @@ sub restore_contents {
 1;
 
 __END__
+
+=head1 NAME
+
+Tk::Pod::Cache - internal Tk-Pod module for cache control
+
+=head1 DESCRIPTION
+
+No user-servicable parts here.
