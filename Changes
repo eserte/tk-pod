@@ -3,6 +3,7 @@ History for Tk::Pod
 version 0.99_08
 	o fixed typo in Tk::Pod::Text --- links to head1 sections should
 	  work now
+	o tkpod -s (server mode) implemented
 
 version 0.99_07
 	o cygwin compatibility
