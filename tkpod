@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.18 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.19 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -39,7 +39,8 @@ sub INIT {
 }
 
 use Tk;
-BEGIN { eval { require Tk::FcyEntry; }; };
+### Problems under Windows... do not use it anymore
+#BEGIN { eval { require Tk::FcyEntry; }; };
 use Tk::Pod 4.18;
 use Getopt::Long;
 #require Tk::ErrorDialog;
