@@ -24,7 +24,7 @@ use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.31 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.32 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -128,36 +128,40 @@ sub file {   # main entry point
     {
       #print "loading $_[0] ...\n";
       my $file = shift;
-      $w->{'File'} = $file;
-      my $path = $w->findpod($file);
-      if (!$w->privateData()->{'from_history'}) {
-	  $w->history_modify_entry;
-	  $w->history_add($path, "1.0");
+      my $old_file = $w->{File};
+      eval {
+	  $w->{'File'} = $file;
+	  my $path = $w->findpod($file);
+	  if (!$w->privateData()->{'from_history'}) {
+	      $w->history_modify_entry;
+	      $w->history_add($path, "1.0");
+	  }
+	  $w->configure('-path' => $path);
+	  $w->delete('1.0' => 'end');
+	  my $tree_sw = $w->parent->Subwidget("tree");
+	  if ($tree_sw) {
+	      $tree_sw->SeePath("file:$path");
+	  }
+	  my $t;
+	  if (DEBUG) {
+	      require Benchmark;
+	      $t = Benchmark->new;
+	  }
+	  if (!$w->get_from_cache) {
+	      $w->process($path);
+	      $w->add_to_cache; # XXX pass time for processing?
+	  }
+	  if (defined $t) {
+	      print Benchmark::timediff(Benchmark->new, $t)->timestr,"\n";
+	  }
+	  $w->focus;
+      };
+      if ($@) {
+	  $w->{'File'} = $old_file;
+	  die $@;
       }
-      $w->configure('-path' => $path);
-      $w->delete('1.0' => 'end');
-      my $tree_sw = $w->parent->Subwidget("tree");
-      if ($tree_sw) {
-	  $tree_sw->SeePath("file:$path");
-      }
-      my $t;
-      if (DEBUG) {
-	  require Benchmark;
-	  $t = Benchmark->new;
-      }
-      if (!$w->get_from_cache) {
-	  $w->process($path);
-	  $w->add_to_cache; # XXX pass time for processing?
-      }
-      if (defined $t) {
-	  print Benchmark::timediff(Benchmark->new, $t)->timestr,"\n";
-      }
-      $w->focus;
     }
-  else
-    {
-      return $w->{'File'};
-    }
+  $w->{'File'};
 }
 
 sub reload
@@ -166,6 +170,7 @@ sub reload
  # remember old y position
  my ($currpos) = $w->yview;
  $w->delete('0.0','end');
+ $w->delete_from_cache;
  $w->process($w->cget('-path'));
  # restore old y position
  $w->yview(moveto => $currpos);
