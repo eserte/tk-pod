@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.99_13
+	o Tk::Pod::Cache was missing in the distribution :-(
+	o new environment variable TKPODEDITOR
+
 version 0.99_12
 	o new module Tk::Pod::Cache --- memory cached documents are
           rendered about three times faster than non-cached documents
