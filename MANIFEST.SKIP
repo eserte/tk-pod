@@ -24,5 +24,6 @@ patch\.gz$
 ^\.permissions$
 # project specific
 ^index.html$
+^ANNOUNCE$
 # replaced by Tk::Pod::SimpleBridge
 Parse.pm
