@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.8 2003/01/29 11:57:19 eserte Exp $
+# $Id: FindPods.pm,v 1.9 2003/02/05 14:47:04 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -79,16 +79,20 @@ sub pod_find {
     undef $has_cache;
 
     if ($args{-usecache}) {
-	my $perllocal = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
+	my $perllocal_site = File::Spec->catfile($Config{'installsitearch'},'perllocal.pod');
+	my $perllocal_lib  = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
 	my $cache_file = _cache_file();
-	if (!-r $cache_file || -M $perllocal > -M $cache_file) {
+	if (!-r $cache_file ||
+	    (-e $perllocal_site && -M $perllocal_site > -M $cache_file) ||
+	    (-e $perllocal_lib  && -M $perllocal_lib > -M $cache_file)
+	   ) {
 	    %pods = LoadCache();
 	    if (%pods) {
 		$has_cache = 1;
 		return %pods;
 	    }
 	} else {
-	    warn "$perllocal is more recent than cache file $cache_file";
+	    warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file";
 	}
     }
 
@@ -168,11 +172,13 @@ sub simplify_name {
     $f =~ s|^$arch_re|| if defined $arch_re; # strip machine
     $f =~ s/\.(pod|pm)$//;
     $f =~ s|^pod/||;
-    if ($^O =~ /^cygwin/) { # the cygwin solution for pod vs. Pod problem
-	$f =~ s|^pods/||;
-    }
-    if ($^O eq 'MSWin32') { # case-insensitive :-(
+    # Workaround for case insensitive systems --- the pod directory contains
+    # general pod documentation as well as Pod::* documentation:
+    if ($^O =~ /^cygwin/) {
+	$f =~ s|^pods/||; # "pod" is "pods" on cygwin
+    } elsif ($^O eq 'MSWin32') {
 	$f =~ s|^pod/perl|perl|i;
+	$f =~ s|^pod/Win32|Win32|i;
     }
     $f;
 }
@@ -180,7 +186,8 @@ sub simplify_name {
 sub type {
     local $_ = shift;
     if    (/^perl/) { return "perl" }
-    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook|cgi_to_mod_perl)/) { return "pragma" }
+    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook|cgi_to_mod_perl)/)
+	            { return "pragma" }
     else            { return "mod" }
 }
 
