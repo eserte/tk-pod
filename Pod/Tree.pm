@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.27 2004/02/04 20:18:18 eserte Exp $
+# $Id: Tree.pm,v 1.28 2004/06/05 11:36:44 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -246,12 +246,12 @@ sub Populate {
     my $m = $w->Menu(-tearoff => $Tk::platform ne 'MSWin32');
     eval { $w->menu($m) }; warn $@ if $@;
     $m->command(-label => 'Reload', -command => sub {
-		    $w->Busy(-recurse => 1);
+		    $w->toplevel->Busy(-recurse => 1);
 		    eval {
 			$w->Fill(-nocache => 1);
 		    };
 		    my $err = $@;
-		    $w->Unbusy(-recurse => 1);
+		    $w->toplevel->Unbusy(-recurse => 1);
 		    die $err if $err;
 		});
     $m->command(-label => 'Search...', -command => [$w, 'search_dialog']);
