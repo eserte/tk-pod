@@ -17,12 +17,22 @@ Added features compared to the version in Tk402.003:
 	o CDE default font support
 	o better lookup of Tk docs with -tk switch
 	o Added some POD to tkpod Tk::Pod and Tk::Pod::Text
+	o Section menu (thanks to Slaven Rezic)
 
-The distribution includes a patch for Tk/Text.pm  (already in
-Tk402.004). When you get an error about 'tagPrevrange' apply it.
 
-tkpod works with Tk800.0_02 and Tk800.003.
-Known problem with Tk800.000 and Tk800.0_01:
+Known problems with the alpha releases of Tk8:
+
+Tk800.004
+
+none 
+
+Tk800.003
+
+A patch of mime that slipped into the release has broken
+LabEntry (and therefore FileSelect widget).  So 'Open...'
+menu does not work with Tk800.003
+
+Tk800.000 and Tk800.0_01:
 
         Bad option `Name' at ../tk8/blib/lib/Tk/Menu/Item.pm line 48.
          at ../tk8/blib/lib/Tk/Widget.pm line 225
@@ -40,13 +50,13 @@ Known problem with Tk800.000 and Tk800.0_01:
   my @args = ();
 
 
-If you find a bug please check the TODO file if it's not already
-known.  Please consider to send any nontrivial patch to the
-perl/Tk mailing list
+If you find a bug please check the TODO file if this bug
+is not already known.  Please send bug report, enhancement
+request, etc., to the perl/Tk mailing list
 
 	ptk@lists.stanford.edu
 
-to prevent duplicate work and to get the snow ball running :-)
+to prevent duplicate work
 
 Comments are always very welcome.
 
@@ -61,11 +71,22 @@ Win95/NT Users:
 
 History:
 
+version 0.09
+
+	o Tk::Pod & Tk::Pod::Text: fixed version (1.9 > 1.10 problem)
+	o Added section menu (Thanks Slaven)
+	o Use Busy/UnBusy during load of POD
+	o 'Help'->'Usage..' used Pod_usage.pod
+	o L</"This heading"> works a bit better (still broken
+	  if loaded to new POD window)
+
 version 0.08
 
 	o E<> support also 'space' 'tab'
 	o I<> is now in weight 'medium' and not 'bold'
 	o -font option removed so it's really 'courier'
+	o Fixed version number of Tk::Pod and Tk::Pod::Text
+	  so it increasing again (1.9 > 1.11 problem)
 
 version 0.07
 

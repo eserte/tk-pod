@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt);
 
-$VERSION = substr q$Revision: 1.9 $, 10;
+$VERSION = substr(q$Revision: 1.11 $ , 10) + 1; # so 1.10 > 1.9
 
 BEGIN {
 	if (defined($ARGV[0]) and $ARGV[0] eq '-tk') {
@@ -123,61 +123,9 @@ documentation is found.
 
 =head1 USAGE
 
-To navigate through the documentation one could use
+How to navigate with the POD browser is described in L<Tk::Pod_usage>.
+It's also accessible via the menu 'Help' -> 'Usage...'.
 
-=over 4
-
-=item * Hyperlinks
-
-A B<click> on a hyperlinks display the corresponding documentation
-(if there is any) in the same window.
-
-With <Button-2> the documentation is loaded into a new window
-(<Shift-Button-1> works also for those 2 button mouse owners).
-
-=item * Selection
-
-A B<double click> tries to load the documentation for the selected
-word in the same window.
-
-If the C<Shift> key is simultanously pressed the new window is
-opened.
-
-=item * Search in POD document
-
-Pressing <Key-/> lets you search the displayed POD
-
-=item * Action Menu
-
-If you press the right mouse button you get a popup menu
-that allows:
-
-=over 4
-
-=item o Back
-
-in history of displayed documentation
-
-=item o Reload
-
-the documentation
-
-=item o Edit
-
-start editor with source of the displayed document.
-
-The used editor is selected by the first defenition of
-the enviroment variables C<XEDITOR>, C<VISUAL>, C<EDITOR>
-or as default F</usr/bin/vi>.
-
-=item o Search ...
-
-Full text search of the POD in the perl library directories.
-(Note: to use it one has to install perlindex distribution.)
-
-=back
-
-=back
 
 =head1 KNOWN BUGS
 
@@ -185,7 +133,12 @@ see L<Tk::Pod::Text>
 
 =head1 SEE ALSO
 
-perlpod, pod2man, pod2text, pod2html, Tk::Pod, Tk::Pod::Text
+L<perlpod|perlpod>
+L<pod2man|pod2man>
+L<pod2text|pod2text>
+L<pod2html|pod2html>
+L<Tk::Pod|Tk::Pod>
+L<Tk::Pod::Text|Tk::Pod::Text>
 
 =cut
 

@@ -7,7 +7,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr q$Revision: 1.11 $, 10;
+$VERSION = substr(q$Revision: 1.15 $, 10) + 1; # so version is  > 1.9
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -74,10 +74,8 @@ sub file {
 sub reload
 {
  my ($w) = @_;
- $w->Busy;
  $w->delete('0.0','end');
  $w->process($w->cget('-path'));
- $w->Unbusy;
 }
 
 sub edit
@@ -238,12 +236,16 @@ sub Link
 {
  my ($w,$how,$index,$link) = @_;
 
- my (@range) = $w->tag('nextrange',$link,$index);
- @range = $w->tag('nextrange',"\"$link\"",$index) unless @range == 2;
+ #print STDERR "how=$how|index=$index|link=$link|\n";
+ # FIX another ugly hack, breaks with $how
+ $link =~ s|^/||;
+ my (@range) = $w->tag('nextrange',$link, '1.0');
+ @range = $w->tag('nextrange',"\"$link\"",'1.0') unless @range == 2;
  # XXX wrong if mode is 'new'  
  if (@range == 2)
   {
-   $w->yview($range[0]);
+   #print "range $range[0], $range[1], |", $w->get(@range), "|\n";
+   $w->yview("$range[0] linestart");
   }
  else
   {
@@ -272,7 +274,7 @@ sub Link
         # handle sections: head1, head2 and items
         my $start = ($w->tag('nextrange',$sec, '1.0'))[0];
         $w->BackTrace("Section '$sec' not found\n") unless (defined $start);
-        $w->yview($start);
+        $w->yview("$start linestart");
      }
   }
 }
@@ -499,27 +501,36 @@ sub endfile   {}
 sub listtype  { my ($w,$arg) = @_; $w->{listtype} = $arg }
 sub cut       {} 
 
-
 sub process
 {
  my ($w,$file) = @_;
  my @save = @ARGV;
  @ARGV = $file;
+ $w->toplevel->Busy;
 # print STDERR "Parsing $file\n";
  my (@pod) = Simplify(Parse());
  my ($cmd,$arg);
 # print STDERR "Render $file\n";
  my $update = 2;
+ undef @{$w->{'sections'}};
  while ($cmd = shift(@pod))
   {
    my $arg = shift(@pod);
+   if ($cmd =~ /^head(\d+)/) {
+       my $head = $1;
+       my $arg = $arg;
+       $arg =~ s/E<([^>]+)>/$Tk::Parse::Escapes{$1}/g;
+       push @{$w->{'sections'}}, [$head, $arg, $w->index('end')];
+   }
    $w->$cmd($arg);
    unless ($update--) {
      $w->update;
      $update = 2;
-   } 
+   }
   }
+ $w->parent->add_section_menu;
  $w->Callback('-poddone', $file);
+ $w->toplevel->Unbusy;
  @ARGV = @save;
 }
 
@@ -585,7 +596,11 @@ documentation.
 
 =head1 SEE ALSO
 
-Tk::More, Tk::Pod, perlpod, tkpod, perlindex
+L<Tk::More|Tk::More>
+L<Tk::Pod|Tk::Pod>
+L<perlpod|perlpod>
+L<tkpod|tkpod>
+L<perlindex|perlindex>
 
 
 =head1 KNOWN BUGS

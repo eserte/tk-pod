@@ -3,7 +3,7 @@ use strict;
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.9 $, 10)+ 1; # so it's > 2.005
+$VERSION = substr(q$Revision: 1.13 $, 10) + 2; # so it's > 2.005 and 1.9+1
 
 @ISA = qw(Tk::Toplevel);
 
@@ -30,12 +30,8 @@ sub Populate
  my $help = $mbar->Component('Menubutton' => 'help', -side=>'right', '-text' => 'Help', '-underline' => 0);
  # xxx restructure to not reference to tkpod
  $help->command('-label' => 'Usage...', -command => sub{
-		$w->parent->Pod(-file=>
-			( ($0 =~ /tkpod$/)
-				? $0       # fails with t/tkpod.t trick
-				: 'tkpod'  # fails when installed
-			)
-		)});
+		$w->parent->Pod(-file=>'Tk::Pod_usage.pod')
+		});
  $help->command('-label' => 'Programming...', 
 		-command => sub{$w->parent->Pod(-file=>'Tk/Pod.pm')} );
 
@@ -73,6 +69,49 @@ sub Dir { require Tk::Pod::Text; Tk::Pod::Text::Dir(@_) }
 
 sub quit { shift->destroy }
 
+sub add_section_menu {
+    my($pod) = @_;
+    my $mbar = $pod->Subwidget('menubar');
+    my $section = $mbar->Subwidget('section');
+    if (defined $section) {
+        $section->cget(-menu)->delete(0, 'end');
+    } else {
+        $section = $mbar->Component('Menubutton' => 'section',
+                                    '-text' => 'Section',
+                                    -underline => 0);
+    }
+    my $podtext = $pod->Subwidget('pod');
+    my $text;
+    foreach ($pod->{'SubWidget'}{'pod'}
+             ->children->{'SubWidget'}{'more'}->children) {
+        if ($_->isa('Tk::Text')) {
+            $text = $_;
+            last;
+        }
+    }
+
+    $text->tag('configure', 'section',
+               -background => 'red',
+               -foreground => 'black',
+              );
+
+    my $sdef;
+    foreach $sdef (@{$podtext->{'sections'}}) {
+        my($head, $subject, $pos) = @$sdef;
+        $section->command(-label => ("  " x ($head-1)) . $subject,
+                          -command => sub {
+                              my($line) = split(/\./, $pos);
+                              $text->tag('remove', 'section', qw/0.0 end/);
+                              $text->tag('add', 'section',
+                                         $line-1 . ".0",
+                                         $line-1 . ".0 lineend");
+                              $text->yview("section.first");
+			      $text->after(500, [$text, qw/tag remove section 0.0 end/]);
+                          },
+                         );
+    }
+}
+
 1;
 
 __END__
@@ -100,7 +139,10 @@ Simple POD browser with hypertext capabilities in a C<Toplevel> widget
 
 =head1 SEE ALSO
 
-tkpod, Tk::Pod::Text, perlpod
+L<Tk::Pod_usage|Tk::Pod_usage>
+L<Tk::Pod::Text|Tk::Pod::Text>
+L<tkpod|tkpod>
+L<perlpod|perlpod>
 
 =cut
 

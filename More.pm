@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr q$Revision: 1.5 $, 10;
+$VERSION = substr q$Revision: 1.7 $, 10;
 
 use Tk::Derived;
 use Tk::Frame;
@@ -41,7 +41,7 @@ sub Populate {
 		-state => 'disabled',
 		)->pack(-side=>'bottom', -fill => 'x', -expand=>'no');
 
-    my $t = $cw->ROText()->pack(-fill => 'both' , -expand => 'yes');
+    my $t = $cw->ROText(-cursor=>undef)->pack(-fill => 'both' , -expand => 'yes');
     $t->tagConfigure('search', -foreground => 'red');
 
     $t->bind('<Key-slash>',    [$cw, 'Search', $e, 'Next']);
@@ -265,7 +265,8 @@ me most (high to low priority):
 
 =head1 SEE ALSO
 
-Tk::ROText, more
+L<Tk::ROText|Tk::ROText>
+more(1)
 
 =head1 AUTHOR
 
