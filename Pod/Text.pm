@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.36 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.37 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -487,7 +487,7 @@ sub Link
   {
    my $file = $w->cget('-file');
    $w->configure('-file' => $man)
-    unless ( defined $file and ($file =~ /$man\.\w+$/ or $file eq $man) );
+    unless ( defined $file and ($file =~ /\Q$man\E\.\w+$/ or $file eq $man) );
   }
 
  if ($how eq 'new')
