@@ -24,7 +24,7 @@ use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.19 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.20 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -183,6 +183,10 @@ sub edit
   }
  else
   {
+   if (!defined $edit)
+    {
+     $edit = $ENV{TKPODEDITOR};
+    }
    if (!defined $edit)
     {
      # VISUAL and EDITOR are supposed to have a terminal, but tkpod can
@@ -539,12 +543,7 @@ sub Print {
     }
 
     if ($ENV{'TKPODPRINT'}) {
-	my @cmd;
-	if ($ENV{'TKPODPRINT'} =~ /%s/) {
-	    ($cmd[0] = $ENV{'TKPODPRINT'}) =~ s/%s/$path/g;
-	} else {
-	    @cmd = ($ENV{'TKPODPRINT'}, $path);
-	}
+	my @cmd = _substitute_cmd($ENV{'TKPODPRINT'}, $path);
 	DEBUG and warn "Running @cmd\n";
 	system @cmd;
 	return;
@@ -575,6 +574,17 @@ sub Print {
       -message => "Can't print on your system.\nEither pod2man, groff,\ngv or ghostview are missing."
     );
     die;
+}
+
+sub _substitute_cmd {
+    my($cmd, $path) = @_;
+    my @cmd;
+    if ($cmd =~ /%s/) {
+	($cmd[0] = $cmd) =~ s/%s/$path/g;
+    } else {
+	@cmd = ($cmd, $path);
+    }
+    @cmd;
 }
 
 sub Print_MSWin {
@@ -881,6 +891,14 @@ filename of the POD document is appended to the value of
 C<TKPODPRINT>. Here is a silly example to send the POD to a web browser:
 
     env TKPODPRINT="pod2html %s > %s.html; galeon %s.html" tkpod ...
+
+=item TKPODEDITOR
+
+Use the specified program for editing the current pod. If
+C<TKPODEDITOR> is not specified then the first defined value of
+C<XEDITOR>, C<VISUAL>, or C<EDITOR> is used on Unix. As a last
+fallback, C<ptked> or C<vi> are used, depending on platform and
+existance of a terminal.
 
 =head1 SEE ALSO
 
