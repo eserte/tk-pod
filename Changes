@@ -1,6 +1,13 @@
 History for Tk::Pod
 
-version 0.12
+version 0.99
+
+	o various bug fixes
+	o colored entries in pod tree
+	o no more Tk40x.xxx support
+	o new/better More.pm bindings
+
+version 0.12 (not released)
 
 	o new Tk::Pod::Tree module and a tree view for POD files
 	o better history support: forward/backward/view history
