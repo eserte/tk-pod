@@ -14,14 +14,14 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 2.1 $, 10) . "";
+$VERSION = substr(q$Revision: 2.2 $, 10) . "";
 
 use Carp;
 use Fcntl;
 use Text::English;
 use Config;
 
- my $PREFIX = $Config::Config{prefix};
+(my $PREFIX = $Config::Config{prefix}) =~ y|\\|/|d;
 (my $IDXDIR = $Config::Config{man1dir}) =~ s|/[^/]+$||;
 
 
@@ -46,7 +46,7 @@ sub new {
     #xxx: -idir depended but where can I get this info?
     #	o A fourth index file?
     #   o todo: check perlindex index routine
-    $self{PREFIX} = $PREFIX; 
+    $self{PREFIX} = $PREFIX;
 
     bless \%self, $class;
 }
