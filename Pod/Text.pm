@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.43 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.44 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -618,27 +618,34 @@ sub Link_man {
     if ($man =~ s/\s*\((.*)\)\s*$//) {
 	$mansec = $1;
     }
-return if $w->InternalManViewer($mansec, $man);
-    my $manurl = "man:$man($mansec)";
-    if (defined $sec && $sec ne "") {
-	$manurl .= "#$sec";
-    }
-    DEBUG and warn "Try to start any man browser for $manurl\n";
-    my @manbrowser = ('gnome-help-browser', 'khelpcenter');
-    my $wm = detect_window_manager($w);
-    DEBUG and warn "Window manager system is $wm\n";
-    if ($wm eq 'kde') {
-	unshift @manbrowser, 'khelpcenter';
-    }
-    for my $manbrowser (@manbrowser) {
-	DEBUG and warn "Try $manbrowser...\n";
-	if (is_in_path($manbrowser)) {
-	    if (fork == 0) {
-		DEBUG and warn "Use $manbrowser...\n";
-		exec($manbrowser, $manurl);
-		die $!;
+    my @manbrowser;
+    if (exists $ENV{TKPODMANVIEWER} && $ENV{TKPODMANVIEWER} eq "internal") {
+	DEBUG and warn "Use internal man viewer\n";
+    } else {
+	my $manurl = "man:$man($mansec)";
+	if (defined $sec && $sec ne "") {
+	    $manurl .= "#$sec";
+	}
+	DEBUG and warn "Try to start any man browser for $manurl\n";
+	@manbrowser = ('gnome-help-browser', 'khelpcenter');
+	my $wm = detect_window_manager($w);
+	DEBUG and warn "Window manager system is $wm\n";
+	if ($wm eq 'kde') {
+	    unshift @manbrowser, 'khelpcenter';
+	}
+	if (defined $ENV{TKPODMANVIEWER}) {
+	    unshift @manbrowser, $ENV{TKPODMANVIEWER};
+	}
+	for my $manbrowser (@manbrowser) {
+	    DEBUG and warn "Try $manbrowser...\n";
+	    if (is_in_path($manbrowser)) {
+		if (fork == 0) {
+		    DEBUG and warn "Use $manbrowser...\n";
+		    exec($manbrowser, $manurl);
+		    die $!;
+		}
+		return;
 	    }
-	    return;
 	}
     }
     if (!$w->InternalManViewer($mansec, $man)) {
@@ -662,29 +669,34 @@ sub InternalManViewer {
     my $menu = $more->menu;
     $t->configure(-menu => $menu);
     local $SIG{PIPE} = "IGNORE";
-    open(MAN, "man $mansec $man |") or die $!;
-    while(<MAN>) {
-	chomp;
-	(my $line = $_) =~ s/.\cH//g;
-	my @bold;
-	while (/(.*?)((?:(.)(\cH\3)+)+)/g) {
-	    my($pre, $bm) = ($1, $2);
-	    $pre =~ s/.\cH//g;
-	    $bm  =~ s/.\cH//g;
-	    push @bold, length $pre, length $bm;
-	}
-	if (@bold) {
-	    my $is_bold = 0;
-	    foreach my $length (@bold) {
-		if ($length > 0) {
-		    (my($s), $line) = $line =~ /^(.{$length})(.*)/;
-		    $more->insert("end", $s, $is_bold ? "bold" : ());
-		}
-		$is_bold = 1 - $is_bold;
+    open(MAN, "man" . (defined $mansec ? " $mansec" : "") . " $man |")
+	or die $!;
+    if (eof MAN) {
+	$more->insert("end", "No entry for for $man" . (defined $mansec ? " in section $mansec of" : "") . " the manual");
+    } else {
+	while(<MAN>) {
+	    chomp;
+	    (my $line = $_) =~ s/.\cH//g;
+	    my @bold;
+	    while (/(.*?)((?:(.)(\cH\3)+)+)/g) {
+		my($pre, $bm) = ($1, $2);
+		$pre =~ s/.\cH//g;
+		$bm  =~ s/.\cH//g;
+		push @bold, length $pre, length $bm;
 	    }
-	    $more->insert("end", "$line\n");
-	} else {
-	    $more->insert("end", "$line\n");
+	    if (@bold) {
+		my $is_bold = 0;
+		foreach my $length (@bold) {
+		    if ($length > 0) {
+			(my($s), $line) = $line =~ /^(.{$length})(.*)/;
+			$more->insert("end", $s, $is_bold ? "bold" : ());
+		    }
+		    $is_bold = 1 - $is_bold;
+		}
+		$more->insert("end", "$line\n");
+	    } else {
+		$more->insert("end", "$line\n");
+	    }
 	}
     }
     close MAN;
@@ -1179,6 +1191,13 @@ C<TKPODEDITOR> is not specified then the first defined value of
 C<XEDITOR>, C<VISUAL>, or C<EDITOR> is used on Unix. As a last
 fallback, C<ptked> or C<vi> are used, depending on platform and
 existance of a terminal.
+
+=item TKPODMANVIEWER
+
+Use the specified program as the manpage viewer. The manpage viewer
+should accept a manpage URL (C<man://>I<manpage>(I<section>)).
+Alternatively the special viewer "internal" may be used. As fallback,
+the default GNOME and/or KDE manpage viewer will be called.
 
 =back
 
