@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.39 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.44 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -618,33 +618,89 @@ sub Link_man {
     if ($man =~ s/\s*\((.*)\)\s*$//) {
 	$mansec = $1;
     }
-    my $manurl = "man:$man($mansec)";
-    if (defined $sec && $sec ne "") {
-	$manurl .= "#$sec";
-    }
-    DEBUG and warn "Try to start any man browser for $manurl\n";
-    my @manbrowser = ('gnome-help-browser', 'khelpcenter');
-    my $wm = detect_window_manager($w);
-    DEBUG and warn "Window manager system is $wm\n";
-    if ($wm eq 'kde') {
-	unshift @manbrowser, 'khelpcenter';
-    }
-    for my $manbrowser (@manbrowser) {
-	DEBUG and warn "Try $manbrowser...\n";
-	if (is_in_path($manbrowser)) {
-	    if (fork == 0) {
-		DEBUG and warn "Use $manbrowser...\n";
-		exec($manbrowser, $manurl);
-		die $!;
+    my @manbrowser;
+    if (exists $ENV{TKPODMANVIEWER} && $ENV{TKPODMANVIEWER} eq "internal") {
+	DEBUG and warn "Use internal man viewer\n";
+    } else {
+	my $manurl = "man:$man($mansec)";
+	if (defined $sec && $sec ne "") {
+	    $manurl .= "#$sec";
+	}
+	DEBUG and warn "Try to start any man browser for $manurl\n";
+	@manbrowser = ('gnome-help-browser', 'khelpcenter');
+	my $wm = detect_window_manager($w);
+	DEBUG and warn "Window manager system is $wm\n";
+	if ($wm eq 'kde') {
+	    unshift @manbrowser, 'khelpcenter';
+	}
+	if (defined $ENV{TKPODMANVIEWER}) {
+	    unshift @manbrowser, $ENV{TKPODMANVIEWER};
+	}
+	for my $manbrowser (@manbrowser) {
+	    DEBUG and warn "Try $manbrowser...\n";
+	    if (is_in_path($manbrowser)) {
+		if (fork == 0) {
+		    DEBUG and warn "Use $manbrowser...\n";
+		    exec($manbrowser, $manurl);
+		    die $!;
+		}
+		return;
 	    }
-	    return;
 	}
     }
-    $w->messageBox(
-      -title => "Tk::Pod Error",
-      -message => "No useable man browser found. Tried @manbrowser",
-    );
-    die;
+    if (!$w->InternalManViewer($mansec, $man)) {
+	$w->messageBox(
+          -title => "Tk::Pod Error",
+          -message => "No useable man browser found. Tried @manbrowser and internal man viewer via `man'",
+        );
+	die;
+    }
+}
+
+sub InternalManViewer {
+    my($w, $mansec, $man) = @_;
+    return 0 if (!is_in_path("man"));
+    my $t = $w->Toplevel(-title => "Manpage $man($mansec)");
+    my $more = $t->Scrolled("More",
+			    -font => "Courier 10", # XXX do not hardcode
+			    -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w',
+			   )->pack(-fill => "both", -expand => 1);
+    $more->tagConfigure("bold", -font => "Courier 10 bold"); # XXX do not hardcode
+    my $menu = $more->menu;
+    $t->configure(-menu => $menu);
+    local $SIG{PIPE} = "IGNORE";
+    open(MAN, "man" . (defined $mansec ? " $mansec" : "") . " $man |")
+	or die $!;
+    if (eof MAN) {
+	$more->insert("end", "No entry for for $man" . (defined $mansec ? " in section $mansec of" : "") . " the manual");
+    } else {
+	while(<MAN>) {
+	    chomp;
+	    (my $line = $_) =~ s/.\cH//g;
+	    my @bold;
+	    while (/(.*?)((?:(.)(\cH\3)+)+)/g) {
+		my($pre, $bm) = ($1, $2);
+		$pre =~ s/.\cH//g;
+		$bm  =~ s/.\cH//g;
+		push @bold, length $pre, length $bm;
+	    }
+	    if (@bold) {
+		my $is_bold = 0;
+		foreach my $length (@bold) {
+		    if ($length > 0) {
+			(my($s), $line) = $line =~ /^(.{$length})(.*)/;
+			$more->insert("end", $s, $is_bold ? "bold" : ());
+		    }
+		    $is_bold = 1 - $is_bold;
+		}
+		$more->insert("end", "$line\n");
+	    } else {
+		$more->insert("end", "$line\n");
+	    }
+	}
+    }
+    close MAN;
+    1;
 }
 
 sub EnterLink {
@@ -857,6 +913,7 @@ sub history_add {
     splice @$hist, $w->privateData()->{history_index}+1;
     $w->history_view_update;
     $w->history_view_select;
+    $w->_history_navigation_update;
     undef;
 }
 
@@ -871,7 +928,7 @@ sub history_back {
 	return;
     }
     if ($w->privateData()->{history_index} <= 0) {
-	$w->messageBox(-message => "Can't go back",
+	$w->messageBox(-message => "Can't go back in history",
 		       @{&HISTORY_DIALOG_ARGS});
 	return;
     }
@@ -892,7 +949,7 @@ sub history_forward {
 	return;
     }
     if ($w->privateData()->{history_index} >= $#$hist) {
-	$w->messageBox(-message => "Can't go forward",
+	$w->messageBox(-message => "Can't go forward in history",
 		       @{&HISTORY_DIALOG_ARGS});
 	return;
     }
@@ -918,8 +975,30 @@ sub _history_update {
 	    $w->configure('-text' => $hist_entry->text);
 	    $w->privateData()->{'from_history'} = 0;
 	}
+	$w->_history_navigation_update;
 	$w->afterIdle(sub { $w->see($hist_entry->index) })
 	    if $hist_entry->index;
+    }
+}
+
+sub _history_navigation_update {
+    my $w = shift;
+    # XXX Be careful with the search pattern
+    # if I decide to I18N Tk::Pod one day...
+    my $m_history;
+    if ($w->parent and $m_history = $w->parent->Subwidget("menubar")) {
+	$m_history = $m_history->entrycget("History", "-menu");
+	my $inx = $w->privateData()->{history_index};
+	if ($inx == 0) {
+	    $m_history->entryconfigure("Back", -state => "disabled");
+	} else {
+	    $m_history->entryconfigure("Back", -state => "normal");
+	}
+	if ($inx == $#{$w->privateData()->{history}}) {
+	    $m_history->entryconfigure("Forward", -state => "disabled");
+	} else {
+	    $m_history->entryconfigure("Forward", -state => "normal");
+	}
     }
 }
 
@@ -977,6 +1056,7 @@ sub history_view {
     $t->deiconify;
     $t->raise;
     $w->history_view_update;
+    $w->history_view_select;
 }
 
 # Re-fill the history view with the current history array.
@@ -1112,6 +1192,15 @@ C<XEDITOR>, C<VISUAL>, or C<EDITOR> is used on Unix. As a last
 fallback, C<ptked> or C<vi> are used, depending on platform and
 existance of a terminal.
 
+=item TKPODMANVIEWER
+
+Use the specified program as the manpage viewer. The manpage viewer
+should accept a manpage URL (C<man://>I<manpage>(I<section>)).
+Alternatively the special viewer "internal" may be used. As fallback,
+the default GNOME and/or KDE manpage viewer will be called.
+
+=back
+
 =head1 SEE ALSO
 
 L<Tk::More|Tk::More>
@@ -1127,7 +1216,7 @@ L<perlindex|perlindex>
 
 =head1 KNOWN BUGS
 
-See TODO files of Tk-Pod distribution
+See L<TODO> file of Tk-Pod distribution
 
 
 
@@ -1193,6 +1282,42 @@ Non-breakable text: S<The quick brown fox jumps over the lazy fox.>
 
 Modern Pod constructs (multiple E<lt>E<gt>): I<< italic >>, C<< fixed
 with embedded < and > >>.
+
+Itemize with numbers:
+
+=over
+
+=item 1.
+
+First
+
+=item 2.
+
+Second
+
+=item 3.
+
+Thirs
+
+=back
+
+Itemize with bullets:
+
+=over
+
+=item *
+
+First
+
+=item *
+
+Second
+
+=item *
+
+Thirs
+
+=back
 
 Other Pod docu: Tk::Font, Tk::BrowseEntry
 

@@ -95,6 +95,7 @@ sub Populate {
     $cw->Delegates('DEFAULT'   => $t,
 		   'Search'    => 'SELF',
 		   'ShowMatch' => 'SELF',
+		   'Load'      => 'SELF',
 		  );
 
     $cw->{DIRECTION} = "Next";
@@ -106,6 +107,7 @@ sub Populate {
 		-pady          => [$t, qw(padY          Pad            5p)],
 		-searchcase    => ['PASSIVE', 'searchCase', 'SearchCase', 1],
 		-helpcommand   => ['CALLBACK', undef, undef, undef],
+		-background    => ['PASSIVE'],# XXX ignore -background, so optionAdd works.... still decide
 		'DEFAULT'      => [$t]
 		);
 
@@ -318,27 +320,27 @@ additional status/command line is added at the bottom.
 
 =over 4
 
-=item Key-g
+=item Key-g or Home
 
 goto beginning of file
 
-=item Key-G
+=item Key-G or End
 
 goto end of file
 
-=item Key-f
+=item Key-f or Next
 
 forward screen
 
-=item Key-b
+=item Key-b or Prior
 
 backward screen
 
-=item Key-k
+=item Key-k or Up
 
 up one line
 
-=item Key-j
+=item Key-j or Down
 
 down one line
 
@@ -365,6 +367,14 @@ up half screen
 =item Key-d
 
 down half screen
+
+=item Key-Return
+
+down one line
+
+=item Key-h
+
+invoke help window
 
 =back
 

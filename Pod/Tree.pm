@@ -246,12 +246,12 @@ sub Populate {
     my $m = $w->Menu(-tearoff => $Tk::platform ne 'MSWin32');
     eval { $w->menu($m) }; warn $@ if $@;
     $m->command(-label => 'Reload', -command => sub {
-		    $w->Busy(-recurse => 1);
+		    $w->toplevel->Busy(-recurse => 1);
 		    eval {
 			$w->Fill(-nocache => 1);
 		    };
 		    my $err = $@;
-		    $w->Unbusy(-recurse => 1);
+		    $w->toplevel->Unbusy(-recurse => 1);
 		    die $err if $err;
 		});
     $m->command(-label => 'Search...', -command => [$w, 'search_dialog']);

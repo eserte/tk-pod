@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.8 $, 10 . "";
+$VERSION = substr q$Revision: 2.9 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -112,10 +112,22 @@ sub _search {
     my $find = $e->get;
     $w->addHistory($find) if $find ne '';
 
-    require Tk::Pod::Search_db;
-
     #xxx: always open/close DBM files???
-    my $idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});
+    my $idx;
+    eval {
+        require Tk::Pod::Search_db;
+	$idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});
+    };
+    if ($@) {
+	$e->messageBox(-icon => 'error',
+		       -title => 'perlindex error',
+		       -message => <<EOF);
+Can't create Tk::Pod::Search_db object:
+Is perlindex installed and did you run
+perlindex -index?
+EOF
+	die $@;
+    }
     my @hits = $idx->searchWords($find);
     if (@hits) {
 	$l->delete(0,'end');

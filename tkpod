@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.23 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.24 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -133,9 +133,9 @@ if (defined($ufont) and defined($sfont)) {
     $mw->optionAdd('*Text.Font',  $ufont);
 }
 
-if (0) { # XXX still decide
+if (1 && $^O ne "MSWin32") { # XXX still decide
     my $lighter = $mw->Darken(Tk::NORMAL_BG, 110);
-    foreach my $class (qw(Entry More*ROText Pod*Tree)) {
+    foreach my $class (qw(Entry BrowseEntry.Entry More*ROText Pod*Tree)) {
 	$mw->optionAdd("*$class*background", $lighter, "userDefault");
     }
     $mw->optionAdd("*Pod*Pod*Frame*More*ROText*background", $lighter, "interactive");
@@ -160,20 +160,8 @@ if ($ENV{TKPODDIRS}) {
     }
 }
 
-if (!@ARGV)
- {
-  if (!$tree)
-   {
-    push @ARGV, "perl";
-   }
-  else
-   {
-    my $tl = $mw->Pod(-tree => 1,
-		      -exitbutton => 1);
-   }
- }
-
 my $file;
+my $opened = 0;
 foreach $file (@ARGV)
  {
   if (-d $file)
@@ -187,6 +175,19 @@ foreach $file (@ARGV)
     # -file => ... should be called after creating the Pod window,
     # because -title => ... is set implicitly by Pod's new
     $tl->configure(-file => $file);
+    $opened++;
+   }
+ }
+if (!$opened) # This may happen if all arguments are directories
+ {
+  if ($tree)
+   {
+    $mw->Pod(-tree => 1, -exitbutton => 1);
+   }
+  else
+   {
+    my $tl = $mw->Pod(-tree => $tree, -exitbutton => 1);
+    $tl->configure(-file => "perl");
    }
  }
 
@@ -206,12 +207,6 @@ if ($mw->children) {
     });
 } else {
     $mw->destroy;
-}
-if ($ENV{TKPODDEBUG} && $ENV{TKPODDEBUG} >= 10) {
-    eval {
-	$mw->WidgetDump;
-    };
-    warn $@ if $@;
 }
 MainLoop;
 unlink($portfile);

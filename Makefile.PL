@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9926";
+$DIST_VERSION = "0.9927";
 if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
  SEARCH_FOR_DIST_VERSION: {
@@ -20,7 +20,7 @@ if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
 
 WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk'             => 800.004,
-			     'Pod::Simple'    => 0,
+			     'Pod::Simple'    => 2.05, # there at least in 2.03 bugs when processing "-f ..." output
 			     'File::Temp'     => 0,
 			     # the following are really only COREQUISITES
 	                     'Text::English'  => 0,
@@ -32,7 +32,7 @@ WriteMakefile(
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
-	'EXE_FILES'	=> [ 'tkpod' ],
+	'EXE_FILES'	=> [ 'tkpod', 'tkmore' ],
 
 	'dist' 		=> {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
 );

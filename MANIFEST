@@ -21,4 +21,6 @@ t/podtree.t
 t/cmdline.t
 t/pods.t
 t/subclass.t
+t/more.t
+tkmore
 tkpod

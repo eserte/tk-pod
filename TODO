@@ -1,7 +1,7 @@
 =head1 TODO
 
-Scratch pad of bugs, missing features, and misbehaviors
-collected during I used tkpod.
+Scratch pad of bugs, missing features, and misbehaviors collected
+while using tkpod.
 
 =head2 BUGS
 
@@ -11,13 +11,15 @@ collected during I used tkpod.
 
 =item *
 
-What about the reported error on Suse Linux (see rt.cpan.org)? I can't
-reproduce this bug...
+What about the reported error on Suse Linux (see Tk-Pod entry on
+rt.cpan.org)? I can't reproduce this bug...
 
 =item *
 
 Dump does not always work on a RedHat 8.0 system, so I had to use a
-workaround.
+workaround. Also, Tk::Pod very often dumps core on this system in
+conjuction with perl5.8.0 and Tk800.025, but this might be a
+RedHat-related issue.
 
 =item *
 
@@ -26,14 +28,9 @@ C<< -wrap => "none" >> in tags being sometimes ignored)
 
 =item *
 
-PodText: interrupt process() if another file is loaded... Sometimes
-strange things may happen like all text is underlined. C<< => >>
-hopefully fixed now.
-
-=item *
-
-for Windows: check whether Tk::More/Tk::Tree match the system
-background colors
+For Windows: check whether Tk::More/Tk::Tree match the system
+background colors. Also check if the "Help" menu item is on the
+correct place.
 
 =item *
 
@@ -42,9 +39,9 @@ necessary (pod directory is /System/Library/Perl/pods)
 
 =item *
 
-Correct title is not displayed if function pod in displayed in a new
-window or when navigating in the history back or forward to a function
-pod.
+Title is not displayed if function or FAQ pod in displayed in a new
+window or when navigating in the history back or forward to a
+function/FAQ pod.
 
 =item *
 
@@ -62,11 +59,35 @@ use the name of a module in perl's pod path (specified without .pm or
 
 Do not move focus if already in PodText's search entry.
 
+=item *
+
+The perlfunc subentries do not show up in the history.
+
+=item *
+
+Paragraphs after bullet and number items do not align correctly.
+Tweaking the _indent functionality in Tk::Pod::SimpleBridge seems to
+be necessary.
+
 =back
 
-=head3 Tk::Pod::Cache
+=head3 Tk::Pod::Tree
 
 =over
+
+=item *
+
+Make tree busy while building first time.
+
+=back
+
+=head3 Tk::More
+
+=over
+
+=item *
+
+Highlight matches in link text.
 
 =back
 
@@ -101,6 +122,10 @@ to Tk::Pod::Text
 
 =item *
 
+make ManViewer into a standalone widget, link entries in "SEE ALSO" 
+
+=item *
+
 option for interleaving POD and code
 
 =item *
@@ -120,6 +145,16 @@ support for the new Pod::Index module (similar to the fulltext search)
 =item *
 
 some kind of stylesheet support
+
+=item *
+
+encoding support, especially for utf-8
+
+=item *
+
+It should probably be possible to create the menus Section and History
+independently of the main Tk::Pod frame, so the user may add these
+menus to the context menu of the PodText window.
 
 =back
 
@@ -163,6 +198,12 @@ use Tk::HistEntry for search entry
 
 implement isearch
 
+=item *
+
+<Return> over a link opens the link (but this needs some kind of
+"current link" feature, probably by using <Tab> or similar to select
+the next link).
+
 =back
 
 =head3 Tk::Pod::Cache
@@ -196,5 +237,10 @@ Should I include something similar to perlfunc for perlfaq (perldoc
 =item *
 
 Implement C<-rememberopen> in C<Fill> method.
+
+=item *
+
+Maybe categorize perl language pods like in suggested in
+L<http://www.perlmonks.org/index.pl?node_id=352893>.
 
 =back

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.11 2003/11/09 22:17:59 eserte Exp $
+# $Id: FindPods.pm,v 2.11 2003/11/09 22:17:59 eserte Exp eserte $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -87,7 +87,7 @@ the C<-directories> option (specify as an array reference).
 
 If C<-usecache> is specified, then the list of Pods is cached in a
 temporary directory. C<-usecache> is disabled if C<-categorized> is
-not set or C<-directorties> is set.
+not set or C<-directories> is set.
 
 =cut
 
@@ -175,7 +175,7 @@ sub pod_find {
 		my($ext1) = $hash->{$name}    =~ /\.(.*)$/;
 		my($ext2) = $File::Find::name =~ /\.(.*)$/;
 		if ($ext1 eq $ext2) {
-		    warn "Clash: $hash->{$name} <=> $File::Find::name";
+		    warn "Conflict: $hash->{$name} <=> $File::Find::name";
 		    return;
 		}
 	    }
@@ -226,13 +226,15 @@ sub pod_find {
 	}
     };
 
+    my %opts = (follow => 1, follow_skip => 2);
+
     foreach my $inc (@dirs) {
 	$curr_dir = $inc;
-	find($wanted, $inc);
+	find({ %opts, wanted => $wanted }, $inc);
     }
 
     foreach my $inc (@script_dirs) {
-	find($wanted_scripts, $inc);
+	find({ %opts, wanted => $wanted_scripts }, $inc);
     }
 
     $self->{pods} = \%pods;

@@ -1,0 +1,47 @@
+#!/usr/bin/perl -w
+
+use strict;
+use vars qw($VERSION);
+
+$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
+
+use Tk;
+use Tk::More;
+
+my $mw = tkinit;
+my $more = $mw->Scrolled("More",
+			 -font => "Courier 10", # XXX do not hardcode
+			 -scrollbars => "osoe",
+			)->pack(-fill => "both", -expand => 1);
+
+my $menu = $more->menu;
+my $fm = $menu->entrycget("File", -menu);
+$fm->insert("Exit", "command", -label => "Open ...", -underline => 0,
+	    -command => sub {
+		my $f = $more->getOpenFile;
+		return if !defined $f;
+		load_file($f);
+	    });
+my $helpmenu = $menu->Menu
+    (-tearoff => 0,
+     -menuitems => [
+		    [Button => "~Usage",
+		     -command => sub {
+			 require Tk::Pod;
+			 $mw->Pod(-file => "Tk::More");
+		     }]
+		   ]
+    );
+$menu->cascade(-label => "Help", -underline => 0, -menu => $helpmenu);
+$mw->configure(-menu => $menu);
+
+$more->focus;
+load_file(shift);
+$more->bind("<q>" => sub { $mw->destroy });
+MainLoop;
+
+sub load_file {
+    my $file = shift;
+    $more->Load($file);
+    $mw->title("tkmore - $file");
+}
