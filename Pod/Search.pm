@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.1 $, 10 . "";
+$VERSION = substr q$Revision: 2.2 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -88,7 +88,7 @@ sub _load_pod {
 
     my $pod = pretty2path( $l->get(($l->curselection)[0]));
 
-    $cw->Callback('-command', $pod);
+    $cw->Callback('-command', $pod, -searchterm => $cw->search());
 }
 
 
@@ -98,6 +98,7 @@ sub _search {
     my $l = shift;
 
     my $find = $e->get;
+    $w->addHistory($find) if $find ne '';
 
     require Tk::Pod::Search_db;
 
