@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.4 2003/10/15 21:30:20 eserte Exp $
+# $Id: FindPods.pm,v 2.5 2003/10/15 21:34:53 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.5 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -230,28 +230,8 @@ sub pod_find {
 	find($wanted_scripts, $inc);
     }
 
-    #XXX
-    if ($args{-cpan}) {	$self->add_cpan }
-
     $self->{pods} = \%pods;
     $self->{pods};
-}
-
-# XXX nach .../CPAN.pm auslagern (MANIFEST & RCS nicht vergessen)
-sub add_cpan {
-    my $self = shift;
-    my $pods = $self->{pods};
-    require CPAN;
-    for my $mod (CPAN::Shell->expand("Module","/./")) {
-	next if $mod->inst_file;
-	next if $mod->cpan_file =~ /^Contact/;
-        # MakeMaker convention for undefined $VERSION:
-#	next unless $mod->inst_version eq "undef";
-	(my $path = $mod->id) =~ s|::|/|g;
-	do {warn "$path excluded..."; next} if $path =~ m|/$|; # XXX wrong name Audio::Play::, wait for mail from Andreas or Nick
-	# XXX -categorized???
-	$pods->{type($mod->id)}->{$path} = "cpan:" . $mod->id; # XXX könnte OK sein
-    }
 }
 
 sub simplify_name {
