@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -183,13 +183,15 @@ sub pod_start_item_number {
 
 sub pod_end_Para        { $_[0]->_indent($_[2]); $_[0]->nlnl }
 sub pod_end_Verbatim    { $_[0]->_indent($_[2]); $_[0]->nlnl }
-sub pod_end_item_bullet { $_[0]->_indent($_[2]); $_[0]->nl }
-sub pod_end_item_number { $_[0]->_indent($_[2]); $_[0]->nl }
+sub pod_end_item_bullet { $_[0]->_indent($_[2]); $_[0]->nlnl }
+sub pod_end_item_number { $_[0]->_indent($_[2]); $_[0]->nlnl }
 sub pod_end_item_text   { $_[0]->_indent($_[2]); $_[0]->nl }
+
+sub pod_end_over_text   { $_[0]->nl } # XXX ok?
 
 sub _indent {
   my ($w, $start) = @_;
-  
+
   my $indent = 0;
   foreach my $s (@{ $w->{'style_stack'} }) {
     $indent += $s->[1] if @$s and $s->[0] eq 'indent';
