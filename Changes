@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9928
+	o -f and -q options for tkpod
+	o minor usability improvements
+
 version 0.9927
 	o new script tkmore (installed by default)
 	o experimental: menu icons (only with Tk::ToolBar installed
