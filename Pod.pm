@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
-$DIST_VERSION = "0.9928";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = "0.9929_99";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -398,25 +398,41 @@ sub help {
 }
 
 sub about {
+    my $w = shift;
+    require Tk::DialogBox;
+    require Tk::ROText;
+    my $d = $w->DialogBox(-title => "About Tk::Pod",
+			  -buttons => ["OK"],
+			 );
     my $message = <<EOF;
-This is:
-Tk-Pod distribution $DIST_VERSION
-Tk::Pod module $VERSION
+Tk::Pod - a Pod viewer written in Perl/Tk
 
-Using:
-@{[ $Pod::Simple::VERSION ? "Pod::Simple $Pod::Simple::VERSION\n"
+Version information:
+    Tk-Pod distribution $DIST_VERSION
+    Tk::Pod module $VERSION
+
+System information:
+    @{[ $Pod::Simple::VERSION ? "Pod::Simple $Pod::Simple::VERSION\n"
 			  : ""
-]}Tk $Tk::VERSION
-Perl $]
-OS $^O
+]}    Tk $Tk::VERSION
+    Perl $]
+    OS $^O
 
-Please contact <srezic\@cpan.org>
-in case of problems.
+Please contact <srezic\@cpan.org> in case of problems.
 EOF
-    $_[0]->messageBox(-title   => "About Tk::Pod",
-                      -icon    => "info",
-		      -message => $message,
-		     );
+    my @lines = split /\n/, $message;
+    my $width = 0;
+    for (@lines) {
+	$width = length $_ if length $_ > $width;
+    }
+    my $txt = $d->add("Scrolled", "ROText",
+		      -height => scalar @lines + 1,
+		      -width => $width + 1,
+		      -relief => "flat",
+		      -scrollbars => "oe",
+		     )->pack(-expand => 1, -fill => "both");
+    $txt->insert("end", $message);
+    $d->Show;
 }
 
 sub add_section_menu {
