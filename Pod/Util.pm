@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Util.pm,v 1.3 2003/02/05 16:12:30 eserte Exp $
+# $Id: Util.pm,v 1.4 2003/08/01 10:43:18 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2003 Slaven Rezic. All rights reserved.
@@ -15,7 +15,7 @@
 package Tk::Pod::Util;
 use strict;
 use vars qw($VERSION @EXPORT_OK);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
 
 use base qw(Exporter);
 @EXPORT_OK = qw(is_in_path is_interactive detect_window_manager);
@@ -74,7 +74,7 @@ sub detect_window_manager {
        ) {
 	return "kde";
     }
-    "x11";
+    "x11"; # generic X11 window manager
 }
 
 sub get_property {
@@ -93,7 +93,7 @@ __END__
 
 =head1 NAME
 
-Tk::Pod::Util - utility functions
+Tk::Pod::Util - Tk::Pod specific utility functions
 
 =head1 DESCRIPTION
 
