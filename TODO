@@ -68,6 +68,12 @@ o ignore =comment sections
 o for Windows: check whether Tk::More/Tk::Tree match the system
 background colors
 
+o if called from the full text search dialog: maybe jump to the first
+  occurence of the term in the pod
+
+o maybe special handling for Tk::Pod::FindPods under Mac OS X is
+  necessary (pod directory is /System/Library/Perl/pods)
+
 Tk::More:
 
 o Tk/More status bar:  filename  %   line x
@@ -82,5 +88,8 @@ o search policies: regexp, glob, incremental (as in xmore)
 
 o after switching between case sensitive/insensitive highlightning
   should be updated immediately
+
+o scrolling is not as exact as it shoule be (i.e. scroll forw, then
+  scroll back will not get to the same position as before)
 
 __END__
