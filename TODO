@@ -33,6 +33,8 @@ o maybe special handling for Tk::Pod::FindPods under Mac OS X is
 
 o maybe put the removed WWWBrowser code again to Tk::Pod::Text
 
+o option for interleaving POD and code
+
 Tk::More:
 
 o Tk/More status bar:  filename  %   line x
