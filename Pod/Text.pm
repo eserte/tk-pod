@@ -22,7 +22,7 @@ use Tk::Pod;
 use Tk::Pod::SimpleBridge;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.17 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.18 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge);
 
 BEGIN { DEBUG and print "Running ", __PACKAGE__, "\n" }
@@ -138,10 +138,15 @@ sub file {   # main entry point
       if ($tree_sw) {
 	  $tree_sw->SeePath("file:$path");
       }
-      #use Benchmark;
-      # my $t = new Benchmark;
+      my $t;
+      if (DEBUG) {
+	  require Benchmark;
+	  $t = Benchmark->new;
+      }
       $w->process($path);
-      # print &timediff(new Benchmark, $t)->timestr,"\n";
+      if (defined $t) {
+	  print Benchmark::timediff(Benchmark->new, $t)->timestr,"\n";
+      }
       $w->focus;
     }
   else
@@ -215,6 +220,22 @@ sub edit
       }
     }
   }
+}
+
+sub zoom_normal {
+    my $w = shift;
+    $w->adjust_font_size($w->standard_font_size);
+}
+
+# XXX should use different increments for different styles
+sub zoom_in {
+    my $w = shift;
+    $w->adjust_font_size($w->base_font_size-1);
+}
+
+sub zoom_out {
+    my $w = shift;
+    $w->adjust_font_size($w->base_font_size+1);
 }
 
 sub Populate
