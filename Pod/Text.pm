@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.42 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.43 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -618,7 +618,7 @@ sub Link_man {
     if ($man =~ s/\s*\((.*)\)\s*$//) {
 	$mansec = $1;
     }
-return $w->InternalManViewer($mansec, $man);
+return if $w->InternalManViewer($mansec, $man);
     my $manurl = "man:$man($mansec)";
     if (defined $sec && $sec ne "") {
 	$manurl .= "#$sec";
@@ -641,29 +641,54 @@ return $w->InternalManViewer($mansec, $man);
 	    return;
 	}
     }
-    $w->messageBox(
-      -title => "Tk::Pod Error",
-      -message => "No useable man browser found. Tried @manbrowser",
-    );
-    die;
+    if (!$w->InternalManViewer($mansec, $man)) {
+	$w->messageBox(
+          -title => "Tk::Pod Error",
+          -message => "No useable man browser found. Tried @manbrowser and internal man viewer via `man'",
+        );
+	die;
+    }
 }
 
 sub InternalManViewer {
     my($w, $mansec, $man) = @_;
+    return 0 if (!is_in_path("man"));
     my $t = $w->Toplevel(-title => "Manpage $man($mansec)");
     my $more = $t->Scrolled("More",
 			    -font => "Courier 10", # XXX do not hardcode
 			    -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w',
 			   )->pack(-fill => "both", -expand => 1);
+    $more->tagConfigure("bold", -font => "Courier 10 bold"); # XXX do not hardcode
     my $menu = $more->menu;
     $t->configure(-menu => $menu);
     local $SIG{PIPE} = "IGNORE";
     open(MAN, "man $mansec $man |") or die $!;
     while(<MAN>) {
-	s/.\cH//g;
-	$more->insert("end", $_);
+	chomp;
+	(my $line = $_) =~ s/.\cH//g;
+	my @bold;
+	while (/(.*?)((?:(.)(\cH\3)+)+)/g) {
+	    my($pre, $bm) = ($1, $2);
+	    $pre =~ s/.\cH//g;
+	    $bm  =~ s/.\cH//g;
+	    push @bold, length $pre, length $bm;
+	}
+	if (@bold) {
+	    my $is_bold = 0;
+	    foreach my $length (@bold) {
+		if ($length > 0) {
+		    (my($s), $line) = $line =~ /^(.{$length})(.*)/;
+		    $more->insert("end", $s, $is_bold ? "bold" : ());
+		}
+		$is_bold = 1 - $is_bold;
+	    }
+	    $more->insert("end", "$line\n");
+	} else {
+	    $more->insert("end", "$line\n");
+	}
     }
     close MAN;
+    1;
 }
 
 sub EnterLink {
