@@ -23,7 +23,7 @@ use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.25 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.26 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -857,10 +857,10 @@ Tk::Pod::Text - POD browser widget
 
     use Tk::Pod::Text;
 
-    $pod = $parent->PodText(
-		-file		=> ?
-		-scrollbars	=> ?
-		);
+    $pod = $parent->Scrolled("PodText",
+			     -file	 => $file,
+			     -scrollbars => "osoe",
+		            );
 
     $file = $pod->cget('-path');   # ?? the name path is confusing :-(
 
@@ -938,7 +938,7 @@ A file: F</usr/local/bin/perl>.  A variable $a without markup.
 
 S<boofar> is in SE<lt>E<gt>.
 
-German Umlaute:
+German umlauts:
 
 =over 4
 
@@ -958,7 +958,7 @@ German Umlaute:
 
 =back
 
-Pod with Umlaut: L<ExtUtils::MakeMaker> and ExtUtils::MakeMaker.
+Pod with umlaut: L<ExtUtils::MakeMaker>.
 
 Details:  L<perlpod> or perl, perlfunc.
 
@@ -978,7 +978,8 @@ Mixed Fonts: B<C<bold-fixed>>, B<I<bold-italics>>
 
 Non-breakable text: S<The quick brown fox jumps over the lazy fox.>
 
-I<< Modern >> POD constructs: C<< Double < >>.
+Modern POD constructs (multiple E<lt>E<gt>): I<< italic >>, C<< fixed
+with embedded < and > >>.
 
 Other POD docu: Tk::Font, Tk::BrowseEntry
 
