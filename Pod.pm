@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.30 $, 10) + 2 . "";
-$DIST_VERSION = "0.9925";
+$VERSION = substr(q$Revision: 2.32 $, 10) + 2 . "";
+$DIST_VERSION = "0.9926";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -14,22 +14,36 @@ Construct Tk::Widget 'Pod';
 my $openpod_history;
 my $searchfaq_history;
 
+sub Pod_Text_Widget { "PodText" }
+sub Pod_Text_Module { "Tk::Pod::Text" }
+
+sub Pod_Tree_Widget { "PodTree" }
+sub Pod_Tree_Module { "Tk::Pod::Tree" }
+
 sub Populate
 {
  my ($w,$args) = @_;
 
- require Tk::Pod::Text;
- require Tk::Pod::Tree;
+ if ($w->Pod_Text_Module)
+  {
+   eval q{ require } . $w->Pod_Text_Module;
+   die $@ if $@;
+  }
+ if ($w->Pod_Tree_Module)
+  {
+   eval q{ require } . $w->Pod_Tree_Module;
+   die $@ if $@;
+  }
 
  $w->SUPER::Populate($args);
 
- my $tree = $w->Scrolled('PodTree',
+ my $tree = $w->Scrolled($w->Pod_Tree_Widget,
 			 -scrollbars => 'oso'.($Tk::platform eq 'MSWin32'?'e':'w')
 			);
  $w->Advertise('tree' => $tree);
 
  my $searchcase = 0;
- my $p = $w->Component('PodText' => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
+ my $p = $w->Component($w->Pod_Text_Widget => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
 
  my $exitbutton = delete $args->{-exitbutton} || 0;
 
@@ -38,17 +52,24 @@ sub Populate
 
   [Cascade => '~File', -menuitems =>
    [
-    [Button => '~Open File...', '-command' => ['openfile',$w]],
-    [Button => 'Open ~by Name...', '-command' => ['openpod',$w,$p]],
-    [Button => '~New Window...', '-command' => ['newwindow',$w,$p]],
-    [Button => '~Reload',    '-command' => ['reload',$p]],
+    [Button => '~Open File...', '-accelerator' => 'F3',
+     '-command' => ['openfile',$w]],
+    [Button => 'Open ~by Name...', '-accelerator' => 'Ctrl+O',
+     '-command' => ['openpod',$w,$p]],
+    [Button => '~New Window...', '-accelerator' => 'Ctrl+N',
+     '-command' => ['newwindow',$w,$p]],
+    [Button => '~Reload',    '-accelerator' => 'Ctrl+R',
+     '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
     [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
-    [Button => '~Print'. ($p->PrintHasDialog ? '...' : ''),  '-command' => ['Print',$p]],
+    [Button => '~Print'. ($p->PrintHasDialog ? '...' : ''),
+     '-accelerator' => 'Ctrl+P', '-command' => ['Print',$p]],
     [Separator => ""],
-    [Button => '~Close',     '-command' => ['quit',$w]],
+    [Button => '~Close',     '-accelerator' => 'Ctrl+W',
+     '-command' => ['quit',$w]],
     ($exitbutton
-     ? [Button => 'E~xit',      '-command' => sub { $p->MainWindow->destroy }]
+     ? [Button => 'E~xit',   '-accelerator' => 'Ctrl+Q',
+	'-command' => sub { $p->MainWindow->destroy }]
      : ()
     ),
    ]
@@ -109,14 +130,25 @@ sub Populate
     'DEFAULT' => [$p],
  );
 
- foreach my $mod (qw(Alt Meta))
-  {
-   $w->bind($w->toplevel->PathName, "<$mod-Left>"  => [$p, 'history_move', -1]);
-   $w->bind($w->toplevel->PathName, "<$mod-Right>" => [$p, 'history_move', +1]);
-  }
+ {
+  my $path = $w->toplevel->PathName;
+  foreach my $mod (qw(Alt Meta))
+   {
+    $w->bind($path, "<$mod-Left>"  => [$p, 'history_move', -1]);
+    $w->bind($path, "<$mod-Right>" => [$p, 'history_move', +1]);
+   }
 
- $w->bind($w->toplevel->PathName, "<Control-minus>" => [$p, 'zoom_out']);
- $w->bind($w->toplevel->PathName, "<Control-plus>" => [$p, 'zoom_in']);
+  $w->bind($path, "<Control-minus>" => [$p, 'zoom_out']);
+  $w->bind($path, "<Control-plus>" => [$p, 'zoom_in']);
+  $w->bind($path, "<F3>" => [$w,'openfile']);
+  $w->bind($path, "<Control-o>" => [$w,'openpod',$p]);
+  $w->bind($path, "<Control-n>" => [$w,'newwindow',$p]);
+  $w->bind($path, "<Control-r>" => [$p, 'reload']);
+  $w->bind($path, "<Control-p>" => [$p, 'Print']);
+  $w->bind($path, "<Control-w>" => [$w, 'quit']);
+  $w->bind($path, "<Control-q>" => sub { $p->MainWindow->destroy })
+      if $exitbutton;
+ }
 
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
 }
@@ -185,14 +217,14 @@ sub openpod {
     $t->OnDestroy(sub { $go = -1 unless $go });
     $t->waitVariable(\$go);
     if (Tk::Exists($t)) {
-	if ($pod ne "" && $go > 0 && $e->can('historyAdd')) {
+	if (defined $pod && $pod ne "" && $go > 0 && $e->can('historyAdd')) {
 	    $e->historyAdd($pod);
-	    $searchfaq_history = [ $e->history ];
+	    $openpod_history = [ $e->history ];
 	}
 	$t->grabRelease;
 	$t->destroy;
     }
-    if ($pod ne "") {
+    if (defined $pod && $pod ne "") {
 	if ($go == 1) {
 	    $cw->configure(-file => $pod);
 	} elsif ($go == 2) {
@@ -390,9 +422,16 @@ sub SearchFAQ {
     $t->grab;
     my($keyword, $go, $e);
     {
+	my $Entry = 'Entry';
+	eval {
+	    require Tk::HistEntry;
+	    Tk::HistEntry->VERSION(0.40);
+	    $Entry = "HistEntry";
+	};
+
 	my $f = $t->Frame->pack(-fill => "x");
 	$f->Label(-text => "FAQ keyword:")->pack(-side => "left");
-	$e = $f->Entry(-textvariable => \$keyword)->pack(-side => "left");
+	$e = $f->$Entry(-textvariable => \$keyword)->pack(-side => "left");
 	if ($e->can('history') && $searchfaq_history) {
 	    $e->history($searchfaq_history);
 	}
@@ -414,14 +453,14 @@ sub SearchFAQ {
     $t->OnDestroy(sub { $go = -1 unless $go });
     $t->waitVariable(\$go);
     if (Tk::Exists($t)) {
-	if ($keyword ne "" && $go > 0 && $e->can('historyAdd')) {
+	if (defined $keyword && $keyword ne "" && $go > 0 && $e->can('historyAdd')) {
 	    $e->historyAdd($keyword);
 	    $searchfaq_history = [ $e->history ];
 	}
 	$t->grabRelease;
 	$t->destroy;
     }
-    if ($keyword ne "") {
+    if (defined $keyword && $keyword ne "") {
 	if ($go) {
 	    require File::Temp;
 	    my($fh, $pod) = File::Temp::tempfile(UNLINK => 1,
@@ -430,14 +469,21 @@ sub SearchFAQ {
 	    print $fh $out;
 	    close $fh;
 
-	    if ($go == 1) {
-		$cw->configure(-file => $pod);
-	    } elsif ($go == 2) {
-		my $new_cw = $cw->MainWindow->Pod
-		    ('-tree' => $cw->cget('-tree'),
-		     '-exitbutton' => $cw->cget('-exitbutton'),
-		    );
-		$new_cw->configure('-file' => $pod);
+	    if (-z $pod) {
+		$cw->messageBox(-title   => "No FAQ keyword",
+				-icon    => "error",
+				-message => "FAQ keyword not found",
+			       );
+	    } else {
+		if ($go == 1) {
+		    $cw->configure(-file => $pod);
+		} elsif ($go == 2) {
+		    my $new_cw = $cw->MainWindow->Pod
+			('-tree' => $cw->cget('-tree'),
+			 '-exitbutton' => $cw->cget('-exitbutton'),
+			);
+		    $new_cw->configure('-file' => $pod);
+		}
 	    }
 	}
     }

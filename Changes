@@ -1,5 +1,15 @@
 History for Tk::Pod
 
+version 0.9926
+	o changed search order: .pod files first, then .pm, .pl and
+	  extension-less files
+	o Tk::Pod and Tk::Pod::Text are now better subclassable
+	o new tests t/pods.t and t/subclass.t
+	o changed -selectforeground in tree view
+	o polished Tk::HistEntry support
+	o new menu accelerators
+	o tiny layout change for =item (by Torsten Foertsch)
+
 version 0.9925
 	o Tk::Pod::FindPods: using opendir/readdir instead of glob
 

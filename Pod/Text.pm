@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.37 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.39 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -82,7 +82,7 @@ sub Find
    foreach $prefix ("","pod/","pods/")
     {
      my $suffix;
-     foreach $suffix ("",".pod",".pm")
+     foreach $suffix (".pod",".pm",".pl","")
       {
        my $path = "$dir/" . $prefix . $file . $suffix;
        return $path if (-r $path && -T $path);
@@ -311,6 +311,8 @@ sub edit
   }
 }
 
+sub _sgn { $_[0] cmp 0 }
+
 sub zoom_normal {
     my $w = shift;
     $w->adjust_font_size($w->standard_font_size);
@@ -320,33 +322,39 @@ sub zoom_normal {
 # XXX should use different increments for different styles
 sub zoom_out {
     my $w = shift;
-    $w->adjust_font_size($w->base_font_size-1);
+    $w->adjust_font_size($w->base_font_size - 1 * _sgn($w->base_font_size));
     $w->clear_cache;
 }
 
 sub zoom_in {
     my $w = shift;
-    $w->adjust_font_size($w->base_font_size+1);
+    $w->adjust_font_size($w->base_font_size + 1 * _sgn($w->base_font_size));
     $w->clear_cache;
 }
+
+sub More_Widget { "More" }
+sub More_Module { "Tk::More" }
 
 sub Populate
 {
     my ($w,$args) = @_;
 
-    require Tk::More;
+    if ($w->More_Module) {
+	eval q{ require } . $w->More_Module;
+	die $@ if $@;
+    }
 
     $w->SUPER::Populate($args);
 
     $w->privateData()->{history} = [];
     $w->privateData()->{history_index} = -1;
 
-    my $p = $w->Scrolled('More',
+    my $p = $w->Scrolled($w->More_Widget,
 			 -helpcommand => sub {
 			     $w->parent->help if $w->parent->can('help');
 			 },
 			 -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w');
-    my $p_scr = $p->Subwidget('more');
+    my $p_scr = $p->Subwidget('scrolled');
     $w->Advertise('more' => $p_scr);
     $p->pack(-expand => 1, -fill => 'both');
 
@@ -596,7 +604,7 @@ sub Link_url {
 	    } elsif ($^O eq 'cygwin') {
 		system("explorer $url &");
 	    } else {
-		system("netscape $url &");
+		system("mozilla $url &");
 	    }
 	};
     }

@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9925";
+$DIST_VERSION = "0.9926";
 if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
  SEARCH_FOR_DIST_VERSION: {
@@ -44,7 +44,7 @@ demo :: pure_all
 
 EOF
 
-    if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
+    if (defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk") {
 	$postamble .= <<'EOF';
 
 .include "../../perl.release.mk"

@@ -19,4 +19,6 @@ Pod/Util.pm
 t/basic.t
 t/podtree.t
 t/cmdline.t
+t/pods.t
+t/subclass.t
 tkpod

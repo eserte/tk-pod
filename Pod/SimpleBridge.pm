@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -160,6 +160,7 @@ sub pod_end_Document {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 sub nlnl { $_[0]->insert( 'end -1c', "\n\n" ); $_[0]; }
+sub nl { $_[0]->insert( 'end -1c', "\n" ); $_[0]; }
 
 sub fake_unget_bold_text {
   require Pod::Simple::PullParserStartToken;
@@ -182,9 +183,9 @@ sub pod_start_item_number {
 
 sub pod_end_Para        { $_[0]->_indent($_[2]); $_[0]->nlnl }
 sub pod_end_Verbatim    { $_[0]->_indent($_[2]); $_[0]->nlnl }
-sub pod_end_item_bullet { $_[0]->_indent($_[2]); $_[0]->nlnl }
-sub pod_end_item_number { $_[0]->_indent($_[2]); $_[0]->nlnl }
-sub pod_end_item_text   { $_[0]->_indent($_[2]); $_[0]->nlnl }
+sub pod_end_item_bullet { $_[0]->_indent($_[2]); $_[0]->nl }
+sub pod_end_item_number { $_[0]->_indent($_[2]); $_[0]->nl }
+sub pod_end_item_text   { $_[0]->_indent($_[2]); $_[0]->nl }
 
 sub _indent {
   my ($w, $start) = @_;
