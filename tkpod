@@ -3,7 +3,7 @@
 use strict;
 use vars '$VERSION';
 
-$VERSION = substr q$Revision: 1.5 $, 10;
+$VERSION = substr q$Revision: 1.6 $, 10;
 
 BEGIN {
 	print STDERR <<EOT unless @ARGV;
@@ -109,8 +109,8 @@ To navigate through the documentation one could use
 A B<click> on a hyperlinks display the corresponding documentation
 (if there is any) in the same window.
 
-If the B<Shift> key is simultanously pressed a new
-window is opened. 
+With <Button-2> the documentation is loaded into a new window
+(<Shift-Button-1> works also for those 2 button mouse owners).
 
 =item * Selection
 

@@ -7,7 +7,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr q$Revision: 1.5 $, 10;
+$VERSION = substr q$Revision: 1.6 $, 10;
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -310,6 +310,8 @@ sub _expand
        # a link when buttun is released
        $w->tag('bind',$tag, '<ButtonRelease-1>',
 		[$w,'Link', 'reuse',Tk::Ev('@%x,%y'),$what]);
+       $w->tag('bind',$tag, '<Shift-ButtonRelease-1>',
+		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
        $w->tag('bind',$tag, '<ButtonRelease-2>',
 		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
        $w->tag('configure',$tag,

@@ -3,7 +3,7 @@ use strict;
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr q$Revision: 1.3 $, 10;
+$VERSION = substr q$Revision: 1.4 $, 10 + 1; # so it's > 2.005
 
 @ISA = qw(Tk::Toplevel);
 

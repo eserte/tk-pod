@@ -41,6 +41,18 @@ Win95/NT Users:
 
 History:
 
+version 0.0401
+
+	o For 2 button mouse owners:
+		<Shift-ButtonRelease-1> does same
+		as <ButtonRelease-2>: load doc into
+		new window.
+
+	o Fixed Tk::Pod version to be higher than in
+	  Tk402.003 so CPAN.pm gets the right distribution
+
+	o more TODO entries :-)
+
 version 0.04
 
 	o applied Tk/Parse.pm patch of Slaven Rezic

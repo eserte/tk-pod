@@ -1,18 +1,32 @@
 Scratch pad of bugs missing features and misbehavior I've
 found during the usage of tkpod:
 
+o Stephen J. Lusol suggested:
+	... It would be nice if Tk::Pod had a
+	Print feature in the File menu....
+
+  open (|lpr -h) print $t->get(1.0,end) (too bad)
+  pod2man | groff -man | lpr -h
+  pod2ps
+  wasn't there a ptk lpr wrapper!???
+
+  config via ENV var or is there a Preferences menu out there?
+  (maybe use Tk-getopt and set useful defaults for missing cmd
+  line params?)
+
+o perlfunc.pod complains 3 times that -X should be i[BC]<-X>
+  Maybe add silent and 'lint' mode (but output to another
+  text widget)
+
 o after =back missing horizontal white space, see 'sz'
   in Tk::Pod::Text.pm POD
 
 o add all ISO-Latin1 char names to Tk/Pod/Text $translate
   (check lwp for lib function).
 
-o <Shift-Button-1> to open new POD window should be
-  <Button-2>.
-
-o Set title to name of pod instead of Pod. (but on reload
+o Set title to name of pod instead of Pod. (But on reload
   title is file).  Some time // prefix, sometimes /./ slips
-  in.
+  in. (Tk403.002 Toplevel patch posted so 'Pod' as title is fixed)
 
 o Tk/More status bar:  filename  %   line x
 
