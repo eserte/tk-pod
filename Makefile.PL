@@ -14,10 +14,13 @@ EOT
   }
 
 WriteMakefile(
-	'PREREQ_PM'	=> { 'Tk' => 800, 'Text::English' => 0 },
+	'PREREQ_PM'	=> { 'Tk'             => 800,
+	                     'Text::English'  => 0,
+			     'Pod::Simple'    => 0,
+			   },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
-	'VERSION'	=> '0.99_08',
+	'VERSION'	=> '0.99_10',
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
