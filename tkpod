@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.19 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.20 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -39,6 +39,47 @@ sub INIT {
 }
 
 use Tk;
+
+# Experimental mousewheel support. This should really be part of Tk.
+# XXX <MouseWheel> support for Windows is untested.
+BEGIN {
+    if ($Tk::VERSION < 804) {
+	local $^W = 0;
+	require Tk::Listbox;
+	my $orig_tk_listbox_classinit = \&Tk::Listbox::ClassInit;
+	*Tk::Listbox::ClassInit = sub {
+	    my($class,$mw)=@_;
+	    $orig_tk_listbox_classinit->(@_);
+	    $mw->bind($class, "<4>", ['yview', 'scroll', -5, 'units']);
+	    $mw->bind($class, "<5>", ['yview', 'scroll', +5, 'units']);
+	    $mw->bind($class, '<MouseWheel>',
+		      [ sub { $_[0]->yview('scroll',-($_[1]/120)*3,'units') }, Tk::Ev("D")]);
+	};
+
+	require Tk::ROText;
+	my $orig_tk_text_classinit = \&Tk::ROText::ClassInit;
+	*Tk::ROText::ClassInit = sub {
+	    my($class,$mw)=@_;
+	    $orig_tk_text_classinit->(@_);
+	    $mw->bind($class, "<4>", ['yview', 'scroll', -5, 'units']);
+	    $mw->bind($class, "<5>", ['yview', 'scroll', +5, 'units']);
+	    $mw->bind($class, '<MouseWheel>',
+		      [ sub { $_[0]->yview('scroll',-($_[1]/120)*3,'units') }, Tk::Ev("D")]);
+	};
+
+	require Tk::HList;
+	my $orig_tk_hlist_classinit = \&Tk::HList::ClassInit;
+	*Tk::HList::ClassInit = sub {
+	    my($class,$mw)=@_;
+	    $orig_tk_hlist_classinit->(@_);
+	    $mw->bind($class, "<4>", ['yview', 'scroll', -5, 'units']);
+	    $mw->bind($class, "<5>", ['yview', 'scroll', +5, 'units']);
+	    $mw->bind($class, '<MouseWheel>',
+		      [ sub { $_[0]->yview('scroll',-($_[1]/120)*3,'units') }, Tk::Ev("D")]);
+	};
+    }
+}
+
 ### Problems under Windows... do not use it anymore
 #BEGIN { eval { require Tk::FcyEntry; }; };
 use Tk::Pod 4.18;
