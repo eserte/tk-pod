@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9929
+	o no functional changes, just repair version damage
+
 version 0.9928
 	o -f and -q options for tkpod
 	o fixes for Windows (tested with ActivePerl)
