@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.5 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.6 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -80,6 +80,7 @@ sub Populate
     # XXX restructure to not reference to tkpod
     [Button => '~Usage...',       -command => ['help', $w]],
     [Button => '~Programming...', -command => sub { $w->parent->Pod(-file=>'Tk/Pod.pm') }],
+    [Button => '~About...', -command => ['about', $w]],
    ]
   ]
  ];
@@ -161,6 +162,12 @@ sub quit { shift->destroy }
 
 sub help {
     shift->parent->Pod(-file=>'Tk::Pod_usage.pod');
+}
+
+sub about {
+    shift->messageBox(-icon => "info",
+		      -message => "Tk::Pod $VERSION\nPlease contact <slaven.rezic\@berlin.de>\nin case of problems."
+		     );
 }
 
 sub add_section_menu {
