@@ -15,7 +15,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 2.6 $, 10) . "";
+$VERSION = substr(q$Revision: 2.7 $, 10) . "";
 
 use Carp;
 use Fcntl;
@@ -35,7 +35,7 @@ sub new {
     my (%self, %IF, %IDF, %FN);
     tie (%IF,   'AnyDBM_File', "$idir/index_if",   O_RDONLY, 0644)
         	or confess "Could not tie $idir/index_if: $!\n".
-            	"Did you run 'perlindex -index'?\n";
+            	"Did you install Text::English and run 'perlindex -index'?\n";
     tie (%IDF,  'AnyDBM_File', "$idir/index_idf",   O_RDONLY, 0644)
         	or confess "Could not tie $idir/index_idf: $!\n";
     tie (%FN,   'AnyDBM_File', "$idir/index_fn",   O_RDONLY, 0644)
@@ -74,7 +74,13 @@ sub normalize {
 
 # changes for perlindex's search slightly modified
 sub searchWords {
-    my $self = shift;
+    my($self, $_word, %args) = @_;
+
+    my $restrict_pod = $args{-restrictpod};
+    if (defined $restrict_pod) {
+	$restrict_pod =~ s{::}{/}g;
+	$restrict_pod = quotemeta $restrict_pod;
+    }
 
     #print "try words|", join('|',@_),"\n";
     my %score;
@@ -86,30 +92,32 @@ sub searchWords {
     my $FN  = $self->{FN};
 
     #xxx &initstop if $opt_verbose;
-    my ($word, $did, %post); #xxx
-    for $word (normalize(@_)) {
-        unless ($IF->{$word}) {
-            #xxxif ($stop{$word}) {
-            #xxx    push @stop, $word;
-            #xxx} else {
-            #xxx    push @unknown, $word;
-            #xxx}
-            next;
-        }
-        #my %post = unpack($p.'*',$IF->{$word});
-        %post = unpack('w*',$IF->{$word});
-        my $idf = log($FN->{'last'}/$IDF->{$word});
-        for $did (keys %post) {
-            #xxx my ($maxtf) = unpack($p, $FN->{$did});
-            my ($maxtf) = unpack('w', $FN->{$did});
-            $score{$did} = 0 unless defined $score{$did}; # perl -w
-            $score{$did} += $post{$did} / $maxtf * $idf;
-        }
+    my ($did, %post); #xxx
+ TRY: {
+	my($word) = normalize($_word);
+	unless ($IF->{$word}) {
+	    #xxxif ($stop{$word}) {
+	    #xxx    push @stop, $word;
+	    #xxx} else {
+	    #xxx    push @unknown, $word;
+	    #xxx}
+	    next;
+	}
+	#my %post = unpack($p.'*',$IF->{$word});
+	%post = unpack('w*',$IF->{$word});
+	my $idf = log($FN->{'last'}/$IDF->{$word});
+	for $did (keys %post) {
+	    #xxx my ($maxtf) = unpack($p, $FN->{$did});
+	    my ($maxtf) = unpack('w', $FN->{$did});
+	    $score{$did} = 0 unless defined $score{$did}; # perl -w
+	    $score{$did} += $post{$did} / $maxtf * $idf;
+	}
     }
 
     my @results;
     for $did (sort {$score{$b} <=> $score{$a}} keys %score) {
             my ($mtf, $path) = unpack('wa*', $FN->{$did});
+	    next if ($restrict_pod && $path !~ /$restrict_pod/);
             push @results, $score{$did}, $path;
             last unless --$maxhits;
     }
