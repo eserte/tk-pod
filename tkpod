@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 use IO::Socket;
 
@@ -387,7 +387,8 @@ in the "local dirs" section of the tree view.
 
 =back
 
-See L<Tk::Pod::Text/Environment> for more environment variables.
+See L<Tk::Pod::Text/Environment> and L<Tk::Pod::FindPods/Environment>
+for more environment variables.
 
 =head1 KNOWN BUGS
 
