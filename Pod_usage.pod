@@ -10,7 +10,9 @@ To navigate through the documentation one could use
 =head2 Hyperlinks
 
 A B<click> on a hyperlink display the corresponding documentation
-(if there is any) in the same window.
+(if there is any) in the same window. An URL will be displayed in a
+web browser using the (non-CPAN) C<WWWBrowser> module (this will
+hopefully change).
 
 With <Button-2> the documentation is loaded into a new window
 (<Shift-Button-1> works also for those with only a 2 button mouse).
@@ -58,20 +60,23 @@ in history of displayed documentation
 
 the documentation
 
-=item o Edit
+=item o Edit POD
 
-start editor with source of the displayed document.
+Start editor with source of the displayed document.
 
-=for comment The used editor is selected by the first definition of
-the environment variables C<XEDITOR>, C<VISUAL>, C<EDITOR>
-or as default F</usr/bin/vi>.
+The used editor is selected by the first definition of the environment
+variables C<XEDITOR>, C<VISUAL>, C<EDITOR> or as default
+F</usr/bin/vi>. If no terminal is available (or on Windows platforms),
+the L<ptked|ptked> editor (bundled with Perl/Tk) will be used instead.
 
-The L<ptked|ptked> editor (bundled with Perl/Tk) will be used.
+See also the menu entries 'File' -E<gt> 'Edit' and 'File' -E<gt> 'Edit
+with ptked'.
 
-=item o Search ...
+=item o Search fulltext
 
-Full text search of the POD in the perl library directories.
-(Note: to use it one has to install perlindex distribution.)
+Full text search of the POD in the perl library directories. (Note: to
+use it one has to install perlindex distribution, see
+L<Text::English|Text::English>)
 
 =back
 
@@ -84,7 +89,9 @@ L<pod2text>,
 L<pod2html>,
 L<Tk::Pod>,
 L<Tk::Pod::Text>,
-L<Tk::More>.
+L<Tk::Pod::Tree>,
+L<Tk::More>,
+L<Tk::Pod::English>,
 
 =head1 KEYWORDS
 
