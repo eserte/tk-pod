@@ -4,14 +4,15 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.24 $, 10) + 2 . "";
-$DIST_VERSION = "0.9920";
+$VERSION = substr(q$Revision: 2.26 $, 10) + 2 . "";
+$DIST_VERSION = "0.9922";
 
 @ISA = qw(Tk::Toplevel);
 
 Construct Tk::Widget 'Pod';
 
 my $openpod_history;
+my $searchfaq_history;
 
 sub Populate
 {
@@ -72,7 +73,8 @@ sub Populate
     [Button => 'R~epeat backwards', '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev']],
     [Checkbutton => '~Case sensitive', -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) }],
     [Separator => ""],
-    [Button => 'Search ~full text', '-command' => ['SearchFullText', $p, 'Prev']],
+    [Button => 'Search ~full text', '-command' => ['SearchFullText', $p]],
+    [Button => 'Search FA~Q', '-command' => ['SearchFAQ', $w, $p]],
    ]
   ],
 
@@ -127,7 +129,6 @@ sub openfile {
     if ($cw->can("getOpenFile")) {
 	$file = $cw->getOpenFile
 	    (-title => "Choose Pod file",
-	     -defaultextension => 'pod',
 	     -filetypes => [['Pod containing files', ['*.pod',
 						      '*.pl',
 						      '*.pm']],
@@ -186,7 +187,7 @@ sub openpod {
     if (Tk::Exists($t)) {
 	if ($pod ne "" && $go > 0 && $e->can('historyAdd')) {
 	    $e->historyAdd($pod);
-	    $openpod_history = [ $e->history ];
+	    $searchfaq_history = [ $e->history ];
 	}
 	$t->grabRelease;
 	$t->destroy;
@@ -439,6 +440,66 @@ sub _configure_tree {
 	     }
 	 },
 	);
+}
+
+sub SearchFAQ {
+    my($cw, $p) = @_;
+    my $t = $cw->Toplevel(-title => "Perl FAQ Search");
+    $t->transient($cw);
+    $t->grab;
+    my($keyword, $go, $e);
+    {
+	my $f = $t->Frame->pack(-fill => "x");
+	$f->Label(-text => "FAQ keyword:")->pack(-side => "left");
+	$e = $f->Entry(-textvariable => \$keyword)->pack(-side => "left");
+	if ($e->can('history') && $searchfaq_history) {
+	    $e->history($searchfaq_history);
+	}
+	$e->focus;
+	$go = 0;
+	$e->bind("<Return>" => sub { $go = 1 });
+	$e->bind("<Escape>" => sub { $go = -1 });
+    }
+    {
+	my $f = $t->Frame->pack;
+	$f->Button(-text => "OK",
+		   -command => sub { $go = 1 })->pack(-side => "left");
+	$f->Button(-text => "New window",
+		   -command => sub { $go = 2 })->pack(-side => "left");
+	$f->Button(-text => "Cancel",
+		   -command => sub { $go = -1 })->pack(-side => "left");
+    }
+    $t->Popup(-popover => $cw);
+    $t->OnDestroy(sub { $go = -1 unless $go });
+    $t->waitVariable(\$go);
+    if (Tk::Exists($t)) {
+	if ($keyword ne "" && $go > 0 && $e->can('historyAdd')) {
+	    $e->historyAdd($keyword);
+	    $searchfaq_history = [ $e->history ];
+	}
+	$t->grabRelease;
+	$t->destroy;
+    }
+    if ($keyword ne "") {
+	if ($go) {
+	    require File::Temp;
+	    my($fh, $pod) = File::Temp::tempfile(UNLINK => 1,
+						 SUFFIX => ".pod");
+	    my $out = `perldoc -u -q $keyword`; # XXX protect keyword
+	    print $fh $out;
+	    close $fh;
+
+	    if ($go == 1) {
+		$cw->configure(-file => $pod);
+	    } elsif ($go == 2) {
+		my $new_cw = $cw->MainWindow->Pod
+		    ('-tree' => $cw->cget('-tree'),
+		     '-exitbutton' => $cw->cget('-exitbutton'),
+		    );
+		$new_cw->configure('-file' => $pod);
+	    }
+	}
+    }
 }
 
 1;

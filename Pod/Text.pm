@@ -24,7 +24,7 @@ use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.32 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.33 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -239,17 +239,20 @@ sub edit
 sub zoom_normal {
     my $w = shift;
     $w->adjust_font_size($w->standard_font_size);
+    $w->clear_cache;
 }
 
 # XXX should use different increments for different styles
 sub zoom_in {
     my $w = shift;
     $w->adjust_font_size($w->base_font_size-1);
+    $w->clear_cache;
 }
 
 sub zoom_out {
     my $w = shift;
     $w->adjust_font_size($w->base_font_size+1);
+    $w->clear_cache;
 }
 
 sub Populate

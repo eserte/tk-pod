@@ -1,5 +1,15 @@
 History for Tk::Pod
 
+version 0.9922
+	o fixed logic in Tk::Pod::FindPods
+
+version 0.9921
+	o new feature: search Perl FAQ
+	o bugfix (hopefully): aborting the rendering sometimes caused the
+	  styles to get messed up
+	o bugfix: changing the font size now also propagates to Pod pages
+	  in the history
+
 version 0.9920
 	o more information in About dialog
 	o Tk::Pod::Cache: workaround for a reload bug (seen on RedHat 8.0 only)

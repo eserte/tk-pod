@@ -11,13 +11,19 @@ collected during I used tkpod.
 
 =item *
 
+What about the reported error on Suse Linux (see rt.cpan.org)? I can't
+reproduce this bug...
+
+=item *
+
 SE<lt>E<gt> seems often to be ignored. May be a core Tk::Text bug (i.e.
 C<< -wrap => "none" >> in tags being sometimes ignored)
 
 =item *
 
 PodText: interrupt process() if another file is loaded... Sometimes
-strange things may happen like all text is underlined.
+strange things may happen like all text is underlined. C<< => >>
+hopefully fixed now.
 
 =item *
 
@@ -34,11 +40,6 @@ necessary (pod directory is /System/Library/Perl/pods)
 =head3 Tk::Pod::Cache
 
 =over
-
-=item *
-
-problem: change font size => back => cached document has still the
-old font sizes
 
 =back
 
@@ -121,6 +122,10 @@ scroll back will not get to the same position as before)
 =item *
 
 use Tk::HistEntry for search entry
+
+=item *
+
+implement isearch
 
 =back
 

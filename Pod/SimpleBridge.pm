@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -44,7 +44,9 @@ sub process { # main routine: non-handler
 
   $w->{'sections'} = [];
   $w->{'pod_tag'} = '10000'; # counter
-  my $style_stack = $w->{'style_stack'} ||= [];
+#XXX  my $style_stack = $w->{'style_stack'} ||= []; # || is probably harmful
+  my $style_stack = $w->{'style_stack'} = [];
+
   my @pod_marks;
 
   DEBUG and warn "Pull-parsing $file (process number $process_no)\n";
