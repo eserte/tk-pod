@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.17 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.18 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -55,15 +55,14 @@ if (!GetOptions("tk" => \$tk_opt,
 		"notree" => sub { $tree = 0 },
 		"s|server!" => \$server,
 		"Mblib" => \$Mblib,
-		#XXX "I=s@" => \@I,
+		"I=s@" => \@I,
 		"d|debug!" => \$debug,
 	       )) {
     die <<EOT;
-Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-d|debug] [-s|server]
+Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-I dir] [-d|debug] [-s|server]
             [directory|name [...]]
 
 EOT
-# XXX: [-Ilib ...]
 }
 
 # Add 'Tk' subdirectories to search path so, e.g.,
@@ -104,6 +103,7 @@ $mw->optionAdd('*Menu.tearOff', $Tk::platform ne 'MSWin32' ? 1 : 0);
 
 my @extra_dirs;
 if (defined $Mblib) {
+    # XXX better to use Tk::Pod->Dir? blib/scripts => Tk::Pod->ScriptDir?
     require blib;
     blib->import;
 }
@@ -159,7 +159,7 @@ if ($mw->children) {
 } else {
     $mw->destroy;
 }
-#$mw->WidgetDump;
+$mw->WidgetDump if $ENV{TKPODDEBUG} && $ENV{TKPODDEBUG} >= 10;
 MainLoop;
 unlink($portfile);
 exit(0);
@@ -216,7 +216,7 @@ tkpod - Perl/Tk Pod browser
 
 =head1 SYNOPSIS
 
-    tkpod  [-tk] [[-no]tree] [-Mblib] [-d|debug] [-s|server]
+    tkpod  [-tk] [[-no]tree] [-Mblib] [-I dir] [-d|debug] [-s|server]
             [directory|name [...]]
 
 
@@ -269,6 +269,11 @@ Turn debugging on.
 
 Add the C<blib> directories under the current directory to the Pod
 search path.
+
+=item B<-I> I<dir>
+
+Add another directory to the Pod search path. Note that the space is
+mandatory.
 
 =back
 
