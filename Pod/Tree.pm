@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.5 2001/06/16 16:03:41 eserte Exp $
+# $Id: Tree.pm,v 1.6 2001/06/17 19:33:51 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %pods $pods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -80,9 +80,14 @@ sub Populate {
 	my $cmd = shift || '-showcommand';
 
 	my $Ev = $w->XEvent;
-
 	my $ent = $w->GetNearest($Ev->y, 1);
-	return unless (defined($ent) and length($ent));
+	return unless (defined $ent and length $ent);
+
+	my @info = $w->info('item',$Ev->x, $Ev->y);
+	if (defined $info[1] && $info[1] eq 'indicator') {
+	    $w->Callback(-indicatorcmd => $ent, '<Arm>');
+	    return;
+	}
 
 	my $data = $w->info('data', $ent);
 	if ($data) {
@@ -100,7 +105,7 @@ sub Populate {
     $w->SUPER::Populate($args);
 
     $w->{CoreIS}   = $w->ItemStyle('imagetext', -foreground => '#006000');
-    $w->{SiteIS}   = $w->ItemStyle('imagetext', -foreground => '#800000');
+    $w->{SiteIS}   = $w->ItemStyle('imagetext', -foreground => '#e08000');
     $w->{FolderIS} = $w->ItemStyle('imagetext', -foreground => '#606060');
 
     $w->ConfigSpecs(
@@ -268,6 +273,40 @@ sub LoadCache {
     }
 }
 
+sub _open_parents {
+    my($w, $entry) = @_;
+    (my $parent = $entry) =~ s|/[^/]+$||;
+    return if $parent eq '' || $parent eq $entry;
+    $w->_open_parents($parent);
+    $w->open($parent);
+}
+
+=item I<$tree>-E<gt>B<SeePath>($path)
+
+Move the anchor/selection and view to the given C<$path> and open
+subtrees to make the C<$path> visible, if necessary.
+
+=cut
+
+sub SeePath {
+    my($w,$path) = @_;
+    foreach my $category (keys %pods) {
+	foreach my $pod (keys %{ $pods{$category} }) {
+	    my $podpath = $pods{$category}->{$pod};
+	    if ($path eq $podpath) {
+		my $treepath = "$category/$pod";
+		$w->open($treepath);
+		$w->_open_parents($treepath);
+		$w->anchorSet($treepath);
+		$w->selectionClear;
+		$w->selectionSet($treepath);
+		$w->see($treepath);
+		return 1;
+	    }
+	}
+    }
+    0;
+}
 
 1;
 
