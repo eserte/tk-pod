@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Util.pm,v 1.1 2003/02/05 15:48:22 eserte Exp $
+# $Id: Util.pm,v 1.2 2003/02/05 15:51:39 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2003 Slaven Rezic. All rights reserved.
@@ -14,8 +14,11 @@
 
 package Tk::Pod::Util;
 use strict;
-use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+use vars qw($VERSION @EXPORT_OK);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
+
+use base qw(Exporter);
+@EXPORT_OK = qw(is_in_path is_interactive);
 
 # REPO BEGIN
 # REPO NAME is_in_path /home/e/eserte/src/repository
