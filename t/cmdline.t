@@ -2,11 +2,12 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.1 2003/02/05 13:38:37 eserte Exp $
+# $Id: cmdline.t,v 1.2 2003/02/05 14:46:29 eserte Exp $
 # Author: Slaven Rezic
 #
 
 use strict;
+use File::Spec;
 
 BEGIN {
     if (!eval q{
@@ -23,14 +24,14 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 5 }
+BEGIN { plan tests => 6 }
 
 my $script = 'blib/script/tkpod';
 
 my @opt = (['-tk'],
 	   ['-tree','-geometry','+0+0'],
 	   ['-notree'],
-	   #['-Mblib'],
+	   ['-Mblib'],
 	   #['-Iblib/lib'],
 	   ['-d'],
 	   ['-server'],
@@ -41,6 +42,7 @@ for my $opt (@opt) {
     if ($pid == 0) {
 	my @cmd = ($^X, "-Mblib", $script, @$opt);
 	#warn "@cmd\n";
+	open(STDERR, ">" . File::Spec->devnull);
 	exec @cmd;
 	die $!;
     }
