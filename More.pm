@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 1.1 $, 10) . "";
+$VERSION = substr(q$Revision: 1.2 $, 10) . "";
 
 use Tk::Derived;
 use Tk::Frame;
@@ -163,7 +163,8 @@ sub Load
   }
  else
   {
-   $text->BackTrace("Cannot open $file:$!");
+   $text->messageBox(-message => "Cannot open $file: $!\n");
+   die;
   }
 }
 
