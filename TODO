@@ -1,63 +1,125 @@
+=head1 TODO
+
 Scratch pad of bugs, missing features, and misbehaviors
 collected during I used tkpod.
 
-o Bug: S<> seems often to be ignored. May be a core Tk::Text bug (i.e.
-  -wrap => "none" in tags being sometimes ignored)
+=head2 BUGS
 
-o cleanup search interface to perlindex.  Maybe patch Ulrichs
-  TPJ example code for nroff pages to allow both POD and MAN.
+=head3 Tk::Pod
 
-o add meaningful regression tests
+=over
 
-o Tree: create new menu entry for re-reading tree, invalidate cache
+=item *
 
-o PodText: interrupt process() if another file is loaded...
+SE<lt>E<gt> seems often to be ignored. May be a core Tk::Text bug (i.e.
+C<< -wrap => "none" >> in tags being sometimes ignored)
 
-o use some kind of access control for the -s option
+=item *
 
-o Double-2 over non-links should load a pod into a new window (like
-  Button-2 opens a new window, and Double-1 recognizes pods in
-  non-links)
+PodText: interrupt process() if another file is loaded... Sometimes
+strange things may happen like all text is underlined.
 
-o new menu entry with a link list (e.g. all L<...> and everything
-looking like a module /\w+::\w+/)
+=item *
 
-o for Windows: check whether Tk::More/Tk::Tree match the system
+for Windows: check whether Tk::More/Tk::Tree match the system
 background colors
 
-o if called from the full text search dialog: maybe jump to the first
-  occurence of the term in the pod
+=item *
 
-o maybe special handling for Tk::Pod::FindPods under Mac OS X is
-  necessary (pod directory is /System/Library/Perl/pods)
+maybe special handling for Tk::Pod::FindPods under Mac OS X is
+necessary (pod directory is /System/Library/Perl/pods)
 
-o maybe put the removed WWWBrowser code again to Tk::Pod::Text
+=back
 
-Tk::More:
+=head3 Tk::Pod::Cache
 
-o Tk/More status bar:  filename  %   line x
+=over
 
-o more 'more' like key bindings to Tk::More.
+=item *
 
-o More.pm: search should scroll per page
+problem: change font size => back => cached document has still the
+old font sizes
 
-o search policies: regexp, glob, incremental (as in xmore)
-  and 'normalized' as in perlindex.  Should go into it's own
-  Tk::Text::Util.pm module
+=back
 
-o after switching between case sensitive/insensitive highlightning
-  should be updated immediately
+=head2 WISHLIST
 
-o scrolling is not as exact as it shoule be (i.e. scroll forw, then
-  scroll back will not get to the same position as before)
+=head3 Tk::Pod
 
-Tk::Pod::Cache
+=over
 
-o use a LRU cache
+=item *
 
-o maybe do not cache small documents at all
+cleanup search interface to perlindex. Maybe patch Ulrichs TPJ example
+code for nroff pages to allow both POD and MAN.
 
-o problem: change font size => back => cached document has still the
-  old font sizes
+=item *
 
-__END__
+add meaningful regression tests
+
+=item *
+
+use some kind of access control for the -s option
+
+=item *
+
+new menu entry with a link list (e.g. all LE<lt>...E<gt> and everything
+looking like a module /\w+::\w+/)
+
+=item *
+
+maybe put the removed WWWBrowser code again to Tk::Pod::Text
+
+=item *
+
+option for interleaving POD and code
+
+=back
+
+=head3 Tk::More
+
+=over
+
+=item *
+
+Tk/More status bar:  filename  %   line x
+
+=item *
+
+more 'more' like key bindings to Tk::More.
+
+=item *
+
+More.pm: search should scroll per page
+
+=item *
+
+search policies: regexp, glob, incremental (as in xmore)
+and 'normalized' as in perlindex.  Should go into it's own
+Tk::Text::Util.pm module
+
+=item *
+
+after switching between case sensitive/insensitive highlightning
+should be updated immediately
+
+=item *
+
+scrolling is not as exact as it shoule be (i.e. scroll forw, then
+scroll back will not get to the same position as before)
+
+=back
+
+=head3 Tk::Pod::Cache
+
+=over
+
+=item *
+
+use a LRU cache
+
+=item *
+
+maybe do not cache small documents at all
+
+=back

@@ -7,8 +7,8 @@ use strict;
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
   } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
-    eval("sub DEBUG () {$1}");
-    die "WHAT? Couldn't eval-up a DEBUG constant!? $@" if $@;
+    my $debug = $1;
+    *DEBUG = sub () { $debug };
   } else {
     *DEBUG = sub () {0};
   }
@@ -24,7 +24,7 @@ use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.29 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.31 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -91,7 +91,7 @@ sub findpod {
     unless (defined $name and length $name) {
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
-          -message => "Empty POD file/name",
+          -message => "Empty Pod file/name",
 	);
 	die;
     }
@@ -111,7 +111,7 @@ sub findpod {
     if (!defined $absname) {
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
-	  -message => "Can't find POD. Invalid file/module name: '$name'\n"
+	  -message => "Can't find Pod. Invalid file/module name: '$name'\n"
 	);
 	die;
     }
@@ -302,7 +302,7 @@ sub Populate
 	  [Button => 'Back',     -command => [$w, 'history_move', -1]],
 	  [Button => 'Forward',  -command => [$w, 'history_move', +1]],
 	  [Button => 'Reload',   -command => sub{$w->reload} ],
-	  [Button => 'Edit POD',       -command => sub{$w->edit} ],
+	  [Button => 'Edit Pod',       -command => sub{$w->edit} ],
 	  [Button => 'Search fulltext',-command => ['SearchFullText', $w]],
 	  [Separator => ""],
 	  [Cascade => 'Edit',
@@ -366,7 +366,11 @@ sub DoubleClick
    if ($file = $w->findpod($sel)) {
        if (defined $how && $how eq 'new')
 	{
-         $w->MainWindow->Pod('-file' => $sel);
+	 my $tree = eval { $w->parent->cget(-tree) };
+	 my $exitbutton = eval { $w->parent->cget(-exitbutton) };
+         $w->MainWindow->Pod('-file' => $sel,
+			     '-tree' => $tree,
+			     -exitbutton => $exitbutton);
 	}
        else
 	{
@@ -405,8 +409,11 @@ sub Link
   {
    $man = $w->cget('-file') if ($man eq "");
    my $tree = eval { $w->parent->cget(-tree) };
+   my $exitbutton = eval { $w->parent->cget(-exitbutton) };
    my $old_w = $w;
-   my $new_pod = $w->MainWindow->Pod('-tree' => $tree);
+   my $new_pod = $w->MainWindow->Pod('-tree' => $tree,
+				     -exitbutton => $exitbutton,
+				    );
    $new_pod->configure('-file' => $man); # see tkpod for the same problem
 
    $w = $new_pod->Subwidget('pod');
@@ -861,7 +868,7 @@ __END__
 
 =head1 NAME
 
-Tk::Pod::Text - POD browser widget
+Tk::Pod::Text - Pod browser widget
 
 
 =head1 SYNOPSIS
@@ -884,7 +891,7 @@ Tk::Pod::Text - POD browser widget
 
 =head1 DESCRIPTION
 
-B<Tk::Pod::Text> is a readonly text widget that can display POD
+B<Tk::Pod::Text> is a readonly text widget that can display Pod
 documentation.
 
 =head1 OPTIONS
@@ -897,12 +904,12 @@ The named (pod) file to be displayed.
 
 =item -path
 
-Return the expanded path of the currently displayed POD. Useable only
+Return the expanded path of the currently displayed Pod. Useable only
 with the C<cget> method.
 
 =item -poddone
 
-A callback to be called if parsing and displaying of the POD is done.
+A callback to be called if parsing and displaying of the Pod is done.
 
 =item -wrap
 
@@ -930,8 +937,8 @@ Turn debugging mode on if set to a true value.
 
 Use the specified program for printing the current pod. If the string
 contains a C<%s>, then filename substitution is used, otherwise the
-filename of the POD document is appended to the value of
-C<TKPODPRINT>. Here is a silly example to send the POD to a web browser:
+filename of the Pod document is appended to the value of
+C<TKPODPRINT>. Here is a silly example to send the Pod to a web browser:
 
     env TKPODPRINT="pod2html %s > %s.html; galeon %s.html" tkpod ...
 
@@ -1022,10 +1029,10 @@ Mixed Fonts: B<C<bold-fixed>>, B<I<bold-italics>>
 
 Non-breakable text: S<The quick brown fox jumps over the lazy fox.>
 
-Modern POD constructs (multiple E<lt>E<gt>): I<< italic >>, C<< fixed
+Modern Pod constructs (multiple E<lt>E<gt>): I<< italic >>, C<< fixed
 with embedded < and > >>.
 
-Other POD docu: Tk::Font, Tk::BrowseEntry
+Other Pod docu: Tk::Font, Tk::BrowseEntry
 
 =head1 AUTHOR
 

@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-Tk::Pod_usage - How to use the perl/Tk POD browser widget
+Tk::Pod_usage - How to use the perl/Tk Pod browser widget
 
 =head1 DESCRIPTION
 
@@ -60,7 +60,7 @@ in history of displayed documentation
 
 the documentation
 
-=item o Edit POD
+=item o Edit Pod
 
 Start editor with source of the displayed document.
 
@@ -74,7 +74,7 @@ with ptked'.
 
 =item o Search fulltext
 
-Full text search of the POD in the perl library directories. (Note: to
+Full text search of the Pod in the perl library directories. (Note: to
 use it one has to install the perlindex distribution and build an
 index for the perl documentation, see L<Text::English|Text::English>)
 
@@ -85,7 +85,7 @@ The remaining menu entries are the same as in normal C<Text> widgets.
 =head2 Tree view
 
 You can toggle the tree view of all installed modules on or off with
-the 'View' -E<gt> 'POD Tree' menu entry. The tree view is organized in
+the 'View' -E<gt> 'Pod Tree' menu entry. The tree view is organized in
 three sections: Perl language (general documentation about Perl),
 Pragmata, and Modules. The labels in the tree are colored, where green
 means E<quot>standard module which comes with the Perl core

@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.16 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.19 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -39,7 +39,8 @@ sub INIT {
 }
 
 use Tk;
-BEGIN { eval { require Tk::FcyEntry; }; };
+### Problems under Windows... do not use it anymore
+#BEGIN { eval { require Tk::FcyEntry; }; };
 use Tk::Pod 4.18;
 use Getopt::Long;
 #require Tk::ErrorDialog;
@@ -55,15 +56,14 @@ if (!GetOptions("tk" => \$tk_opt,
 		"notree" => sub { $tree = 0 },
 		"s|server!" => \$server,
 		"Mblib" => \$Mblib,
-		#XXX "I=s@" => \@I,
+		"I=s@" => \@I,
 		"d|debug!" => \$debug,
 	       )) {
     die <<EOT;
-Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-d|debug] [-s|server]
+Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-I dir] [-d|debug] [-s|server]
             [directory|name [...]]
 
 EOT
-# XXX: [-Ilib ...]
 }
 
 # Add 'Tk' subdirectories to search path so, e.g.,
@@ -104,6 +104,7 @@ $mw->optionAdd('*Menu.tearOff', $Tk::platform ne 'MSWin32' ? 1 : 0);
 
 my @extra_dirs;
 if (defined $Mblib) {
+    # XXX better to use Tk::Pod->Dir? blib/scripts => Tk::Pod->ScriptDir?
     require blib;
     blib->import;
 }
@@ -159,7 +160,7 @@ if ($mw->children) {
 } else {
     $mw->destroy;
 }
-#$mw->WidgetDump;
+$mw->WidgetDump if $ENV{TKPODDEBUG} && $ENV{TKPODDEBUG} >= 10;
 MainLoop;
 unlink($portfile);
 exit(0);
@@ -212,27 +213,27 @@ __END__
 
 =head1 NAME
 
-tkpod - Perl/Tk POD browser
+tkpod - Perl/Tk Pod browser
 
 =head1 SYNOPSIS
 
-    tkpod  [-tk] [[-no]tree] [-Mblib] [-d|debug] [-s|server]
+    tkpod  [-tk] [[-no]tree] [-Mblib] [-I dir] [-d|debug] [-s|server]
             [directory|name [...]]
 
 
 =head1 DESCRIPTION
 
-B<tkpod> is a simple POD browser with hypertext capabilities.
-POD (L<Plain Old Document|perlpod>) is a simple and readable
+B<tkpod> is a simple Pod browser with hypertext capabilities.
+Pod (L<Plain Old Document|perlpod>) is a simple and readable
 markup language that could be mixed with L<perl> code.
 
-PODs are searched by default in C<@INC> and C<$ENV{PATH}>. Directories
+Pods are searched by default in C<@INC> and C<$ENV{PATH}>. Directories
 listed on the command line or with the B<-I> option are added to the
 default search path.
 
 For each C<name> listed on the command line B<tkpod> tries to
-to find POD in C<name, name.pod> and C<name.pm> in the search
-path.  For each C<name> a new POD browser window is opened.
+to find Pod in C<name, name.pod> and C<name.pm> in the search
+path.  For each C<name> a new Pod browser window is opened.
 
 If no C<name> is listed, then the main C<perl> pod is opened instead.
 
@@ -243,21 +244,21 @@ If no C<name> is listed, then the main C<perl> pod is opened instead.
 =item B<-tree>
 
 When specified, C<tkpod> will show a tree window with all available
-PODs on the local host. However, this may be slow on startup,
+Pods on the local host. However, this may be slow on startup,
 especially first time because there is no cache yet. You can always
-turn on the tree view with the menu entry 'View' -E<gt> 'POD Tree'.
+turn on the tree view with the menu entry 'View' -E<gt> 'Pod Tree'.
 
 =item B<-tk>
 
 Useful for perl/Tk documentation.  When specified it adds all
-C<Tk> subdirectories in C<@INC> to the POD search path.   This way
+C<Tk> subdirectories in C<@INC> to the Pod search path.   This way
 when C<Scrolled> is selected in the browser the C<Tk/Scrolled>
 documentation is found.
 
 =item B<-s> or B<-server>
 
 Start C<tkpod> in server mode. Subsequent calls to C<tkpod> (without
-the B<-s> option) will cause to load the requested PODs into the
+the B<-s> option) will cause to load the requested Pods into the
 server program, thus minimizing startup time and memory usage. Note
 that there is no access control, so this might be a security hole!
 
@@ -267,15 +268,20 @@ Turn debugging on.
 
 =item B<-Mblib>
 
-Add the C<blib> directories under the current directory to the POD
+Add the C<blib> directories under the current directory to the Pod
 search path.
+
+=item B<-I> I<dir>
+
+Add another directory to the Pod search path. Note that the space is
+mandatory.
 
 =back
 
 
 =head1 USAGE
 
-How to navigate with the POD browser is described in L<Tk::Pod_usage>.
+How to navigate with the Pod browser is described in L<Tk::Pod_usage>.
 It's also accessible via the menu 'Help' -> 'Usage...'.
 
 

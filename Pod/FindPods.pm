@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.11 2003/02/10 18:11:20 eserte Exp $
+# $Id: FindPods.pm,v 2.1 2003/02/11 23:42:39 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -16,14 +16,15 @@ package Tk::Pod::FindPods;
 
 =head1 NAME
 
-Tk::Pod::FindPods - find PODs installed on the current system
+Tk::Pod::FindPods - find Pods installed on the current system
 
 
 =head1 SYNOPSIS
 
-    use Tk::Pod::FindPods qw/pod_find/;
+    use Tk::Pod::FindPods;
 
-    %pods = pod_find(-categorized => 1, -usecache => 1);
+    my $o = Tk::Pod::FindPods->new;
+    $pods = $o->pod_find(-categorized => 1, -usecache => 1);
 
 =head1 DESCRIPTION
 
@@ -31,54 +32,65 @@ Tk::Pod::FindPods - find PODs installed on the current system
 
 use base 'Exporter';
 use strict;
-use vars qw($VERSION @EXPORT_OK
-	    %pods $has_cache
-	    $init_done %arch $arch_re %seen_dir $curr_dir %args);
+use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.1 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
 use File::Basename;
 use Config;
 
+sub new {
+    my($class) = @_;
+    my $self = bless {}, $class;
+    $self->init;
+    $self;
+}
+
 sub init {
+    return if $init_done;
     %arch = guess_architectures();
     $arch_re = "(" . join("|", map { quotemeta $_ } ("mach", keys %arch)) . ")";
-    #warn $arch_re;
     $init_done++;
 }
 
 =head2 pod_find
 
-The B<pod_find> method scans the current system for available POD
-documentation. The keys of the returned hash are the names of the
-modules or PODs (C<::> substituted by C</> --- this makes it easier
-for Tk::Pod::Tree, as the separator may only be of one character). The
-values are the corresponding filenames.
+The B<pod_find> method scans the current system for available Pod
+documentation. The keys of the returned hash reference are the names
+of the modules or Pods (C<::> substituted by C</> --- this makes it
+easier for Tk::Pod::Tree, as the separator may only be of one
+character). The values are the corresponding filenames.
 
 If C<-categorized> is specified, then the returned hash has an extra
 level with four categories: B<perl> (for core language documentation),
 B<pragma> (for pragma documentation like L<var|var> or
 L<strict|strict>), B<mod> (core or CPAN modules), and B<script> (perl
-scripts with embedded POD documentation).
+scripts with embedded Pod documentation). Otherwise, C<-category> may
+be set to force the Pods into a category.
 
-If C<-usecache> is specified, then the list of PODs is cached in a
+If C<-usecache> is specified, then the list of Pods is cached in a
 temporary directory.
+
+By default, C<@INC> is scanned for Pods. This can be overwritten by
+the C<-directories> option (specify as an array reference).
 
 =cut
 
 sub pod_find {
+    my $self = shift;
     my(@args) = @_;
+    my %args;
     if (ref $args[0] eq 'HASH') {
 	%args = %{ $args[0] };
     } else {
 	%args = @args;
     }
 
-    undef $has_cache;
+    $self->{has_cache} = 0;
 
     if ($args{-usecache}) {
 	my $perllocal_site = File::Spec->catfile($Config{'installsitearch'},'perllocal.pod');
@@ -88,40 +100,136 @@ sub pod_find {
 	    (-e $perllocal_site && -M $perllocal_site > -M $cache_file) ||
 	    (-e $perllocal_lib  && -M $perllocal_lib > -M $cache_file)
 	   ) {
-	    %pods = LoadCache();
-	    if (%pods) {
-		$has_cache = 1;
-		return %pods;
+	    $self->LoadCache;
+	    if ($self->{pods}) {
+		$self->{has_cache} = 1;
+		return $self->{pods};
 	    }
 	} else {
 	    warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file";
 	}
     }
 
-    init() unless $init_done;
-
-    %seen_dir = ();
-    undef $curr_dir;
-    %pods = ();
-
-    foreach my $inc (@INC) {
-	next if $inc eq '.'; # ignore current directory
-	$curr_dir = $inc;
-	find(\&wanted, $inc);
+    my(@dirs, @script_dirs);
+    if ($args{-directories}) {
+	@dirs = @{ $args{-directories} };
+	@script_dirs = ();
+    } else {
+	@dirs = grep { $_ ne '.' } @INC; # ignore current directory
+	@script_dirs = ($Config{'scriptdir'});
     }
 
-    if ($Config{'scriptdir'}) {
-	find(\&wanted_scripts, $Config{'scriptdir'});
+    my %seen_dir = ();
+    my $curr_dir;
+    undef $curr_dir;
+    my %pods = ();
+
+    if ($args{-category}) {
+	$pods{$args{-category}} = {};
+    }
+
+    my $wanted = sub {
+	if (-d) {
+	    if ($seen_dir{$File::Find::name}) {
+		$File::Find::prune = 1;
+		return;
+	    } else {
+		$seen_dir{$File::Find::name}++;
+	    }
+	}
+
+	if (-f && /\.(pod|pm)$/) {
+	    (my $name = $File::Find::name) =~ s|^$curr_dir/?||;
+	    $name = simplify_name($name);
+
+	    my $hash;
+	    if ($args{-categorized}) {
+		my $type = type($name);
+		$hash = $pods{$type} || do { $pods{$type} = {} };
+	    } elsif ($args{-category}) {
+		$hash = $pods{$args{-category}};
+	    } else {
+		$hash = \%pods;
+	    }
+
+	    if (exists $hash->{$name}) {
+		if ($hash->{$name} =~ /\.pod$/ && $File::Find::name =~ /\.pm$/) {
+		    return;
+		}
+		my($ext1) = $hash->{$name}    =~ /\.(.*)$/;
+		my($ext2) = $File::Find::name =~ /\.(.*)$/;
+		if ($ext1 eq $ext2) {
+		    warn "Clash: $hash->{$name} <=> $File::Find::name";
+		    return;
+		}
+	    }
+	    $hash->{$name} = "file:" . $File::Find::name;
+	}
+    };
+
+    my $wanted_scripts = sub {
+	if (-d) {
+	    if ($seen_dir{$File::Find::name}) {
+		$File::Find::prune = 1;
+		return;
+	    } else {
+		$seen_dir{$File::Find::name}++;
+	    }
+	}
+
+	if (-T && open(SCRIPT, $_)) {
+	    my $has_pod = 0;
+	    {
+		local $_;
+		while(<SCRIPT>) {
+		    if (/^=(head\d+|pod)/) {
+			$has_pod = 1;
+			last;
+		    }
+		}
+	    }
+	    close SCRIPT;
+	    if ($has_pod) {
+		my $name = $_;
+
+		my $hash;
+		if ($args{-categorized}) {
+		    my $type = 'script';
+		    $hash = $pods{$type} || do { $pods{$type} = {} };
+		} elsif ($args{-category}) {
+		    $hash = $pods{$args{-category}};
+		} else {
+		    $hash = \%pods;
+		}
+
+		if (exists $hash->{$name}) {
+		    return;
+		}
+		$hash->{$name} = "file:" . $File::Find::name;
+	    }
+	}
+    };
+
+    foreach my $inc (@dirs) {
+	$curr_dir = $inc;
+	find($wanted, $inc);
+    }
+
+    foreach my $inc (@script_dirs) {
+	find($wanted_scripts, $inc);
     }
 
     #XXX
-    if ($args{-cpan}) {	add_cpan() }
+    if ($args{-cpan}) {	$self->add_cpan }
 
-    %pods;
+    $self->{pods} = \%pods;
+    $self->{pods};
 }
 
 # XXX nach .../CPAN.pm auslagern (MANIFEST & RCS nicht vergessen)
 sub add_cpan {
+    my $self = shift;
+    my $pods = $self->{pods};
     require CPAN;
     for my $mod (CPAN::Shell->expand("Module","/./")) {
 	next if $mod->inst_file;
@@ -131,85 +239,7 @@ sub add_cpan {
 	(my $path = $mod->id) =~ s|::|/|g;
 	do {warn "$path excluded..."; next} if $path =~ m|/$|; # XXX wrong name Audio::Play::, wait for mail from Andreas or Nick
 	# XXX -categorized???
-	$pods{type($mod->id)}->{$path} = "cpan:" . $mod->id; # XXX könnte OK sein
-    }
-}
-
-sub wanted {
-    if (-d) {
-	if ($seen_dir{$File::Find::name}) {
-	    $File::Find::prune = 1;
-	    return;
-	} else {
-	    $seen_dir{$File::Find::name}++;
-	}
-    }
-
-    if (-f && /\.(pod|pm)$/) {
-	(my $name = $File::Find::name) =~ s|^$curr_dir/?||;
-	$name = simplify_name($name);
-
-	my $hash;
-	if ($args{-categorized}) {
-	    my $type = type($name);
-	    $hash = $pods{$type} || do { $pods{$type} = {} };
-	} else {
-	    $hash = \%pods;
-	}
-
-	if (exists $hash->{$name}) {
-	    if ($hash->{$name} =~ /\.pod$/ && $File::Find::name =~ /\.pm$/) {
-		return;
-	    }
-	    my($ext1) = $hash->{$name}    =~ /\.(.*)$/;
-	    my($ext2) = $File::Find::name =~ /\.(.*)$/;
-	    if ($ext1 eq $ext2) {
-		warn "Clash: $hash->{$name} <=> $File::Find::name";
-		return;
-	    }
-	}
-	$hash->{$name} = "file:" . $File::Find::name;
-    }
-}
-
-sub wanted_scripts {
-    if (-d) {
-	if ($seen_dir{$File::Find::name}) {
-	    $File::Find::prune = 1;
-	    return;
-	} else {
-	    $seen_dir{$File::Find::name}++;
-	}
-    }
-
-    if (-T && open(SCRIPT, $_)) {
-	my $has_pod = 0;
-	{
-	    local $_;
-	    while(<SCRIPT>) {
-		if (/^=(head\d+|pod)/) {
-		    $has_pod = 1;
-		    last;
-		}
-	    }
-	}
-	close SCRIPT;
-	if ($has_pod) {
-	    my $name = $_;
-
-	    my $hash;
-	    if ($args{-categorized}) {
-		my $type = 'script';
-		$hash = $pods{$type} || do { $pods{$type} = {} };
-	    } else {
-		$hash = \%pods;
-	    }
-
-	    if (exists $hash->{$name}) {
-		return;
-	    }
-	    $hash->{$name} = "file:" . $File::Find::name;
-	}
+	$pods->{type($mod->id)}->{$path} = "cpan:" . $mod->id; # XXX könnte OK sein
     }
 }
 
@@ -297,21 +327,26 @@ sub _cache_file {
       }
 }
 
+sub pods      { shift->{pods} }
+sub has_cache { shift->{has_cache} }
+
 =head2 WriteCache
 
-Write the POD cache. The cache is written to the temporary directory.
+Write the Pod cache. The cache is written to the temporary directory.
 The file name is constructed from the perl version, operation system
 and user id.
 
 =cut
 
 sub WriteCache {
+    my $self = shift;
+
     require Data::Dumper;
 
     if (!open(CACHE, ">" . _cache_file())) {
 	warn "Can't write to cache file " . _cache_file();
     } else {
-	my $dd = Data::Dumper->new([\%pods], ['pods']);
+	my $dd = Data::Dumper->new([$self->{pods}], ['pods']);
 	$dd->Indent(0);
 	print CACHE $dd->Dump;
 	close CACHE;
@@ -320,11 +355,12 @@ sub WriteCache {
 
 =head2 LoadCache()
 
-Load the POD cache, if possible.
+Load the Pod cache, if possible.
 
 =cut
 
 sub LoadCache {
+    my $self = shift;
     my $cache_file = _cache_file();
     if (-r $cache_file) {
 	return if $< != (stat($cache_file))[4];
@@ -332,11 +368,11 @@ sub LoadCache {
 	my $c = Safe->new('Tk::Pod::FindPods::SAFE');
 	$c->rdo($cache_file);
 	if (keys %$Tk::Pod::FindPods::SAFE::pods) {
-	    %pods = %$Tk::Pod::FindPods::SAFE::pods;
-	    return %pods;
+	    $self->{pods} = { %$Tk::Pod::FindPods::SAFE::pods };
+	    return $self->{pods};
 	}
     }
-    ();
+    return {};
 }
 
 return 1 if caller;

@@ -1,7 +1,8 @@
 #AnyDBM handling from perlindex:
 # NDBM_File as LAST resort
 
-package AnyDBM_File;
+package
+    AnyDBM_File; # hide from indexer
 use vars '@ISA';
 @ISA = qw(DB_File GDBM_File SDBM_File ODBM_File NDBM_File) unless @ISA;
 my $mod;
@@ -14,7 +15,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 2.4 $, 10) . "";
+$VERSION = substr(q$Revision: 2.6 $, 10) . "";
 
 use Carp;
 use Fcntl;
@@ -146,7 +147,7 @@ Tk::Pod::Search_db - dirty OO wrapper for C<perlindex>'s search functionality
 
 =head1 DESCRIPTION
 
-Module to search POD documentation.  Before you can use
+Module to search Pod documentation.  Before you can use
 the module one should create the indices with C<perlindex -index>.
 
 =head1 MISSING
@@ -176,7 +177,7 @@ or empty list if no match is found.
 =item $pathprefix = $idx->pathprefix()
 
 The return path prefix and C<$relpath> give together the full path
-name of the POD documentation.
+name of the Pod documentation.
 
 	$fullpath = $patchprefix . '/' . $relpath
 

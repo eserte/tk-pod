@@ -1,6 +1,6 @@
 Tk::Pod
 
-This is a graphical user interface for viewing and browsing perl's POD
+This is a graphical user interface for viewing and browsing perl's Pod
 documentation.
 
 To install, type:
@@ -14,13 +14,13 @@ Windows users should replace "make" with "nmake" unless using a
 cygwin-compiled or MinGW-compiled perl.
 
 Features include:
-	o Interface to perlindex full text POD search added
+	o Interface to perlindex full text Pod search added
 	  (you need to install the perlindex distribution aka
            Text::English on CPAN).
-	o Supports single or multiple POD windows.
+	o Supports single or multiple Pod windows.
 	o Primitive Tk/More widget with '/', 'n', 'N', 'j', 'k'
 	  bindings
-	o Tree view of available PODs
+	o Tree view of available Pods
 
 The original Tk::Pod module is written by Nick Ing-Simmons
 <nik@tiuk.ti.com>. Former maintainer is Achim Bohnet. Current
