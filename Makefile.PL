@@ -46,7 +46,6 @@ EOF
 
     if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
 	$postamble .= <<'EOF';
-CVS_DIR=${HOME}/work/Tk-Pod
 
 .include "../../perl.release.mk"
 .include "../../perl.cvs.mk"
