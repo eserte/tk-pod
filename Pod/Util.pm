@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: Util.pm,v 1.4 2003/08/01 10:43:18 eserte Exp $
+# $Id: Util.pm,v 5.1 2004/09/08 21:06:56 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2003 Slaven Rezic. All rights reserved.
+# Copyright (C) 2003,2004 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -15,7 +15,7 @@
 package Tk::Pod::Util;
 use strict;
 use vars qw($VERSION @EXPORT_OK);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
 
 use base qw(Exporter);
 @EXPORT_OK = qw(is_in_path is_interactive detect_window_manager);
@@ -97,6 +97,7 @@ Tk::Pod::Util - Tk::Pod specific utility functions
 
 =head1 DESCRIPTION
 
-This module contains a collection of utility functions for Tk::Pod.
+This module contains a collection of utility functions for Tk::Pod and
+is not meant for public use.
 
 =cut

@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 2.9 $, 10) . "";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -392,7 +392,7 @@ me most (high to low priority):
 
 =head1 SEE ALSO
 
-L<Tk::ROText|Tk::ROText>, more(1), less(1)
+L<Tk::ROText|Tk::ROText>, L<more(1)>, L<tkmore>, L<less(1)>
 
 =head1 AUTHOR
 

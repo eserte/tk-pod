@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.26 $ , 10) + 1 . "";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
 
 use IO::Socket;
 
@@ -416,4 +416,3 @@ is free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 
 =cut
-
