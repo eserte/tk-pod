@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.3 2001/06/17 23:55:19 eserte Exp $
+# $Id: FindPods.pm,v 1.4 2001/06/18 18:38:14 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -149,6 +149,9 @@ sub simplify_name {
     $f =~ s|^$arch_re|| if defined $arch_re; # strip machine
     $f =~ s/\.(pod|pm)$//;
     $f =~ s|^pod/||;
+    if ($^O eq 'MSWin32') { # case-insensitive :-(
+	$f =~ s|^pod/perl|perl|i;
+    }
     $f;
 }
 
@@ -184,6 +187,9 @@ sub guess_architectures {
 
 sub is_site_module {
     my $path = shift;
+    if ($^O eq 'MSWin32') {
+	return $path =~ m|[/\\]site[/\\]lib[/\\]|;
+    }
     $path =~ /^(
                 $Config{'installsitelib'}
                |
@@ -196,7 +202,11 @@ sub _cache_file {
     (my $os  = $^O) =~ s/[^a-z0-9]/_/gi;
     my $uid  = $<;
 
-    File::Spec->catfile(File::Spec->tmpdir, join('_', 'pods',$ver,$os,$uid));
+    if (File::Spec->can('tmpdir')) {
+        File::Spec->catfile(File::Spec->tmpdir, join('_', 'pods',$ver,$os,$uid));
+      } else {
+        File::Spec->catfile(($ENV{TMPDIR}||"/tmp"), join('_', 'pods',$ver,$os,$uid));
+      }
 }
 
 =head2 WriteCache
