@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.16 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.17 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -264,7 +264,7 @@ sub tree {
 		    die $err;
 		}
 	    }
-	    $tree->SeePath("file:" . $p->cget(-path));
+	    $tree->SeePath("file:" . $p->cget(-path)) if $p->cget(-path);
 	} else {
 	    if ($tree && $tree->manager) {
 		$tree->packForget;
