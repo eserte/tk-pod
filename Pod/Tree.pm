@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.13 2003/02/05 14:47:36 eserte Exp $
+# $Id: Tree.pm,v 1.14 2003/02/10 18:11:38 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -218,6 +218,7 @@ if ($args{-cpan}) { $usecache = 0 }
     foreach (['perl',   'Perl language'],
 	     ['pragma', 'Pragmata'],
 	     ['mod',    'Modules'],
+	     ['script', 'Scripts'],
 	     keys %pods,
 	    ) {
 	my($category, $title) = (ref $_ ? @$_ : ($_, $_));
