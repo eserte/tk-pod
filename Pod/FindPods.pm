@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.7 2003/11/06 21:34:00 eserte Exp $
+# $Id: FindPods.pm,v 2.8 2003/11/09 21:14:24 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.8 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -82,11 +82,12 @@ L<strict|strict>), B<mod> (core or CPAN modules), and B<script> (perl
 scripts with embedded Pod documentation). Otherwise, C<-category> may
 be set to force the Pods into a category.
 
-If C<-usecache> is specified, then the list of Pods is cached in a
-temporary directory.
-
 By default, C<@INC> is scanned for Pods. This can be overwritten by
 the C<-directories> option (specify as an array reference).
+
+If C<-usecache> is specified, then the list of Pods is cached in a
+temporary directory. C<-usecache> is disabled if C<-categorized> is
+not set or C<-directorties> is set.
 
 =cut
 
@@ -103,20 +104,24 @@ sub pod_find {
     $self->{has_cache} = 0;
 
     if ($args{-usecache}) {
-	my $perllocal_site = File::Spec->catfile($Config{'installsitearch'},'perllocal.pod');
-	my $perllocal_lib  = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
-	my $cache_file = _cache_file();
-	if (-r $cache_file &&
-	    (-e $perllocal_site && -M $perllocal_site > -M $cache_file) &&
-	    (-e $perllocal_lib  && -M $perllocal_lib > -M $cache_file)
-	   ) {
-	    $self->LoadCache;
-	    if ($self->{pods}) {
-		$self->{has_cache} = 1;
-		return $self->{pods};
-	    }
+	if (!$args{-categorized} || $args{-directories}) {
+	    DEBUG and warn "Disabling -usecache";
 	} else {
-	    DEBUG and warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file or cache file does not exist\n";
+	    my $perllocal_site = File::Spec->catfile($Config{'installsitearch'},'perllocal.pod');
+	    my $perllocal_lib  = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
+	    my $cache_file = _cache_file();
+	    if (-r $cache_file &&
+		(-e $perllocal_site && -M $perllocal_site > -M $cache_file) &&
+		(-e $perllocal_lib  && -M $perllocal_lib > -M $cache_file)
+	       ) {
+		$self->LoadCache;
+		if ($self->{pods}) {
+		    $self->{has_cache} = 1;
+		    return $self->{pods};
+		}
+	    } else {
+		DEBUG and warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file or cache file does not exist\n";
+	    }
 	}
     }
 
