@@ -166,4 +166,8 @@ into a pod formatter?
 Should I include something similar for perlfaq (perldoc -q)? Maybe a
 new menu item "Search FAQ"?
 
+=item *
+
+Implement C<-rememberopen> in C<Fill> method.
+
 =back
