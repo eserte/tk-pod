@@ -20,35 +20,7 @@ Added features compared to the version in Tk402.003:
 	o Section menu (thanks to Slaven Rezic)
 
 
-Known problems with the alpha releases of Tk8:
-
-Tk800.004
-
-none 
-
-Tk800.003
-
-A patch of mime that slipped into the release has broken
-LabEntry (and therefore FileSelect widget).  So 'Open...'
-menu does not work with Tk800.003
-
-Tk800.000 and Tk800.0_01:
-
-        Bad option `Name' at ../tk8/blib/lib/Tk/Menu/Item.pm line 48.
-         at ../tk8/blib/lib/Tk/Widget.pm line 225
-
-    A quick fix/workaround is to patch Tk800.000 and 0_01 from
-    Slaven RetiSlaven Rezic <eserte@cs.tu-berlin.de>
-
---- /home3/src/CPAN/build/Tk800.0_01/Tk/Menu/Item.pm    Tue Mar  3 23:17:32 1998
-+++ Tk/Menu/Item.pm     Wed Mar  4 11:35:22 1998
-@@ -105,6 +107,7 @@
-  my $tearoff   = delete $minfo->{-tearoff};
-  my $items     = delete $minfo->{-menuitems};
-  my $widgetvar = delete $minfo->{-menuvar};
-+delete $minfo->{Name};
-  my @args = ();
-
+There are no known Problems with recent Tk800 releases.
 
 If you find a bug please check the TODO file if this bug
 is not already known.  Please send bug report, enhancement
@@ -70,6 +42,23 @@ Win95/NT Users:
 	of tkpod functionality should work.
 
 History:
+
+version 0.10
+
+	o New Search menu, Up/down bindigs and
+	  PATH scanned after @INC for PODs
+	  Thanks to Slaven Rezic <eserte@cs.tu-berlin.de>
+	o Pod/Text.pm
+		added support simple =head3 support
+		(treated like =head2)
+	o Parse.pm
+		added =begin/=end support (but not nesting or
+		check/match of word after =begin/=end).
+		Better impl. has to wait until Pod::Parser is
+		used 
+	o 'Reload' jumps to same line after document is reloaded
+	o =pod don't generates a warning
+	o t/basic.t:  basic widget test ala Tk800 t/create.t
 
 version 0.09
 

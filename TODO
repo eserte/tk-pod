@@ -2,9 +2,6 @@ Scratch pad of bugs, missing features, and misbehaviors
 collected during I used tkpod.
 
 
-o Adding INST_SCRIPT to POD search path so perl script docs (like
-  perlindex, pod2*, perlbug, perldoc etc.)
-
 o Use own Dialog instead of BackTrace for custom error messages
 
 ============

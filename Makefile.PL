@@ -17,7 +17,7 @@ WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk' => 402.000, 'Text::English' => 0 },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
-	'VERSION'	=> 0.09,
+	'VERSION'	=> '0.10',
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 

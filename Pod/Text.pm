@@ -2,17 +2,19 @@ package Tk::Pod::Text;
 
 use strict;
 use Carp;
+use Config;
 use Tk::Frame;
 use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 1.15 $, 10) + 1; # so version is  > 1.9
+$VERSION = substr(q$Revision: 1.19 $, 10) + 1; # so version is  > 1.9
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
 
-BEGIN { @POD = @INC; $IDX = undef; };
+BEGIN { @POD = (@INC, grep(-d, split($Config{path_sep}, 
+				     $ENV{'PATH'}))); $IDX = undef; };
 
 sub Dir
 {
@@ -74,8 +76,14 @@ sub file {
 sub reload
 {
  my ($w) = @_;
+ # remember old y position
+ my ($currpos) = $w->yview;
  $w->delete('0.0','end');
  $w->process($w->cget('-path'));
+ # restore old y position
+ $w->yview(moveto => $currpos);
+ # set (invisible) insertion cursor into the visible text area
+ $w->markSet(insert => '@0,0');
 }
 
 sub edit
@@ -117,6 +125,7 @@ sub Populate
     $w->privateData()->{history} = [];
      
     my $p = $w->Scrolled('More', -scrollbars => 'w');
+    $w->Advertise('more' => $p->Subwidget('more'));
     $p->pack(-expand => 1, -fill => 'both');
     # XXX Subwidget stuff needed because Scrolled does not
     #     delegate bind, bindtag to the scrolled widget. Tk402.* (and before?)
@@ -152,24 +161,10 @@ sub Populate
 		} );
     $m->command(-label => 'Reload', -command => sub{$w->reload} );
     $m->command(-label => 'Edit',   -command => sub{$w->edit} );
-    $m->command(-label => 'Search...', -command => 
-		sub {
-		    unless (defined $IDX && $IDX->IsWidget) {
-			require Tk::Pod::Search; #
-			$IDX = $w->Toplevel(-title=>'Perl Library Full Text Search');
-			$IDX->PodSearch(
-				-command =>
-				    sub{
-					$w->configure('-file' => shift);
-					$w->focus;
-				    }
-				)->pack(-fill=>'both',-expand=>'both');
-		    }
-		    $IDX->deiconify;
-		    $IDX->raise;
-		    (($IDX->children)[0])->focus;
-		} );
-    $w->Delegates(DEFAULT => $p);
+    $m->command(-label => 'Search...', -command => ['SearchFullText', $w]);
+    $w->Delegates(DEFAULT => $p,
+		  'SearchFullText' => 'SELF',
+		 );
 
     $w->ConfigSpecs(
             '-file'       => ['METHOD'  ],
@@ -256,8 +251,10 @@ sub Link
    $man =~ s/::/\//g;
    if ($how eq 'reuse')
     {
-     #print "man=($man) file=",$w->cget('-file'),")\n";
-     $w->configure('-file' => $man) unless $w->cget('-file') =~ /$man\.\w+$/; 
+     my $file = $w->cget('-file');
+     #print "man=($man) file=(",$file,")\n";
+     $w->configure('-file' => $man)
+	unless ( defined $file and ($file =~ /$man\.\w+$/ or $file eq $man) );
     }
    else
     {
@@ -278,6 +275,24 @@ sub Link
      }
   }
 }
+
+sub SearchFullText {
+    my $w = shift;
+    unless (defined $IDX && $IDX->IsWidget) {
+	require Tk::Pod::Search; #
+	$IDX = $w->Toplevel(-title=>'Perl Library Full Text Search');
+	$IDX->PodSearch(
+			-command =>
+			sub{
+			    $w->configure('-file' => shift);
+			    $w->focus;
+			}
+		       )->pack(-fill=>'both',-expand=>'both');
+    }
+    $IDX->deiconify;
+    $IDX->raise;
+    (($IDX->children)[0])->focus;
+} 
 
 my %translate =
 (
@@ -395,7 +410,8 @@ sub head1
 {
  my ($w,$title) = @_;
  my $start = $w->index('end -1c');
- my $tag = "\"$title\""; 
+# my $tag = "\"$title\"";  # XXX needed?
+ my $tag = "title";
  $w->append($title);
  $num = 2 unless (defined $num);
  $w->tag('add',$tag,$start,'end -1c');
@@ -417,6 +433,8 @@ sub head2
  $w->tag('raise',$tag,'text');
  $w->append("\n\n");
 }
+
+*head3 = \&head2;
 
 sub IndentTag
 {
@@ -528,8 +546,10 @@ sub process
      $update = 2;
    }
   }
- $w->parent->add_section_menu;
+ $w->parent->add_section_menu if $w->parent->can('add_section_menu');
  $w->Callback('-poddone', $file);
+ # set (invisible) insertion cursor to top of file
+ $w->markSet(insert => '@0,0');
  $w->toplevel->Unbusy;
  @ARGV = @save;
 }

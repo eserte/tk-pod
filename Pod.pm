@@ -3,7 +3,7 @@ use strict;
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.13 $, 10) + 2; # so it's > 2.005 and 1.9+1
+$VERSION = substr(q$Revision: 1.14 $, 10) + 2; # so it's > 2.005 and 1.9+1
 
 @ISA = qw(Tk::Toplevel);
 
@@ -17,7 +17,8 @@ sub Populate
  require Tk::Menubar;
 
  $w->SUPER::Populate($args);
- my $p = $w->Component('PodText' => 'pod')->pack(-expand => 1, -fill => 'both');
+ my $searchcase = 0;
+ my $p = $w->Component('PodText' => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
 
  my $mbar = $w->Component('Menubar' => 'menubar');
  my $file = $mbar->Component('Menubutton' => 'file', '-text' => 'File', '-underline' => 0);
@@ -26,6 +27,15 @@ sub Populate
  $file->command('-label'=>'Edit',    '-underline'=>0, '-command' => ['edit',$p] );
  $file->separator;
  $file->command('-label'=>'Close',    '-underline'=>0, '-command' => ['quit',$w] );
+
+ my $search = $mbar->Component('Menubutton' => 'search', '-text' => 'Search', '-underline' => 0);
+ $search->command('-label'=>'Search', '-underline'=>0, '-accelerator' => '/', '-command' => ['Search', $p, 'Next']);
+ $search->command('-label'=>'Search backwards', '-underline'=>7, '-command' => ['Search', $p, 'Prev']);
+ $search->command('-label'=>'Repeat search', '-underline'=>0, '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next']);
+ $search->command('-label'=>'Repeat backwards', '-underline'=>1, '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev']);
+ $search->checkbutton('-label'=>'Case sensitive', '-underline'=>0, -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) });
+ $search->separator;
+ $search->command('-label'=>'Search full text', '-underline'=>7, '-command' => ['SearchFullText', $p, 'Prev']);
 
  my $help = $mbar->Component('Menubutton' => 'help', -side=>'right', '-text' => 'Help', '-underline' => 0);
  # xxx restructure to not reference to tkpod
@@ -78,19 +88,12 @@ sub add_section_menu {
     } else {
         $section = $mbar->Component('Menubutton' => 'section',
                                     '-text' => 'Section',
-                                    -underline => 0);
+                                    -underline => 1);
     }
     my $podtext = $pod->Subwidget('pod');
-    my $text;
-    foreach ($pod->{'SubWidget'}{'pod'}
-             ->children->{'SubWidget'}{'more'}->children) {
-        if ($_->isa('Tk::Text')) {
-            $text = $_;
-            last;
-        }
-    }
+    my $text    = $podtext->Subwidget('more')->Subwidget('text');
 
-    $text->tag('configure', 'section',
+    $text->tag('configure', '_section_mark',
                -background => 'red',
                -foreground => 'black',
               );
@@ -98,17 +101,18 @@ sub add_section_menu {
     my $sdef;
     foreach $sdef (@{$podtext->{'sections'}}) {
         my($head, $subject, $pos) = @$sdef;
-        $section->command(-label => ("  " x ($head-1)) . $subject,
-                          -command => sub {
-                              my($line) = split(/\./, $pos);
-                              $text->tag('remove', 'section', qw/0.0 end/);
-                              $text->tag('add', 'section',
-                                         $line-1 . ".0",
-                                         $line-1 . ".0 lineend");
-                              $text->yview("section.first");
-			      $text->after(500, [$text, qw/tag remove section 0.0 end/]);
-                          },
-                         );
+        $section->command
+	  (-label => ("  " x ($head-1)) . $subject,
+	   -command => sub {
+	       my($line) = split(/\./, $pos);
+	       $text->tag('remove', '_section_mark', qw/0.0 end/);
+	       $text->tag('add', '_section_mark',
+			  $line-1 . ".0",
+			  $line-1 . ".0 lineend");
+	       $text->yview("_section_mark.first");
+	       $text->after(500, [$text, qw/tag remove _section_mark 0.0 end/]);
+	   },
+	  );
     }
 }
 

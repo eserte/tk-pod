@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr q$Revision: 1.7 $, 10;
+$VERSION = substr q$Revision: 1.8 $, 10;
 
 use Tk::Derived;
 use Tk::Frame;
@@ -40,19 +40,27 @@ sub Populate {
 		-relief => 'flat',
 		-state => 'disabled',
 		)->pack(-side=>'bottom', -fill => 'x', -expand=>'no');
+    $cw->Advertise('searchentry' => $e);
 
     my $t = $cw->ROText(-cursor=>undef)->pack(-fill => 'both' , -expand => 'yes');
+    $cw->Advertise('text' => $t);
     $t->tagConfigure('search', -foreground => 'red');
 
-    $t->bind('<Key-slash>',    [$cw, 'Search', $e, 'Next']);
+    $t->bind('<Key-slash>',    [$cw, 'Search', 'Next']);
 # xxx forw/backw search should be recoded :-(
-#    $t->bind('<Key-question>', [$cw, 'Search', $e, 'Prev']);
-    $t->bind('<Key-n>',        [$cw, 'ShowMatch', $t, 'Next']);
-    $t->bind('<Key-N>',        [$cw, 'ShowMatch', $t, 'Prev']);
+#    $t->bind('<Key-question>', [$cw, 'Search', 'Prev']);
+    $t->bind('<Key-n>',        [$cw, 'ShowMatch', 'Next']);
+    $t->bind('<Key-N>',        [$cw, 'ShowMatch', 'Prev']);
 
     $t->bind('<Key-G>', $t->bind(ref($t),'<Control-End>'));
     $t->bind('<Key-j>', ['yview', 'scroll',  1, 'units']);
     $t->bind('<Key-k>', ['yview', 'scroll', -1, 'units']);
+    $t->bind('<Down>',  sub { $_[0]->yview('scroll',  1, 'units');
+			      Tk->break;
+			  });
+    $t->bind('<Up>',    sub { $_[0]->yview('scroll', -1, 'units');
+			      Tk->break;
+			  });
     $t->bind('<Key-f>', $t->bind(ref($t),'<Next>'));
     $t->bind('<Key-b>', $t->bind(ref($t),'<Prior>'));
 
@@ -66,31 +74,38 @@ sub Populate {
     $t->bind('<Key-d>', $t->bind(ref($t),'<Next>'));  # xxx should be 1/2 screen
     $t->bind('<Key-u>', $t->bind(ref($t),'<Prior>')); # xxx should be 1/2 screen
 
-    $e->bind('<Return>',[$cw, 'SearchText', $t, $e]);
+    $e->bind('<Return>',[$cw, 'SearchText']);
 
-    $cw->Delegates('DEFAULT' => $t);
+    $cw->Delegates('DEFAULT'   => $t,
+		   'Search'    => 'SELF',
+		   'ShowMatch' => 'SELF',
+		  );
 
     $cw->ConfigSpecs(
 		-insertofftime => [$t, qw(insertOffTime OffTime         0)], # no blinking
 		-insertwidth   => [$t, qw(insertWidth   InsertWidth     0)], # invisible
 		-padx          => [$t, qw(padX          Pad            5p)],
 		-pady          => [$t, qw(padY          Pad            5p)],
+		-searchcase    => ['PASSIVE', 'searchCase', 'SearchCase', 1],
 		'DEFAULT'      => [$t]
 		);
 
     $cw;
 }
 
+
 sub Search {
-    my ($cw, $e, $direction) = @_;
+    my ($cw, $direction) = @_;
     $cw->{DIRECTION} = $direction;
+    my $e = $cw->Subwidget('searchentry');
     $e->configure(-label => 'Search ' . ($direction eq 'Next'?'forward:':'backward:') );
     $e->configure(-relief=>'sunken',-state=>'normal');
     $e->focus;
 }
 
 sub SearchText {
-    my ($cw, $t, $e) = @_;
+    my ($cw) = @_;
+    my($t, $e) = ($cw->Subwidget('text'), $cw->Subwidget('searchentry'));
     unless ($cw->search_text($t, $e->get, 'search') ) {
 	$cw->bell;
     }
@@ -98,7 +113,7 @@ sub SearchText {
     $t->see( '@1,0' );
     # xxx better start at current pos as in more ???
     $t->markSet('insert' ,'@1,0');
-    $cw->ShowMatch($t,$cw->{DIRECTION});
+    $cw->ShowMatch($cw->{DIRECTION});
     $t->focus;
     $e->configure(-relief=>'flat', -state=>'disabled');
 }
@@ -107,7 +122,8 @@ sub SearchText {
 #     'insert' jumps from end to start of match (start to end)
 #     instead of the next (prev) match
 sub ShowMatch {
-    my ($cw, $t, $method) = @_;
+    my ($cw, $method) = @_;
+    my $t = $cw->Subwidget('text');
     if ($cw->{DIRECTION} ne 'Next') {
 	$method = 'Next' if $method eq 'Prev';	
 	$method = 'Prev' if $method eq 'Next';	
@@ -121,7 +137,9 @@ sub ShowMatch {
     }
     @ins = reverse @ins unless $method eq 'tagNextrange';
     $t->markSet('insert' ,$ins[1]);
+#XXX    my(@beforeVisible) = $t->yview;
     $t->see($ins[0]);
+#    my($currVisible)
     $ins[0];
 } 
 
@@ -140,6 +158,7 @@ sub Load
     }
    close(FILE);
    #yy $text->{FILE} = $file;
+   $text->markSet('insert', '@1,0');
    $text->MainWindow->Unbusy;
   }
  else
@@ -168,8 +187,10 @@ sub search_text {
     my($current, $length, $found) = ('1.0', 0, 0);
 
     my $insert = $w->index('insert');
+    my @search_args = ('-regexp');
+    push @search_args, '-nocase' unless ($w->cget('-searchcase'));
     while (1) {
-        $current = $w->search(-regexp, -count => \$length, '--', $string, $current, 'end');
+        $current = $w->search(@search_args, -count => \$length, '--', $string, $current, 'end');
         last if not $current;
 	$found = 1;
         $w->tag('add', $tag, $current, "$current + $length char");

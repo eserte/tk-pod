@@ -1,11 +1,11 @@
-# $Id: Parse.pm 1.3 Wed, 26 Nov 1997 11:49:41 +0100 ach $
+# $Id: Parse.pm 1.7 Mon, 05 Oct 1998 20:12:57 +0200 ach $
 
 package Tk::Parse;
 
 require Exporter;
 
-use vars qw($VERSION);
-$VERSION = substr(q$Revision: 1.3 $, 10) + 1; # bigger than 2.004 before :-)
+use vars qw($VERSION %Escapes);
+$VERSION = substr(q$Revision: 1.7 $, 10) + 1; # bigger than 2.004 before :-)
 
 @ISA=qw(Exporter);
 @EXPORT=qw(Parse Simplify hide start_hide unhide Normalize Normalize2 Escapes
@@ -697,6 +697,14 @@ sub Parse2 {
 		
 		#print STDERR "Read $_\n";
 		
+		if($saw_begin) {
+			if (/^=end/) {
+				$saw_begin=0;
+				$cutting=0;
+			}
+			next;
+		}
+
 		if($cutting && !/^=/) {
 			next;
 		}
@@ -708,7 +716,13 @@ sub Parse2 {
 			push(@result,[9,$line,$loc,0,0]);
 			next;
 		}
-		
+	
+		if(/^=begin/) {
+			$cutting=1;
+			$saw_begin=1;
+			next;
+		}
+	
 		if(/^\s/) {
 			push(@result,[1,$line,$loc,0,$_]);
 		} elsif( /^=head(\d+)\s*/ ) {
@@ -773,6 +787,9 @@ sub Parse2 {
 			$saveindex=$';
 		} elsif( /^=comment/ ) {
 			#push(@result,[5,$line,$loc]);
+		} elsif(/^=pod/) {
+			$cutting = 0;
+			next;
 		} elsif( /^=for/ ) {
 			# xxx do nothing
 		} elsif( /^=/ ) {
