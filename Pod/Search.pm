@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.5 $, 10 . "";
+$VERSION = substr q$Revision: 2.6 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -20,9 +20,15 @@ Construct Tk::Widget 'PodSearch';
 sub Populate {
     my ($cw, $args) = @_;
 
-    require Tk::Listbox;
-    require Tk::Label;
-    require Tk::BrowseEntry;
+    my $Entry;
+    eval {
+	require Tk::HistEntry;
+	$Entry = "HistEntry";
+    };
+    if ($@) {
+	require Tk::BrowseEntry;
+	$Entry = "BrowseEntry";
+    }
 
     my $l = $cw->Scrolled('Listbox',-scrollbars=>$Tk::platform eq 'MSWin32'?'e':'w');
     #xxx BrowseEntry V1.3 does not honour -label at creation time :-(
@@ -30,7 +36,7 @@ sub Populate {
 	#-listcmd=> ['_logit', 'list'],
 	#-browsecmd=> ['_logit', 'browse'],
 	#);
-    my $e = $cw->BrowseEntry();
+    my $e = $cw->$Entry();
     my $s = $cw->Label();
 
     $l->pack(-fill=>'both', -side=>'top',  -expand=>1);
@@ -63,7 +69,13 @@ sub Populate {
 
 sub addHistory {
     my ($w, $obj) = @_;
-    $w->Subwidget('browse')->insert(0,$obj);
+
+    my $entry_or_browse = $w->Subwidget('browse');
+    if ($entry_or_browse->can('historyAdd')) {
+	$entry_or_browse->historyAdd($obj);
+    } else {
+	$entry_or_browse->insert(0,$obj);
+    }
 }
 
 sub _logit { print "logit=|", join('|',@_),"|\n"; }
@@ -115,7 +127,11 @@ sub _search {
 	$l->see(0);
 	$l->activate(0);
     } else {
-	croak "No POD documentation in Library matches: '$find'";
+	my $msg = "No POD documentation in Library matches: '$find'";
+	$e->messageBox(-icon => "error",
+		       -title => "No match",
+		       -message => $msg);
+	die $msg;
     }
 }
 
