@@ -3,27 +3,13 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 1.3 $, 10) . "";
+$VERSION = substr(q$Revision: 2.1 $, 10) . "";
 
 use Tk::Derived;
 use Tk::Frame;
 @ISA = qw(Tk::Derived Tk::Frame);
 
 Construct Tk::Widget 'More';
-
-#sub ClassInit {
-#    my ($class, $mw) = @_;
-#
-#    $class->SUPER::ClassInit($mw);
-#
-#    ## xxx: useless 'because it's bound to frame and not rotext :-(
-#    $mw->bind($class, '<Key-h>', [qw(xview scroll -1 units)]);
-#    $mw->bind($class, '<Key-l>', [qw(xview scroll  1 units)]);
-#    $mw->bind($class, '<Key-k>', [qw(yview scroll -1 units)]);
-#    $mw->bind($class, '<Key-j>', [qw(yview scroll  1 units)]);
-#
-#    return $class;
-#};
 
 sub Populate {
     my ($cw, $args) = @_;
@@ -46,12 +32,13 @@ sub Populate {
     $cw->Advertise('text' => $t);
     $t->tagConfigure('search', -foreground => 'red');
 
+    $t->bindtags([ref $t, $t->bindtags]);
     $t->bind('<Key-slash>',    [$cw, 'Search', 'Next']);
-# xxx forw/backw search should be recoded :-(
-#    $t->bind('<Key-question>', [$cw, 'Search', 'Prev']);
+    $t->bind('<Key-question>', [$cw, 'Search', 'Prev']);
     $t->bind('<Key-n>',        [$cw, 'ShowMatch', 'Next']);
     $t->bind('<Key-N>',        [$cw, 'ShowMatch', 'Prev']);
 
+    $t->bind('<Key-g>', $t->bind(ref($t),'<Control-Home>'));
     $t->bind('<Key-G>', $t->bind(ref($t),'<Control-End>'));
     $t->bind('<Key-j>', ['yview', 'scroll',  1, 'units']);
     $t->bind('<Key-k>', ['yview', 'scroll', -1, 'units']);
@@ -64,15 +51,22 @@ sub Populate {
     $t->bind('<Key-f>', $t->bind(ref($t),'<Next>'));
     $t->bind('<Key-b>', $t->bind(ref($t),'<Prior>'));
 
-    # Not documented (makes sense?)
+    # Not documented (makes sense? --- not yet, but with the std. Text menu)
     $t->bind('<Key-l>', ['xview', 'scroll',  1, 'units']);
     $t->bind('<Key-h>', ['xview', 'scroll', -1, 'units']);
-#    $t->bind('<Key-h>', $t->bind(ref($t),'<Left>'));
-#    $t->bind('<Key-l>', $t->bind(ref($t),'<Right>'));
-    $t->bind('<Return>', $t->bind(ref($t),'<Down>'));
-    $t->bind('<space>', $t->bind(ref($t),'<Next>'));
-    $t->bind('<Key-d>', $t->bind(ref($t),'<Next>'));  # xxx should be 1/2 screen
-    $t->bind('<Key-u>', $t->bind(ref($t),'<Prior>')); # xxx should be 1/2 screen
+    $t->bind('<Return>', ['yview', 'scroll',  1, 'units']);
+    $t->bind('<Key-d>', sub { my($y1,$y2) = $_[0]->yview;
+			      $y1 += ($y2-$y1)/2;
+			      $y1 = 1.0 if ($y1 > 1.0);
+			      $_[0]->yviewMoveto($y1);
+			  });
+    $t->bind('<Key-u>', sub { my($y1,$y2) = $_[0]->yview;
+			      $y1 -= ($y2-$y1)/2;
+			      $y1 = 0.0 if ($y1 < 0.0);
+			      $_[0]->yviewMoveto($y1);
+			  });
+
+    $t->bind('<Key-h>', sub { $cw->Callback(-helpcommand => $t) });
 
     $e->bind('<Return>',[$cw, 'SearchText']);
 
@@ -87,6 +81,7 @@ sub Populate {
 		-padx          => [$t, qw(padX          Pad            5p)],
 		-pady          => [$t, qw(padY          Pad            5p)],
 		-searchcase    => ['PASSIVE', 'searchCase', 'SearchCase', 1],
+		-helpcommand   => ['CALLBACK', undef, undef, undef],
 		'DEFAULT'      => [$t]
 		);
 
@@ -125,23 +120,28 @@ sub ShowMatch {
     my ($cw, $method) = @_;
     my $t = $cw->Subwidget('text');
     if ($cw->{DIRECTION} ne 'Next') {
-	$method = 'Next' if $method eq 'Prev';	
-	$method = 'Prev' if $method eq 'Next';	
+	$method = 'Next' if $method eq 'Prev';
+	$method = 'Prev' if $method eq 'Next';
     }
     my $cur = $t->index('insert');
     $method = "tag". $method . "range"; # $method: Next or Prev
-    my @ins = $t->$method('search',$cur);
-    unless (@ins) {
-	$cw->bell;
-	return;
+    my @ins;
+    while (1) {
+	@ins = $t->$method('search',$cur);
+	unless (@ins) {
+	    $cw->bell;
+	    return;
+	}
+	@ins = reverse @ins unless $method eq 'tagNextrange';
+	last if (!$cw->bbox($ins[0])); # check if search result visible
+	$cur = $ins[1];
     }
-    @ins = reverse @ins unless $method eq 'tagNextrange';
     $t->markSet('insert' ,$ins[1]);
 #XXX    my(@beforeVisible) = $t->yview;
     $t->see($ins[0]);
 #    my($currVisible)
     $ins[0];
-} 
+}
 
 # Load copied from TextUndo (xxx yy marks changes)
 sub Load
