@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.11 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.12 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -94,6 +94,7 @@ sub file {
       # my $t = new Benchmark;
       $w->process($path);
       # print &timediff(new Benchmark, $t)->timestr,"\n";
+      $w->focus;
     }
   else
     {
@@ -307,7 +308,6 @@ sub DoubleClick
 sub Link
 {
  my ($w,$how,$index,$link) = @_;
-
  # If clicking on a Link, the <Leave> binding is never called, so it
  # have to be done here:
  $w->LeaveLink;
@@ -330,6 +330,7 @@ sub Link
       }
      return;
     }
+#XXX Pod::ParseUtils can't handle "Inline::C-Cookbook"!
    $man = $l->page;
    $sec = $l->node;
   }
@@ -353,7 +354,8 @@ sub Link
   {
    $man = $w->cget('-file') if ($man eq "");
    my $tree = eval { $w->parent->cget(-tree) };
-   $w = $w->MainWindow->Pod('-file' => $man, '-tree' => $tree);
+   $w = $w->MainWindow->Pod('-tree' => $tree);
+   $w->configure('-file' => $man); # see tkpod for the same problem
   }
   # XXX big docs like Tk::Text take too long until they return
 
@@ -668,10 +670,16 @@ sub over { }
 sub back { }
 
 # XXX PodText.pm should not manipulate Toplevel
+#  sub filename
+#  {
+#   my ($w,$title) = @_;
+#   $w->toplevel->title($title);
+#  }
 sub filename
 {
  my ($w,$title) = @_;
- $w->toplevel->title($title);
+ my $tl = $w->toplevel;
+ $tl->title($title) if $tl->isa("Tk::Pod");
 }
 
 sub setline   {}
