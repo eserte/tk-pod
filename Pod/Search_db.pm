@@ -14,7 +14,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 1.2 $, 10) . "";
+$VERSION = substr(q$Revision: 2.1 $, 10) . "";
 
 use Carp;
 use Fcntl;
@@ -30,7 +30,7 @@ sub new {
     my $idir  = shift;
 
     $idir ||= $IDXDIR;
-    
+
     my (%self, %IF, %IDF, %FN);
     tie (%IF,   'AnyDBM_File', "$idir/index_if",   O_RDONLY, 0644)
         	or confess "Could not tie $idir/index_if: $!\n".
