@@ -1,16 +1,16 @@
 Tk::Pod is a graphical user interface for viewing and browsing perl's
-POD documentation.
+Pod documentation.
 
 Features include:
-	o Interface to perlindex full text POD search added
+	o Interface to perlindex full text Pod search added
 	  (you need to install the perlindex distribution aka
            Text::English on CPAN).
-	o Supports single or multiple POD windows.
+	o Supports single or multiple Pod windows.
 	o Primitive Tk/More widget with '/', 'n', 'N', 'j', 'k'
 	  bindings
-	o Tree view of available PODs
+	o Tree view of available Pods
 
-The current version uses Pod::Simple as POD parser (thanks to Sean M.
+The current version uses Pod::Simple as Pod parser (thanks to Sean M.
 Burke!).
 
 Available at: $CPAN/authors/id/S/SR/SREZIC/Tk-Pod-0.9914.tar.gz

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.11 2003/02/10 18:11:20 eserte Exp $
+# $Id: FindPods.pm,v 1.12 2003/02/11 11:37:05 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -16,7 +16,7 @@ package Tk::Pod::FindPods;
 
 =head1 NAME
 
-Tk::Pod::FindPods - find PODs installed on the current system
+Tk::Pod::FindPods - find Pods installed on the current system
 
 
 =head1 SYNOPSIS
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -53,9 +53,9 @@ sub init {
 
 =head2 pod_find
 
-The B<pod_find> method scans the current system for available POD
+The B<pod_find> method scans the current system for available Pod
 documentation. The keys of the returned hash are the names of the
-modules or PODs (C<::> substituted by C</> --- this makes it easier
+modules or Pods (C<::> substituted by C</> --- this makes it easier
 for Tk::Pod::Tree, as the separator may only be of one character). The
 values are the corresponding filenames.
 
@@ -63,9 +63,9 @@ If C<-categorized> is specified, then the returned hash has an extra
 level with four categories: B<perl> (for core language documentation),
 B<pragma> (for pragma documentation like L<var|var> or
 L<strict|strict>), B<mod> (core or CPAN modules), and B<script> (perl
-scripts with embedded POD documentation).
+scripts with embedded Pod documentation).
 
-If C<-usecache> is specified, then the list of PODs is cached in a
+If C<-usecache> is specified, then the list of Pods is cached in a
 temporary directory.
 
 =cut
@@ -299,7 +299,7 @@ sub _cache_file {
 
 =head2 WriteCache
 
-Write the POD cache. The cache is written to the temporary directory.
+Write the Pod cache. The cache is written to the temporary directory.
 The file name is constructed from the perl version, operation system
 and user id.
 
@@ -320,7 +320,7 @@ sub WriteCache {
 
 =head2 LoadCache()
 
-Load the POD cache, if possible.
+Load the Pod cache, if possible.
 
 =cut
 

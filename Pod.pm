@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.19 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.20 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -52,7 +52,7 @@ sub Populate
 
   [Cascade => '~View', -menuitems =>
    [
-    [Checkbutton => '~POD Tree', -variable => \$w->{Tree_on},
+    [Checkbutton => '~Pod Tree', -variable => \$w->{Tree_on},
      '-command' => sub { $w->tree($w->{Tree_on}) }],
     '-',
     [Button => "Zoom ~in",  -command => ['zoom_in', $p]],
@@ -120,12 +120,12 @@ sub openfile {
     my $file;
     if ($cw->can("getOpenFile")) {
 	$file = $cw->getOpenFile
-	    (-title => "Choose POD file",
+	    (-title => "Choose Pod file",
 	     -defaultextension => 'pod',
-	     -filetypes => [['POD containing files', ['*.pod',
+	     -filetypes => [['Pod containing files', ['*.pod',
 						      '*.pl',
 						      '*.pm']],
-			    ['POD files', '*.pod'],
+			    ['Pod files', '*.pod'],
 			    ['Perl scripts', '*.pl'],
 			    ['Perl modules', '*.pm'],
 			    ['All files', '*']]);
@@ -141,13 +141,13 @@ sub openfile {
 
 sub openpod {
     my($cw,$p) = @_;
-    my $t = $cw->Toplevel(-title => "Set POD");
+    my $t = $cw->Toplevel(-title => "Set Pod");
     $t->transient($cw);
     $t->grab;
     my($pod, $e, $go);
     {
 	my $f = $t->Frame->pack(-fill => "x");
-	$f->Label(-text => "POD:")->pack(-side => "left");
+	$f->Label(-text => "Pod:")->pack(-side => "left");
 	$e = $f->Entry(-textvariable => \$pod)->pack(-side => "left", -fill => "x", -expand => 1);
 	$e->focus;
 	$go = 0;
@@ -420,24 +420,24 @@ __END__
 
 =head1 NAME
 
-Tk::Pod - POD browser toplevel widget
+Tk::Pod - Pod browser toplevel widget
 
 
 =head1 SYNOPSIS
 
     use Tk::Pod
 
-    Tk::Pod->Dir(@dirs)			# add dirs to search path for POD
+    Tk::Pod->Dir(@dirs)			# add dirs to search path for Pod
 
     $pod = $parent->Pod(
-		-file = > $name,	# search and display POD for name
+		-file = > $name,	# search and display Pod for name
 		-tree = > $bool		# display pod file tree
 		);
 
 
 =head1 DESCRIPTION
 
-Simple POD browser with hypertext capabilities in a C<Toplevel> widget
+Simple Pod browser with hypertext capabilities in a C<Toplevel> widget
 
 =head1 OPTIONS
 
@@ -459,7 +459,7 @@ Other options are propagated to the embedded L<Tk::Pod::Text> widget.
 
 =head1 BUGS
 
-If you set C<-file> while creating the POD widget,
+If you set C<-file> while creating the Pod widget,
 
     $parent->Pod(-tree => 1, -file => $pod);
 
