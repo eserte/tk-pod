@@ -24,7 +24,7 @@ use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.27 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.28 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -500,7 +500,9 @@ sub Link_url {
 	*WWWBrowser::start_browser = sub {
 	    my $url = shift;
 	    if ($^O eq 'MSWin32') {
-		system("$url &");
+		system("start explorer $url");
+	    } elsif ($^O eq 'cygwin') {
+		system("explorer $url &");
 	    } else {
 		system("netscape $url &");
 	    }
