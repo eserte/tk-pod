@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.8 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.9 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -41,7 +41,7 @@ sub Populate
     [Button => '~Print...',  '-command' => ['Print',$p]],
     [Separator => ""],
     [Button => '~Close',     '-command' => ['quit',$w]],
-    [Button => 'E~xit',      '-command' => sub { Tk::exit }],
+    [Button => 'E~xit',      '-command' => sub { $p->MainWindow->destroy }],
    ]
   ],
 
@@ -90,11 +90,7 @@ sub Populate
  $w->configure(-menu => $mbar);
  $w->Advertise(menubar => $mbar);
 
- $w->Delegates('Menubar' => $mbar);#, #, DEFAULT => $p);
-#  	       #$w->Delegates(
-#  	       'pack' => $w, # !!!
-#  	       'place' => $w,
-#  	       DEFAULT => $p);
+ $w->Delegates('Menubar' => $mbar);
  $w->ConfigSpecs(
     -tree => ['METHOD', 'tree', 'Tree', 0],
     'DEFAULT' => [$p],
@@ -241,6 +237,7 @@ sub tree {
 	    my @tree_pack = (-before => $p, -side => 'left', -fill => 'y');
 	    if (!$tree->Filled) {
 		$w->_configure_tree;
+warn "pack adjust @tree_pack";
 		$tree->packAdjust(@tree_pack);
 		$w->Busy(-recurse => 1);
 		eval {
@@ -408,15 +405,24 @@ Tk::Pod - POD browser toplevel widget
     Tk::Pod->Dir(@dirs)			# add dirs to search path for POD
 
     $pod = $parent->Pod(
-		-file = > $name,	# search and display POD for name
 		-tree = > $bool		# display pod file tree
 		);
+    $pod->configure(-file = > $name);  # search and display POD for name
 
 
 =head1 DESCRIPTION
 
 Simple POD browser with hypertext capabilities in a C<Toplevel> widget
 
+=head1 BUGS
+
+If you set C<-file> while creating the POD widget,
+
+    $parent->Pod(-tree => 1, -file => $pod);
+
+then the title will not be displayed correctly. This is because the
+internal setting of C<-title> may override the title setting caused by
+C<-file>. So it is better to configure C<-file> separately.
 
 =head1 SEE ALSO
 
