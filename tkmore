@@ -3,15 +3,38 @@
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 use Tk;
 use Tk::More;
+use Getopt::Long;
+
+my %opt = (font => "Courier 10"); # XXX do not hardcode, get size from default font
+
+Getopt::Long::config('pass_through');
+if (!GetOptions(\%opt, "font=s", "i|ignore-case!")) {
+    require Pod::Usage;
+    Pod::Usage::pod2usage(2);
+}
 
 my $mw = tkinit;
+
+# Unhandled options left?
+Getopt::Long::config('nopass_through');
+if (!GetOptions({})) {
+    require Pod::Usage;
+    Pod::Usage::pod2usage(2);
+}
+
+my $file = shift @ARGV;
+if (!defined $file) {
+    die "Filename is missing.\n";
+}
+
 my $more = $mw->Scrolled("More",
-			 -font => "Courier 10", # XXX do not hardcode
+			 -font => $opt{font},
 			 -scrollbars => "osoe",
+			 -searchcase => !$opt{i},
 			)->pack(-fill => "both", -expand => 1);
 
 my $menu = $more->menu;
@@ -36,7 +59,7 @@ $menu->cascade(-label => "Help", -underline => 0, -menu => $helpmenu);
 $mw->configure(-menu => $menu);
 
 $more->focus;
-load_file(shift);
+load_file($file);
 $more->bind("<q>" => sub { $mw->destroy });
 MainLoop;
 
@@ -47,3 +70,39 @@ sub load_file {
 }
 
 __END__
+
+=head1 NAME
+
+tkmore - a Perl/Tk based pager
+
+=head1 SYNOPSIS
+
+    tkmore [X11 options] [-i] filename
+
+=head1 DESCRIPTION
+
+B<tkmore> is a pager similar to L<more(1)> or L<less(1)>.
+
+=head2 OPTIONS
+
+=over
+
+=item -i
+
+Turn on case-insensitive search.
+
+=back
+
+=head2 KEY BINDINGS
+
+For a list of key bindings, see L<Tk::More/ADDITIONAL BINDINGS>.
+
+=head1 AUTHOR
+
+Slaven Rezic
+
+=head1 SEE ALSO
+
+L<Tk::More>, L<more(1)>, L<less(1)>
+
+=cut
