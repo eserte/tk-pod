@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.15 2003/02/10 18:51:29 eserte Exp $
+# $Id: Tree.pm,v 1.16 2003/02/10 22:35:14 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -250,21 +250,17 @@ if ($args{-cpan}) { $usecache = 0 }
 
 	my $hash = $pods{$category};
 	foreach my $pod (sort keys %$hash) {
-	    next if $pod =~ /\./;#XXX
+#XXX del???	    next if $pod =~ /\./;#XXX
 
 	    my $treepath = "$category/$pod";
 	    (my $title = $pod) =~ s|/|::|g;
-#warn "$pod $hash->{$pod} $treepath\n";
 	    $w->_add_parents($treepath);
 
-#  	    my $is = Tk::Pod::FindPods::is_site_module($hash->{$pod})
-#  		     ? $w->{SiteIS}
-#  		     : $w->{CoreIS};
 	    my $loc = Tk::Pod::FindPods::module_location($hash->{$pod});
 	    my $is = $w->{Style}{$loc};
 	    my @entry_args = ($treepath,
 			      -text => $title,
-			      -data => _PodEntry->create($hash->{$pod}), #{File => $hash->{$pod}},
+			      -data => _PodEntry->create($hash->{$pod}),
 			      ($is ? (-style => $is) : ()),
 			     );
 	    if ($w->info('exists', $treepath)) {
