@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9925
+	o Tk::Pod::FindPods: using opendir/readdir instead of glob
+
 version 0.9924
 	o fix for a test error
 
