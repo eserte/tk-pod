@@ -3,8 +3,9 @@ use strict;
 use Tk ();
 use Tk::Toplevel;
 
-use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.23 $, 10) + 2 . "";
+use vars qw($VERSION $DIST_VERSION @ISA);
+$VERSION = substr(q$Revision: 2.24 $, 10) + 2 . "";
+$DIST_VERSION = "0.9920";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -228,15 +229,20 @@ sub help {
 }
 
 sub about {
-    shift->messageBox(-title => "About Tk::Pod",
-                      -icon => "info",
-		      -message => join "\n",
-		        "Tk::Pod $VERSION",
-		        $Pod::Simple::VERSION
-		          ? "(Using Pod::Simple $Pod::Simple::VERSION)"
-		          : (),
-		        'Please contact <slaven@rezic.de>',
-		        "in case of problems.",
+    my $message = <<EOF;
+Tk-Pod distribution $DIST_VERSION
+Tk::Pod module $VERSION
+(Using Tk $Tk::VERSION@{[ $Pod::Simple::VERSION
+			  ? " and Pod::Simple $Pod::Simple::VERSION"
+			  : ""
+			]}
+on $^O)
+Please contact <slaven\@rezic.de>
+in case of problems.
+EOF
+    $_[0]->messageBox(-title   => "About Tk::Pod",
+                      -icon    => "info",
+		      -message => $message,
 		     );
 }
 
