@@ -35,21 +35,11 @@ o perlfunc.pod complains 3 times that -X should be i[BC]<-X>
 o after =back missing horizontal white space, see 'sz'
   in Tk::Pod::Text.pm POD
 
-o Tk/More status bar:  filename  %   line x
-
 o Bug: C<> in (e.g.) MakeMakers DESCRIPTION section is in bold
        roman instead of Courier. After this page is loaded all
 	pages show this bug  (Tag order?)
 
 o Bug: S<> e.g., in SYNOPSIS of perl manpage ignored
-
-o more 'more' like key bindings to Tk::More.
-
-o More.pm: search should scroll per page
-
-o search policies: regexp, glob, incremental (as in xmore)
-  and 'normalized' as in perlindex.  Should go into it's own
-  Tk::Text::Util.pm module
 
 o cleanup search interface to perlindex.  Maybe patch Ulrichs
   TPJ example code for nroff pages to allow both POD and MAN.
@@ -63,5 +53,34 @@ o Tree: re-read tree, invalidate cache
 o PodText: interrupt process() if another file is loaded...
 
 o use some kind of access control for the -s option
+
+o Double-2 over non-links should load a pod into a new window (like
+  Button-2 opens a new window, and Double-1 recognizes pods in
+  non-links)
+
+o new menu entry with a link list (e.g. all L<...> and everything
+looking like a module /\w+::\w+/)
+
+o zoom +/- (like in tkrevdiff)
+
+o ignore =comment sections
+
+o for Windows: check whether Tk::More/Tk::Tree match the system
+background colors
+
+Tk::More:
+
+o Tk/More status bar:  filename  %   line x
+
+o more 'more' like key bindings to Tk::More.
+
+o More.pm: search should scroll per page
+
+o search policies: regexp, glob, incremental (as in xmore)
+  and 'normalized' as in perlindex.  Should go into it's own
+  Tk::Text::Util.pm module
+
+o after switching between case sensitive/insensitive highlightning
+  should be updated immediately
 
 __END__
