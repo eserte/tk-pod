@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.15 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.16 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -264,6 +264,7 @@ sub tree {
 		    die $err;
 		}
 	    }
+	    $tree->SeePath("file:" . $p->cget(-path));
 	} else {
 	    if ($tree && $tree->manager) {
 		$tree->packForget;
@@ -416,7 +417,10 @@ If you set C<-file> while creating the POD widget,
 
 then the title will not be displayed correctly. This is because the
 internal setting of C<-title> may override the title setting caused by
-C<-file>. So it is better to configure C<-file> separately.
+C<-file>. So it is better to configure C<-file> separately:
+
+    $pod = $parent->Pod(-tree => 1);
+    $pod->configure(-file => $pod);
 
 =head1 SEE ALSO
 
@@ -429,7 +433,7 @@ L<perlpod|perlpod>
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Code currently maintained by Slaven Rezic <F<slaven@rezic.de>>.
+Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
 
 Copyright (c) 1997-1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

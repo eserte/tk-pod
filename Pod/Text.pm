@@ -19,12 +19,11 @@ use Config;
 use Tk qw(catch);
 use Tk::Frame;
 use Tk::Pod;
-#XXX del: use Tk::Parse;
 use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.23 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.25 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -271,19 +270,13 @@ sub Populate
     #     delegate bind, bindtag to the scrolled widget. Tk402.* (and before?)
     #	  (patch posted and included in Tk402.004)
     $p_scr->bindtags([$p_scr, $p_scr->bindtags]);
-    $p_scr->bind('<Double-1>',       sub  { $w->DoubleClick($_[0]) });#[$w, 'DoubleClick']);
-    $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });#[$w, 'ShiftDoubleClick', $_[0]]);
+    $p_scr->bind('<Double-1>',       sub  { $w->DoubleClick($_[0]) });
+    $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });
+    $p_scr->bind('<Double-2>',       sub  { $w->ShiftDoubleClick($_[0]) });
 
     $p->configure(-font => $w->Font(family => 'courier'));
 
-#XXX del:
-    #$p->tag('configure','verbatim', -wrap => 'none');
     $p->tag('configure','text', -font => $w->Font(family => 'times'));
-    #$p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
-    #$p->tag('configure','B',-font => $w->Font(                     weight=>'bold',               ));
-    ##$p->tag('configure','S',-font => $w->Font(                                                   ));
-    #$p->tag('configure','I',-font => $w->Font(                                       slant => 'i'));
-    #$p->tag('configure','F',-font => $w->Font(                                       slant => 'i'));
 
     $p->insert('0.0',"\n");
 
@@ -342,8 +335,6 @@ sub Populate
 
     $args->{-width} = $w->{Length};
 }
-
-#my %tag = qw(C 1 B 1 I 1 L 1 F 1 S 1 Z 1); # un-used XXX
 
 sub Font
 {
@@ -413,8 +404,15 @@ sub Link
   {
    $man = $w->cget('-file') if ($man eq "");
    my $tree = eval { $w->parent->cget(-tree) };
+   my $old_w = $w;
    $w = $w->MainWindow->Pod('-tree' => $tree);
    $w->configure('-file' => $man); # see tkpod for the same problem
+
+   # set search term for new window
+   my $search_term_ref = $old_w->Subwidget('more')->Subwidget('searchentry')->cget(-textvariable);
+   if ($$search_term_ref ne "") {
+       $ {$w->Subwidget('pod')->Subwidget('more')->Subwidget('searchentry')->cget(-textvariable) } = $$search_term_ref;
+   }
   }
   # XXX big docs like Tk::Text take too long until they return
 
@@ -817,9 +815,11 @@ sub is_in_path {
 	    return "$_\\$prog"
 		if (-x "$_\\$prog.bat" ||
 		    -x "$_\\$prog.com" ||
-		    -x "$_\\$prog.exe");
+		    -x "$_\\$prog.exe" ||
+		    -x "$_\\$prog.cmd"
+		   );
 	} else {
-	    return "$_/$prog" if (-x "$_/$prog");
+	    return "$_/$prog" if (-x "$_/$prog" && !-d "$_/$prog");
 	}
     }
     undef;

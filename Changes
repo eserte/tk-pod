@@ -1,5 +1,11 @@
 History for Tk::Pod
 
+version 0.9915
+	o use Tk::HistEntry in fulltext search dialog, if available
+	o tree view: now automatically jumping to the current leaf
+	o Double-2 binding in Tk::Pod::Text
+	o minor POD fixes
+
 version 0.9914
 	o changed email address
 	o first non-development 0.99* version
