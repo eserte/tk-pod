@@ -1,29 +1,29 @@
 #!/usr/local/bin/perl -w
 
 use strict;
-use vars qw($VERSION $tk_opt);
+use vars qw($VERSION $tk_opt $tree);
 
-$VERSION = substr(q$Revision: 1.1 $ , 10) + 1 . "";
-
-BEGIN {
-	if (defined($ARGV[0]) and $ARGV[0] eq '-tk') {
-            $tk_opt = 1;
-	    shift @ARGV;
-	} else {
-	    $tk_opt = 0;
-	}
-	print STDERR <<EOT unless @ARGV;
-
-Usage:	$0  [-tk] [directory]|name [...]
-
-EOT
-}
+$VERSION = substr(q$Revision: 1.2 $ , 10) + 1 . "";
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
 use Tk::Pod;
+use Getopt::Long;
+#require Tk::ErrorDialog;
 
-require Tk::ErrorDialog;
+$tree = 1;
+if (!GetOptions("tk" => \$tk_opt,
+		"tree!" => \$tree,
+	       )) {
+    print STDERR <<EOT unless @ARGV;
+Usage:	$0  [-tk] [[-no]tree] [directory]|name [...]
+
+EOT
+}
+
+if (!@ARGV) {
+    push @ARGV, "perl";
+}
 
 # Add 'Tk' subdirectories to search path so, e.g.,
 # 'Scrolled' will find doc in 'Tk/Scrolled'
@@ -32,10 +32,11 @@ if ($tk_opt) {
    foreach (reverse @INC) {
 	$tkdir = "$_/Tk";
 	unshift @ARGV, $tkdir if -d $tkdir;
-   } 
+   }
 }
 
 my $mw = MainWindow->new();
+eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
 $mw->withdraw;
 
 # CDE use Font Settings if available
@@ -48,7 +49,7 @@ if (defined($ufont) and defined($sfont)) {
     $mw->optionAdd('*Text.Font',  $ufont);
 }
 
-$mw->optionAdd('*Menu.tearOff', 0);
+$mw->optionAdd('*Menu.tearOff', $Tk::platform ne 'MSWin32');
 
 my $file;
 foreach $file (@ARGV)
@@ -59,7 +60,7 @@ foreach $file (@ARGV)
    }
   else
    {
-    my $tl = $mw->Pod(-file => $file);
+    my $tl = $mw->Pod(-file => $file, -tree => $tree);
     $tl->focus;
    }
  }
