@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.14 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.15 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -429,7 +429,7 @@ L<perlpod|perlpod>
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Code currently maintained by Slaven Rezic <F<slaven.rezic@berlin.de>>.
+Code currently maintained by Slaven Rezic <F<slaven@rezic.de>>.
 
 Copyright (c) 1997-1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

@@ -10,20 +10,21 @@ To install, type:
 	make test
 	make install
 
-Windows user should replace "make" with "nmake" unless using a
-cygwin-compiled perl.
+Windows users should replace "make" with "nmake" unless using a
+cygwin-compiled or MinGW-compiled perl.
 
 Features include:
 	o Interface to perlindex full text POD search added
-	  (you need to install perlindex distribution).
+	  (you need to install the perlindex distribution aka
+           Text::English on CPAN).
 	o Supports single or multiple POD windows.
-	o Primitive Tk/More widget with '/', 'n', 'N', j, k
+	o Primitive Tk/More widget with '/', 'n', 'N', 'j', 'k'
 	  bindings
-	o Shows tree of available PODs
+	o Tree view of available PODs
 
 The original Tk::Pod module is written by Nick Ing-Simmons
 <nik@tiuk.ti.com>. Former maintainer is Achim Bohnet. Current
-maintainer is Slaven Rezic <slaven.rezic@berlin.de>. Please send bug
+maintainer is Slaven Rezic <slaven@rezic.de>. Please send bug
 reports and comments to the current maintainer.
 
 __END__

@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 
 use strict;
-use vars qw($VERSION $tk_opt $tree $server $portfile);
+use vars qw($VERSION $tk_opt $tree $server $portfile $M @I $debug);
 
-$VERSION = substr(q$Revision: 1.12 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.14 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -45,12 +45,17 @@ use Getopt::Long;
 #require Tk::ErrorDialog;
 
 $tree = 0;
+Getopt::Long::Configure ("bundling");
 if (!GetOptions("tk" => \$tk_opt,
 		"tree!" => \$tree,
-		"s!" => \$server,
+		"s|server!" => \$server,
+		"M=s" => \$M,
+		"I=s@" => \@I,
+		"d|debug!" => \$debug,
 	       )) {
     print STDERR <<EOT unless @ARGV;
-Usage:	$0  [-tk] [[-no]tree] [directory]|name [...]
+Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-Ilib ...] [-d|debug] [-s|server]
+            [directory|name [...]]
 
 EOT
 }
@@ -63,6 +68,10 @@ if ($tk_opt) {
 	$tkdir = "$_/Tk";
 	unshift @ARGV, $tkdir if -d $tkdir;
    }
+}
+
+if ($debug) {
+    $ENV{'TKPODDEBUG'} = $debug;
 }
 
 my $mw = MainWindow->new();
@@ -90,6 +99,19 @@ if (0) { # XXX still decide
 }
 
 $mw->optionAdd('*Menu.tearOff', $Tk::platform ne 'MSWin32' ? 1 : 0);
+
+my @extra_dirs;
+if (defined $M) {
+    if ($M ne 'blib') {
+	die "Only -Mblib recognized";
+    }
+    require blib;
+    blib->import;
+}
+if (@I) {
+    push @extra_dirs, @I;
+}
+Tk::Pod->Dir(@extra_dirs) if @extra_dirs;
 
 if (!@ARGV)
  {
@@ -187,7 +209,8 @@ tkpod - Perl/Tk POD browser
 
 =head1 SYNOPSIS
 
-    tkpod  [-tk] [[-no]tree] [-s]  [directory]|name [...]
+    tkpod  [-tk] [[-no]tree] [-Mblib] [-Ilib ...] [-d|debug] [-s|server]
+            [directory|name [...]]
 
 
 =head1 DESCRIPTION
@@ -196,13 +219,15 @@ B<tkpod> is a simple POD browser with hypertext capabilities.
 POD (L<Plain Old Document|perlpod>) is a simple and readable
 markup language that could be mixed with L<perl> code.
 
-PODs are searched by default in C<@INC>.  Directories listed on
-the command line are added to the default search path.
+PODs are searched by default in C<@INC> and C<$ENV{PATH}>. Directories
+listed on the command line or with the B<-I> option are added to the
+default search path.
 
 For each C<name> listed on the command line B<tkpod> tries to
 to find POD in C<name, name.pod> and C<name.pm> in the search
 path.  For each C<name> a new POD browser window is opened.
 
+If no C<name> is listed, then the main C<perl> pod is opened instead.
 
 =head1 OPTIONS
 
@@ -211,8 +236,9 @@ path.  For each C<name> a new POD browser window is opened.
 =item B<-tree>
 
 When specified, C<tkpod> will show a tree window with all available
-PODs on the local host. However, this may be slow on startup. You can
-always turn on the tree view with the menu entry 'View' -E<gt> 'POD Tree'.
+PODs on the local host. However, this may be slow on startup,
+especially first time because there is no cache yet. You can always
+turn on the tree view with the menu entry 'View' -E<gt> 'POD Tree'.
 
 =item B<-tk>
 
@@ -221,12 +247,25 @@ C<Tk> subdirectories in C<@INC> to the POD search path.   This way
 when C<Scrolled> is selected in the browser the C<Tk/Scrolled>
 documentation is found.
 
-=item B<-s>
+=item B<-s> or B<-server>
 
 Start C<tkpod> in server mode. Subsequent calls to C<tkpod> (without
 the B<-s> option) will cause to load the requested PODs into the
 server program, thus minimizing startup time and memory usage. Note
 that there is no access control, so this might be a security hole!
+
+=item B<-d> or B<-debug>
+
+Turn debugging on.
+
+=item B<-Mblib>
+
+Add the C<blib> directories under the current directory to the POD
+search path.
+
+=item B<-I> directory
+
+Add the named directory to the POD search path.
 
 =back
 
@@ -257,7 +296,7 @@ Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
 Former maintainer: Achim Bohnet <F<ach@mpe.mpg.de>>.
 
-Code currently maintained by Slaven Rezic F<slaven.rezic@berlin.de>>.
+Code currently maintained by Slaven Rezic <F<slaven@rezic.de>>.
 
 Copyright (c) 1997-1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

@@ -1,4 +1,4 @@
-BEGIN { $^W = 1; };
+BEGIN { $^W = 0; }; # cease "Too late to run INIT block" warning
 use Tk;
 print "1..1\n";
 @ARGV = 'tkpod';
