@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9922";
+$DIST_VERSION = "0.9923";
 if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
  SEARCH_FOR_DIST_VERSION: {
@@ -21,6 +21,7 @@ if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
 WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk'             => 800.004,
 			     'Pod::Simple'    => 0,
+			     'File::Temp'     => 0,
 			     # the following are really only COREQUISITES
 	                     'Text::English'  => 0,
 			     'Tk::HistEntry'  => 0.40,
@@ -45,8 +46,9 @@ EOF
 
     if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
 	$postamble .= <<'EOF';
-release :: $(DISTVNAME).tar$(SUFFIX)
-	cpan-upload $(DISTVNAME).tar$(SUFFIX)
+
+.include "../../perl.release.mk"
+.include "../../perl.cvs.mk"
 
 EOF
     }

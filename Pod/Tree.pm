@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.24 2003/08/01 10:55:25 eserte Exp $
+# $Id: Tree.pm,v 1.26 2003/10/22 18:59:02 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,9 +54,11 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
+
+use File::Spec;
 
 use Tk::Pod::FindPods;
 use Tk::ItemStyle;
@@ -65,6 +67,8 @@ use Tk qw(Ev);
 Construct Tk::Widget 'PodTree';
 
 my $search_history;
+
+use constant SEP => "/";
 
 BEGIN { @POD = @INC }
 
@@ -82,6 +86,8 @@ BEGIN {  # Make a DEBUG constant very first thing...
 use Class::Struct;
 struct '_PodEntry' => [
     'uri'  => "\$",
+    'type' => "\$",
+    'name' => "\$",
 ];
 sub _PodEntry::create {
     my $e = shift->new;
@@ -90,6 +96,7 @@ sub _PodEntry::create {
 }
 sub _PodEntry::file {
     my $uri = shift->uri;
+    local $^W = 0;
     ($uri =~ /^file:(.*)/)[0];
 }
 ######################################################################
@@ -165,7 +172,7 @@ sub ClassInit {
 sub Populate {
     my($w,$args) = @_;
 
-    $args->{-separator} = "/";
+    $args->{-separator} = SEP;
 
     my $show_command = sub {
 	my($w, $cmd, $ent) = @_;
@@ -236,46 +243,12 @@ sub Populate {
 		    die $err if $err;
 		});
     $m->command(-label => 'Search...', -command => [$w, 'search_dialog']);
-    $w->{Show_CPAN_CB} = 0;
-    $m->checkbutton(-label => 'Show modules at CPAN',
-		    -variable => \$w->{Show_CPAN_CB},
-		    -command => sub {
-			if ($w->{Show_CPAN_CB} && $w->messageBox
-			    (-title => "Warning",
-			     -message => "This function is experimental\nand may lock up tkpod.\nAlso, a fully configured CPAN.pm and a network connection is necessary.\nDo you want to continue?",
-			     -icon => "question",
-			     -type => "YesNo",
-			    ) =~ /yes/i) {
-			    $w->Busy(-recurse => 1);
-			    eval {
-				$w->configure(-cpan => $w->{Show_CPAN_CB});
-			    };
-			    my $err = $@;
-			    $w->Unbusy;
-			    if ($err) {
-				$w->{Show_CPAN_CB} = 0;
-				die $err;
-			    }
-			} else {
-			    $w->{Show_CPAN_CB} = 0;
-			}
-		    }),
 
     $w->ConfigSpecs(
 	-showcommand  => ['CALLBACK', undef, undef, undef],
 	-showcommand2 => ['CALLBACK', undef, undef, undef],
 	-usecache     => ['PASSIVE', undef, undef, 1],
-        -cpan         => ['METHOD',  undef, undef, 0],
     );
-}
-
-sub cpan {
-    my $w = shift;
-    if (@_) {
-	$w->{Show_CPAN} = $_[0];
-	$w->Fill(-cpan => $w->{Show_CPAN}) if $w->Filled; # refill
-    }
-    $w->{Show_CPAN};
 }
 
 =head1 WIDGET METHODS
@@ -299,14 +272,11 @@ sub Fill {
 
     my $usecache = ($w->cget('-usecache') && !$args{'-nocache'});
 
-#XXXX!!!
-if ($args{-cpan}) { $usecache = 0 }
-
     # fills %pods hash:
     $FindPods = Tk::Pod::FindPods->new unless $FindPods;
     my $pods = $FindPods->pod_find(-categorized => 1,
 				   -usecache => $usecache,
-				   -cpan => $args{-cpan});
+				  );
 
     if (keys %EXTRAPODDIR) {
 	$ExtraFindPods = Tk::Pod::FindPods->new unless $ExtraFindPods;
@@ -315,7 +285,6 @@ if ($args{-cpan}) { $usecache = 0 }
 	     -category => "local dirs",
 	     -directories => [keys %EXTRAPODDIR],
 	     -usecache => 0,
-	     -cpan => 0
 	    );
 	while(my($k,$v) = each %$extra_pods) {
 	    $pods->{$k} = $v;
@@ -337,7 +306,7 @@ if ($args{-cpan}) { $usecache = 0 }
 
 	my $hash = $pods->{$category};
 	foreach my $pod (sort keys %$hash) {
-	    my $treepath = "$category/$pod";
+	    my $treepath = $category . SEP . $pod;
 	    (my $title = $pod) =~ s|/|::|g;
 	    $w->_add_parents($treepath);
 
@@ -361,35 +330,40 @@ if ($args{-cpan}) { $usecache = 0 }
     for(my $entry = ($w->info('children'))[0];
 	   defined $entry && $entry ne "";
 	   $entry = $w->info('next', $entry)) {
-	if ($w->info('children', $entry)) {
-	    $w->entryconfigure($entry, -image => $w->Getimage("folder"));
-	    $w->setmode($entry, 'open');
-	    if ($entry =~ m|/|) {
-		$w->hide('entry', $entry);
-	    }
+	if ($w->info('children', $entry) ||
+	    $w->entrycget($entry, -text) eq 'perlfunc') {
+	    $w->folderentry($entry);
 	} else {
 	    $w->entryconfigure($entry, -image => $w->Getimage("file"));
 	    $w->hide('entry', $entry);
 	}
     }
 
-    if ($w->cget('-usecache') && !$FindPods->has_cache && !$args{-cpan} # XXX
-       ) {
+    if ($w->cget('-usecache') && !$FindPods->has_cache) {
 	$FindPods->WriteCache;
     }
 
     $w->{Filled}++;
 }
 
+sub folderentry {
+    my($w, $entry) = @_;
+    $w->entryconfigure($entry, -image => $w->Getimage("folder"));
+    $w->setmode($entry, 'open');
+    if ($entry =~ m|/|) { # XXX SEP?
+	$w->hide('entry', $entry);
+    }
+}
+
 sub Filled { shift->{Filled} }
 
 sub _add_parents {
     my($w, $entry) = @_;
-    (my $parent = $entry) =~ s|/[^/]*$||;
+    (my $parent = $entry) =~ s|/[^/]*$||; # XXX SEP?
     return if $parent eq '';
     do{warn "XXX Should not happen: $entry eq $parent";return} if $parent eq $entry;
     return if $w->info('exists', $parent);
-    my @parent = split '/', $parent;
+    my @parent = split SEP, $parent;
     my $title = join "::", @parent[1..$#parent];
     $w->_add_parents($parent);
     $w->add($parent, -text => $title,
@@ -398,7 +372,7 @@ sub _add_parents {
 
 sub _open_parents {
     my($w, $entry) = @_;
-    (my $parent = $entry) =~ s|/[^/]+$||;
+    (my $parent = $entry) =~ s|/[^/]+$||; # XXX SEP?
     return if $parent eq '' || $parent eq $entry;
     $w->_open_parents($parent);
     $w->open($parent);
@@ -413,8 +387,14 @@ subtrees to make the C<$path> visible, if necessary.
 
 sub SeePath {
     my($w,$path) = @_;
+    my $fs_case_tolerant =
+	($^O eq 'MSWin32' ||
+	 (File::Spec->can("case_tolerant") && File::Spec->case_tolerant)
+	);
     if ($^O eq 'MSWin32') {
 	$path =~ s/\\/\//g;
+    }
+    if ($fs_case_tolerant) {
 	$path = lc $path;
     }
     DEBUG and warn "Call SeePath with $path\n";
@@ -422,18 +402,24 @@ sub SeePath {
     return if !$FindPods;
     my $pods = $FindPods->pods;
     return if !$pods;
+
+    my $see_treepath = sub {
+	my $treepath = shift;
+	$w->open($treepath);
+	$w->_open_parents($treepath);
+	$w->anchorSet($treepath);
+	$w->selectionClear;
+	$w->selectionSet($treepath);
+	$w->see($treepath);
+    };
+
     foreach my $category (keys %$pods) {
 	foreach my $pod (keys %{ $pods->{$category} }) {
 	    my $podpath = $pods->{$category}->{$pod};
-	    $podpath = lc $podpath if $^O eq 'MSWin32'; # XXX should be really File::Spec->is_case_tolerant
+	    $podpath = lc $podpath if $fs_case_tolerant;
 	    if ($path eq $podpath) {
-		my $treepath = "$category/$pod";
-		$w->open($treepath);
-		$w->_open_parents($treepath);
-		$w->anchorSet($treepath);
-		$w->selectionClear;
-		$w->selectionSet($treepath);
-		$w->see($treepath);
+		my $treepath = $category . SEP . $pod;
+		$see_treepath->($treepath);
 		return 1;
 	    }
 	}
@@ -522,6 +508,74 @@ sub search {
 	    return;
 	}
     }
+}
+
+sub IndicatorCmd {
+    my($w, $ent, $event) = @_;
+    my $podentry = $w->entrycget($ent, "-data");
+    my $file = $podentry && $podentry->file;
+    my $type = $podentry && $podentry->type;
+
+    # Dynamically create children for perlfunc entry
+    if (defined $type && $type =~ /^func_/ && !$w->info('children', $ent)) {
+	require Pod::Functions;
+
+	my $add_func = sub {
+	    my($ent, $func) = @_;
+	    my $podentry = _PodEntry->new;
+	    $podentry->type("func");
+	    $podentry->name($func);
+	    (my $safe_name = $func) =~ s{[^a-zA-Z]}{_}g;
+	    $ent = $ent . SEP . $safe_name;
+	    $w->add($ent, -text => $func, -data => $podentry,
+		    -style => $w->{Style}{'core'});
+	};
+
+	if ($type eq 'func_alphabetically') {
+	    my $last_func;
+	    my @funcs = map { if (!defined $last_func || $last_func ne $_) {
+		                  $last_func = $_;
+				  ($_);
+			      } else {
+				  $last_func = $_;
+				  ();
+			      }
+			    }
+                        sort
+		        map { @{ $Pod::Functions::Kinds{$_} } }
+		        keys %Pod::Functions::Kinds;
+	    for my $func (@funcs) {
+		$add_func->($ent, $func);
+	    }
+	} else { # by category
+	    for my $cat (sort keys %Pod::Functions::Kinds) {
+		(my $safe_name = $cat) =~ s{[^a-zA-Z]}{_}g;
+		my $ent = $ent . SEP . $safe_name;
+		$w->add($ent, -text => $cat, -style => $w->{Style}{'folder'});
+		my $funcs = $Pod::Functions::Kinds{$cat};
+		for my $func (@$funcs) {
+		    $add_func->($ent, $func);
+		}
+	    }
+	}
+    } elsif (defined $file && $file =~ /perlfunc\.pod$/ && !$w->info('children', $ent)) {
+	my($treepath, $podentry);
+
+	$treepath = $ent . SEP. "func_alphabetically";
+	$podentry = _PodEntry->new;
+	$podentry->type("func_alphabetically");
+	$w->add($treepath, -text => "Alphabetically", -data => $podentry,
+		-style => $w->{Style}{'folder'});
+	$w->folderentry($treepath);
+
+	$treepath = $ent . SEP. "func_by_category";
+	$podentry = _PodEntry->new;
+	$podentry->type("func_by_category");
+	$w->add($treepath, -text => "By category", -data => $podentry,
+		-style => $w->{Style}{'folder'});
+	$w->folderentry($treepath);
+    }
+    $w->SUPER::IndicatorCmd($ent, $event);
 }
 
 1;

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.3 2003/08/13 19:49:29 eserte Exp $
+# $Id: FindPods.pm,v 2.7 2003/11/06 21:34:00 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.7 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -149,7 +149,8 @@ sub pod_find {
 	}
 
 	if (-f && /\.(pod|pm)$/) {
-	    (my $name = $File::Find::name) =~ s|^$curr_dir/?||;
+	    my $curr_dir_rx = quotemeta $curr_dir;
+	    (my $name = $File::Find::name) =~ s|^$curr_dir_rx/?||;
 	    $name = simplify_name($name);
 
 	    my $hash;
@@ -229,28 +230,8 @@ sub pod_find {
 	find($wanted_scripts, $inc);
     }
 
-    #XXX
-    if ($args{-cpan}) {	$self->add_cpan }
-
     $self->{pods} = \%pods;
     $self->{pods};
-}
-
-# XXX nach .../CPAN.pm auslagern (MANIFEST & RCS nicht vergessen)
-sub add_cpan {
-    my $self = shift;
-    my $pods = $self->{pods};
-    require CPAN;
-    for my $mod (CPAN::Shell->expand("Module","/./")) {
-	next if $mod->inst_file;
-	next if $mod->cpan_file =~ /^Contact/;
-        # MakeMaker convention for undefined $VERSION:
-#	next unless $mod->inst_version eq "undef";
-	(my $path = $mod->id) =~ s|::|/|g;
-	do {warn "$path excluded..."; next} if $path =~ m|/$|; # XXX wrong name Audio::Play::, wait for mail from Andreas or Nick
-	# XXX -categorized???
-	$pods->{type($mod->id)}->{$path} = "cpan:" . $mod->id; # XXX könnte OK sein
-    }
 }
 
 sub simplify_name {
@@ -319,9 +300,9 @@ sub is_site_module {
 	return $path =~ m|[/\\]site[/\\]lib[/\\]|;
     }
     $path =~ /^(
-                $Config{'installsitelib'}
+                \Q$Config{'installsitelib'}\E
                |
-		$Config{'installsitearch'}
+		\Q$Config{'installsitearch'}\E
 	       )/x;
 }
 
@@ -339,6 +320,58 @@ sub _cache_file {
 
 sub pods      { shift->{pods} }
 sub has_cache { shift->{has_cache} }
+
+# Parts stolen from Pod::Perldoc::search_perlfunc
+# Return pod text for given function
+sub function_pod {
+    my($self, $func) = @_;
+
+    my $pod = "";
+
+    my $perlfunc = $self->{pods}{perl}{perlfunc};
+    $perlfunc =~ s{^file:}{};
+    open(PFUNC, "< $perlfunc") or die "Can't open $perlfunc: $!";
+
+    # Functions like -r, -e, etc. are listed under `-X'.
+    my $search_re = ($func =~ /^-[rwxoRWXOeszfdlpSbctugkTBMAC]$/)
+                        ? '(?:I<)?-X' : quotemeta($func) ;
+
+    # Skip introduction
+    local $_;
+    while (<PFUNC>) {
+        last if /^=head2 Alphabetical Listing of Perl Functions/;
+    }
+
+    # Look for our function
+    my $found = 0;
+    my $inlist = 0;
+    while (<PFUNC>) {  # "The Mothership Connection is here!"
+        if ( m/^=item\s+$search_re\W/ )  {
+            $found = 1;
+        }
+        elsif (/^=item/) {
+            last if $found > 1 and not $inlist;
+        }
+        next unless $found;
+        if (/^=over/) {
+            ++$inlist;
+        }
+        elsif (/^=back/) {
+            --$inlist;
+        }
+        $pod .= $_;
+        ++$found if /^\w/;        # found descriptive text
+    }
+    if ($pod eq "") {
+        warn sprintf "No documentation for perl function `%s' found\n", $func;
+    } else {
+	# Fix pod so no warnings are given:
+	$pod = "=over\n\n$pod\n\n=back\n";
+    }
+    close PFUNC                or die "Can't open $perlfunc: $!";
+
+    return $pod;
+}
 
 =head2 WriteCache
 

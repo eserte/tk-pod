@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.26 $, 10) + 2 . "";
-$DIST_VERSION = "0.9922";
+$VERSION = substr(q$Revision: 2.28 $, 10) + 2 . "";
+$DIST_VERSION = "0.9923";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -44,7 +44,7 @@ sub Populate
     [Button => '~Reload',    '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
     [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
-    [Button => '~Print...',  '-command' => ['Print',$p]],
+    [Button => '~Print'. ($p->PrintHasDialog ? '...' : ''),  '-command' => ['Print',$p]],
     [Separator => ""],
     [Button => '~Close',     '-command' => ['quit',$w]],
     ($exitbutton
@@ -115,8 +115,8 @@ sub Populate
    $w->bind($w->toplevel->PathName, "<$mod-Right>" => [$p, 'history_move', +1]);
   }
 
- $w->bind($w->toplevel->PathName, "<Control-minus>" => [$p, 'zoom_in']);
- $w->bind($w->toplevel->PathName, "<Control-plus>" => [$p, 'zoom_out']);
+ $w->bind($w->toplevel->PathName, "<Control-minus>" => [$p, 'zoom_out']);
+ $w->bind($w->toplevel->PathName, "<Control-plus>" => [$p, 'zoom_in']);
 
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
 }
@@ -347,97 +347,38 @@ sub _configure_tree {
     my($w) = @_;
     my $tree = $w->Subwidget("tree");
     my $p    = $w->Subwidget("pod");
+
+    my $common_showcommand = sub {
+	my($e) = @_;
+	my $uri = $e->uri;
+	my $type = $e->type;
+	if (defined $type && $type eq 'func') {
+	    my $text = $Tk::Pod::Tree::FindPods->function_pod($e->name);
+	    (-text => $text, -title => $e->name);
+	} elsif (defined $uri && $uri =~ /^file:(.*)/) {
+	    (-file => $1);
+	} else {
+	    # ignore
+	}
+    };
+
     $tree->configure
 	(-showcommand  => sub {
 	     my $e = $_[1];
-	     my $uri = $e->uri;
-	     if ($uri =~ /^file:(.*)/) {
-		 $p->configure(-file => $1);
-	     } elsif ($uri =~ /^cpan:(.*)/) {
-		 my $modid = $1;
-		 # XXX nach ..../CPAN.pm auslagern
-
-		 my $asked = 0;
-		 my $ask = sub {
-		     $asked++;
-		     $w->messageBox
-			 (-message => "Look into CPAN module $modid?",
-			  -title => "Tk::Pod and CPAN $modid",
-			  -type => 'YesNo',
-			  -icon => 'question') =~ /yes/i
-		      };
-		 if ($w->{CPAN_Asked} || $ask->()) {
-		     $w->{CPAN_Asked}++;
-		     require CPAN;
-		     my(@mods) = CPAN::Shell->expand("Module", $modid);
-		     if (@mods != 1) {
-			 die "Found more/less than 1 module for $modid: @mods";
-		     }
-		     my $mod = shift @mods;
-		     my $dist = $CPAN::META->instance('CPAN::Distribution', $mod->cpan_file);
-
-		     require ExtUtils::MakeMaker;
-		     my($local_wanted) =
-			 MM->catfile(
-				     $CPAN::Config->{keep_source_where},
-				     "authors",
-				     "id",
-				     split("/",$dist->id)
-				    );
-		     if ($asked || -e $local_wanted || $ask->()) {
-			 my $dir  = $dist->dir or $dist->get;
-			 $dir = $dist->dir;
-			 eval { $mod->make }; # XXX Reihenfolge ist wichtig!!!
-			 if ($@) { warn $@ }
-			 (my $modpath = $modid) =~ s|::|/|g;
-			 my $blib_modpath = "$dir/blib/lib/$modpath";
-			 if (-r "$blib_modpath.pod") {
-			     $modpath = "$blib_modpath.pod";
-			 } elsif (-r "$blib_modpath.pm") {
-			     $modpath = "$blib_modpath.pm";
-			 } else {
-			     # try to find it...
-			     require File::Find;
-			     require File::Basename;
-			     my @hits;
-			 TRY: {
-				 foreach my $path ("$modpath.pod",
-						   "$modpath.pm",
-						   File::Basename::basename($modpath) . ".pod",
-						   File::Basename::basename($modpath) . ".pm") {
-				     File::Find::find
-					     (sub {
-						  rindex($File::Find::name, $path) == length($File::Find::name)-length($path)
-						      &&
-							  push @hits, $File::Find::name;
-					      }, $dir);
-				     if (@hits) {
-					 warn "More than 1 hit: @hits" if @hits > 1;
-					 $modpath = "$hits[0]"; #XXX is it really absolute?
-					 last TRY;
-				     }
-				 }
-				 die "Can't find $modpath";
-			     }
-			 }
-			 $p->configure(-file => $modpath);
-		     }
-		 }
-	     } else {
-		 die "Unrecognized uri $uri";
-	     }
+	     my %args = $common_showcommand->($e);
+	     my $title = delete $args{-title};
+	     $p->configure(-title => $title) if defined $title;
+	     $p->configure(%args);
 	 },
-	 -showcommand2 => sub {#XXX rewrite for CPAN...
+	 -showcommand2 => sub {
 	     my $e = $_[1];
-	     my $uri = $e->uri;
-	     if ($uri =~ /^file:(.*)/) {
-		 $w->MainWindow->Pod
-		     ('-file' => $1,
-		      -exitbutton => $w->cget(-exitbutton),
-		      '-tree' => !!$tree);
-	     } else {
-		 die "NYI";
-	     }
+	     my @args = $common_showcommand->($e);
+	     # XXX -title?
+	     $w->MainWindow->Pod
+		 (@args,
+		  '-exitbutton' => $w->cget(-exitbutton),
+		  '-tree' => !!$tree,
+		 );
 	 },
 	);
 }
