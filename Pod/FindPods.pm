@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.5 2001/10/26 22:50:37 eserte Exp $
+# $Id: FindPods.pm,v 1.6 2002/03/11 19:59:12 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -168,6 +168,9 @@ sub simplify_name {
     $f =~ s|^$arch_re|| if defined $arch_re; # strip machine
     $f =~ s/\.(pod|pm)$//;
     $f =~ s|^pod/||;
+    if ($^O =~ /^cygwin/) { # the cygwin solution for pod vs. Pod problem
+	$f =~ s|^pods/||;
+    }
     if ($^O eq 'MSWin32') { # case-insensitive :-(
 	$f =~ s|^pod/perl|perl|i;
     }
