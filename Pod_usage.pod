@@ -11,7 +11,7 @@ To navigate through the documentation one could use
 
 A B<click> on a hyperlink display the corresponding documentation
 (if there is any) in the same window. An URL will be displayed in a
-web browser using the (non-CPAN) C<WWWBrowser> module (this will
+web browser using the (non-CPAN) L<WWWBrowser> module (this will
 hopefully change).
 
 With <Button-2> the documentation is loaded into a new window
@@ -65,7 +65,7 @@ the documentation
 Start editor with source of the displayed document.
 
 The used editor is selected by the first definition of the environment
-variables C<XEDITOR>, C<VISUAL>, C<EDITOR> or as default
+variables C<TKPODEDITOR>, C<XEDITOR>, C<VISUAL>, C<EDITOR> or as default
 F</usr/bin/vi>. If no terminal is available (or on Windows platforms),
 the L<ptked|ptked> editor (bundled with Perl/Tk) will be used instead.
 
@@ -75,8 +75,8 @@ with ptked'.
 =item o Search fulltext
 
 Full text search of the POD in the perl library directories. (Note: to
-use it one has to install perlindex distribution, see
-L<Text::English|Text::English>)
+use it one has to install the perlindex distribution and build an
+index for the perl documentation, see L<Text::English|Text::English>)
 
 =back
 
