@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.20 2003/02/13 15:24:10 eserte Exp $
+# $Id: Tree.pm,v 1.22 2003/03/28 11:05:37 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -103,6 +103,61 @@ sub ClassInit {
     $class->SUPER::ClassInit($mw);
     $mw->bind($class, '<3>', ['PostPopupMenu', Ev('X'), Ev('Y')]  )
 	if $Tk::VERSION > 800.014;
+
+    my $set_anchor_and_sel = sub {
+	my($w, $ent) = @_;
+	$w->anchorSet($ent);
+	$w->selectionClear;
+	$w->selectionSet($ent);
+    };
+
+    # Force callbacks to be treated as methods. This is done by putting
+    # the $widget reference at the beginning of the Tk::Callback array
+    my $inherited_cb = sub {
+	my($w, $cb) = @_;
+	if (UNIVERSAL::isa($cb, "Tk::Callback")) {
+	    my $new_cb = bless [$w, @$cb], 'Tk::Callback';
+	    $new_cb->Call;
+	} else {
+	    # XXX OK?
+	    $cb->($w);
+	}
+    };
+
+    # Add functionality to some callbacks:
+    my $orig_home = $mw->bind($class, "<Home>");
+    $mw->bind($class, "<Home>" => sub {
+		  my $w = shift;
+		  $inherited_cb->($w, $orig_home);
+		  $set_anchor_and_sel->($w, ($w->infoChildren)[0]);
+	      });
+    my $orig_end = $mw->bind($class, "<End>");
+    $mw->bind($class, "<End>" => sub {
+		  my $w = shift;
+		  $inherited_cb->($w, $orig_end);
+		  # get last opened entry
+		  my $last = ($w->infoChildren)[-1];
+		  while ($w->getmode($last) eq "close" && $w->infoChildren($last)) {
+		      $last = ($w->infoChildren($last))[-1];
+		  }
+		  $set_anchor_and_sel->($w, $last);
+	      });
+    my $orig_prior = $mw->bind($class, "<Prior>");
+    $mw->bind($class, "<Prior>" => sub {
+		  my $w = shift;
+		  $inherited_cb->($w, $orig_prior);
+		  my $ent = $w->nearest(10); # XXX why 10?
+		  return if !defined $ent;
+		  $set_anchor_and_sel->($w, $ent);
+	      });
+    my $orig_next = $mw->bind($class, "<Next>");
+    $mw->bind($class, "<Next>" => sub {
+		  my $w = shift;
+		  $inherited_cb->($w, $orig_next);
+		  my $ent = $w->nearest($w->height - 10); # XXX why 10?
+		  return if !defined $ent;
+		  $set_anchor_and_sel->($w, $ent);
+	      });
 }
 
 sub Populate {
@@ -183,13 +238,25 @@ sub Populate {
     $m->checkbutton(-label => 'Show modules at CPAN',
 		    -variable => \$w->{Show_CPAN_CB},
 		    -command => sub {
-			$w->Busy(-recurse => 1);
-			eval {
-			    $w->configure(-cpan => $w->{Show_CPAN_CB});
-			};
-			my $err = $@;
-			$w->Unbusy;
-			die $err if $err;
+			if ($w->{Show_CPAN_CB} && $w->messageBox
+			    (-title => "Warning",
+			     -message => "This function is experimental\nand may lock up tkpod.\nAlso, a fully configured CPAN.pm and a network connection is necessary.\nDo you want to continue?",
+			     -icon => "question",
+			     -type => "YesNo",
+			    ) =~ /yes/i) {
+			    $w->Busy(-recurse => 1);
+			    eval {
+				$w->configure(-cpan => $w->{Show_CPAN_CB});
+			    };
+			    my $err = $@;
+			    $w->Unbusy;
+			    if ($err) {
+				$w->{Show_CPAN_CB} = 0;
+				die $err;
+			    }
+			} else {
+			    $w->{Show_CPAN_CB} = 0;
+			}
 		    }),
 
     $w->ConfigSpecs(

@@ -4,11 +4,13 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.20 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.21 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
 Construct Tk::Widget 'Pod';
+
+my $history;
 
 sub Populate
 {
@@ -146,9 +148,19 @@ sub openpod {
     $t->grab;
     my($pod, $e, $go);
     {
+	my $Entry = 'Entry';
+	eval {
+	    require Tk::HistEntry;
+	    Tk::HistEntry->VERSION(0.40);
+	    $Entry = "HistEntry";
+	};
+
 	my $f = $t->Frame->pack(-fill => "x");
 	$f->Label(-text => "Pod:")->pack(-side => "left");
-	$e = $f->Entry(-textvariable => \$pod)->pack(-side => "left", -fill => "x", -expand => 1);
+	$e = $f->$Entry(-textvariable => \$pod)->pack(-side => "left", -fill => "x", -expand => 1);
+	if ($e->can('history') && $history) {
+	    $e->history($history);
+	}
 	$e->focus;
 	$go = 0;
 	$e->bind("<Return>" => sub { $go = 1 });
@@ -167,8 +179,14 @@ sub openpod {
     $t->Popup(-popover => $cw);
     $t->OnDestroy(sub { $go = -1 unless $go });
     $t->waitVariable(\$go);
-    $t->grabRelease;
-    $t->destroy;
+    if (Tk::Exists($t)) {
+	if ($pod ne "" && $go > 0 && $e->can('historyAdd')) {
+	    $e->historyAdd($pod);
+	    $history = [ $e->history ];
+	}
+	$t->grabRelease;
+	$t->destroy;
+    }
     if ($pod ne "") {
 	if ($go == 1) {
 	    $cw->configure(-file => $pod);
