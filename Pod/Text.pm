@@ -24,7 +24,7 @@ use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.28 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.29 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -886,6 +886,37 @@ Tk::Pod::Text - POD browser widget
 
 B<Tk::Pod::Text> is a readonly text widget that can display POD
 documentation.
+
+=head1 OPTIONS
+
+=over
+
+=item -file
+
+The named (pod) file to be displayed.
+
+=item -path
+
+Return the expanded path of the currently displayed POD. Useable only
+with the C<cget> method.
+
+=item -poddone
+
+A callback to be called if parsing and displaying of the POD is done.
+
+=item -wrap
+
+Set the wrap mode. Default is C<word>.
+
+=item -scrollbars
+
+The position of the scrollbars, see also L<Tk::Scrolled>. By default,
+the vertical scrollbar is on the right on Windows systems and on the
+left on X11 systems.
+
+=back
+
+Other options are propagated to the embedded L<Tk::More> widget.
 
 =head1 ENVIRONMENT
 
