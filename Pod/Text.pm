@@ -24,7 +24,7 @@ use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.22 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.23 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -977,6 +977,8 @@ F</path/to/a/file>
 Mixed Fonts: B<C<bold-fixed>>, B<I<bold-italics>>
 
 Non-breakable text: S<The quick brown fox jumps over the lazy fox.>
+
+I<< Modern >> POD constructs: C<< Double < >>.
 
 Other POD docu: Tk::Font, Tk::BrowseEntry
 
