@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.40 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.41 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -1136,6 +1136,8 @@ C<XEDITOR>, C<VISUAL>, or C<EDITOR> is used on Unix. As a last
 fallback, C<ptked> or C<vi> are used, depending on platform and
 existance of a terminal.
 
+=back
+
 =head1 SEE ALSO
 
 L<Tk::More|Tk::More>
@@ -1151,7 +1153,7 @@ L<perlindex|perlindex>
 
 =head1 KNOWN BUGS
 
-See TODO files of Tk-Pod distribution
+See L<TODO> file of Tk-Pod distribution
 
 
 
@@ -1217,6 +1219,42 @@ Non-breakable text: S<The quick brown fox jumps over the lazy fox.>
 
 Modern Pod constructs (multiple E<lt>E<gt>): I<< italic >>, C<< fixed
 with embedded < and > >>.
+
+Itemize with numbers:
+
+=over
+
+=item 1.
+
+First
+
+=item 2.
+
+Second
+
+=item 3.
+
+Thirs
+
+=back
+
+Itemize with bullets:
+
+=over
+
+=item *
+
+First
+
+=item *
+
+Second
+
+=item *
+
+Thirs
+
+=back
 
 Other Pod docu: Tk::Font, Tk::BrowseEntry
 
