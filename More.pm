@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 2.3 $, 10) . "";
+$VERSION = substr(q$Revision: 2.4 $, 10) . "";
 
 use Tk::Derived;
 use Tk::Frame;
@@ -67,9 +67,9 @@ sub Populate {
     $t->bind('<Key-b>', [$cw, 'scroll', $t, -1, 'page']);
     $t->bind('<Prior>', [$cw, 'scroll', $t, -1, 'page']);
 
-#    # XXX Not documented (makes sense? --- not yet, but with the std. Text menu)
-#    $t->bind('<Key-l>', ['xview', 'scroll',  1, 'units']);
-#    $t->bind('<Key-h>', ['xview', 'scroll', -1, 'units']);
+    $t->bind('<Right>', sub { $t->xview('scroll',  1, 'units'); Tk->break });
+    $t->bind('<Left>',  sub { $t->xview('scroll', -1, 'units'); Tk->break });
+
     $t->bind('<Return>', ['yview', 'scroll',  1, 'units']);
     $t->bind('<Key-d>',  [$cw, 'scroll', $t,  1, 'halfpage']);
     $t->bind('<Key-u>',  [$cw, 'scroll', $t, -1, 'halfpage']);
@@ -77,6 +77,12 @@ sub Populate {
     $t->bind('<Key-h>', sub { $cw->Callback(-helpcommand => $t) });
 
     $e->bind('<Return>',[$cw, 'SearchText']);
+
+    foreach my $mod (qw(Alt Meta)) {
+	foreach my $key (qw(n N g G j k f b d u h)) {
+	    $t->bind("<$mod-Key-$key>" => \&Tk::NoOp);
+	}
+    }
 
     $cw->Delegates('DEFAULT'   => $t,
 		   'Search'    => 'SELF',
