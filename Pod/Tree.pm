@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.18 2003/02/11 11:37:06 eserte Exp $
+# $Id: Tree.pm,v 1.19 2003/02/11 23:43:05 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -53,12 +53,12 @@ in a tree.
 =cut
 
 use strict;
-use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/);
+use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
-use Tk::Pod::FindPods qw/%pods $has_cache pod_find/;
+use Tk::Pod::FindPods;
 use Tk::ItemStyle;
 use Tk qw(Ev);
 
@@ -95,6 +95,7 @@ sub _PodEntry::file {
 sub Dir {
     my $class = shift;
     unshift @POD, @_;
+    $EXTRAPODDIR{$_} = 1 for (@_);
 }
 
 sub ClassInit {
@@ -233,7 +234,24 @@ sub Fill {
 if ($args{-cpan}) { $usecache = 0 }
 
     # fills %pods hash:
-    pod_find(-categorized => 1, -usecache => $usecache, -cpan => $args{-cpan});
+    $FindPods = Tk::Pod::FindPods->new unless $FindPods;
+    my $pods = $FindPods->pod_find(-categorized => 1,
+				   -usecache => $usecache,
+				   -cpan => $args{-cpan});
+
+    if (keys %EXTRAPODDIR) {
+	$ExtraFindPods = Tk::Pod::FindPods->new unless $ExtraFindPods;
+	my $extra_pods = $ExtraFindPods->pod_find
+	    (-categorized => 0,
+	     -category => "local dir",
+	     -directories => [keys %EXTRAPODDIR],
+	     -usecache => 0,
+	     -cpan => 0
+	    );
+	while(my($k,$v) = each %$extra_pods) {
+	    $pods->{$k} = $v;
+	}
+    }
 
     my %category_seen;
 
@@ -241,17 +259,15 @@ if ($args{-cpan}) { $usecache = 0 }
 	     ['pragma', 'Pragmata'],
 	     ['mod',    'Modules'],
 	     ['script', 'Scripts'],
-	     keys %pods,
+	     keys(%$pods),
 	    ) {
 	my($category, $title) = (ref $_ ? @$_ : ($_, $_));
 	next if $category_seen{$category};
 
 	$w->add($category, -text => $title);
 
-	my $hash = $pods{$category};
+	my $hash = $pods->{$category};
 	foreach my $pod (sort keys %$hash) {
-#XXX del???	    next if $pod =~ /\./;#XXX
-
 	    my $treepath = "$category/$pod";
 	    (my $title = $pod) =~ s|/|::|g;
 	    $w->_add_parents($treepath);
@@ -288,10 +304,9 @@ if ($args{-cpan}) { $usecache = 0 }
 	}
     }
 
-    if ($w->cget('-usecache') && !$Tk::Pod::FindPods::has_cache
-	&& !$args{-cpan} # XXX
+    if ($w->cget('-usecache') && !$FindPods->has_cache && !$args{-cpan} # XXX
        ) {
-	Tk::Pod::FindPods::WriteCache();
+	$FindPods->WriteCache;
     }
 
     $w->{Filled}++;
@@ -303,7 +318,7 @@ sub _add_parents {
     my($w, $entry) = @_;
     (my $parent = $entry) =~ s|/[^/]*$||;
     return if $parent eq '';
-    do{warn "$entry XXX";return} if $parent eq $entry;
+    do{warn "XXX Should not happen: $entry eq $parent";return} if $parent eq $entry;
     return if $w->info('exists', $parent);
     my @parent = split '/', $parent;
     my $title = join "::", @parent[1..$#parent];
@@ -334,10 +349,12 @@ sub SeePath {
 	$path = lc $path;
     }
     DEBUG and warn "Call SeePath with $path\n";
-    return if !$w->Filled; # XXX better solution!
-    foreach my $category (keys %pods) {
-	foreach my $pod (keys %{ $pods{$category} }) {
-	    my $podpath = $pods{$category}->{$pod};
+    return if !$FindPods;
+    my $pods = $FindPods->pods;
+    return if !$pods;
+    foreach my $category (keys %$pods) {
+	foreach my $pod (keys %{ $pods->{$category} }) {
+	    my $podpath = $pods->{$category}->{$pod};
 	    $podpath = lc $podpath if $^O eq 'MSWin32'; # XXX should be really File::Spec->is_case_tolerant
 	    if ($path eq $podpath) {
 		my $treepath = "$category/$pod";
