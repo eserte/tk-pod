@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9922
+	o fixed logic in Tk::Pod::FindPods
+
 version 0.9921
 	o new feature: search Perl FAQ
 	o bugfix (hopefully): aborting the rendering sometimes caused the
