@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.7 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.8 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -182,8 +182,9 @@ sub Populate
     #     delegate bind, bindtag to the scrolled widget. Tk402.* (and before?)
     #	  (patch posted and included in Tk402.004)
     $p_scr->bindtags([$p_scr, $p_scr->bindtags]);
-    $p_scr->bind('<Double-1>',       sub  { $w->DoubleClick($_[0]) });#[$w, 'DoubleClick']);
-    $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });#[$w, 'ShiftDoubleClick', $_[0]]);
+    $p_scr->bind('<Double-1>',       sub { $w->DoubleClick($_[0]) });
+    $p_scr->bind('<Shift-Double-1>', sub { $w->ShiftDoubleClick($_[0]) });
+    $p_scr->bind('<Double-2>',       sub { $w->ShiftDoubleClick($_[0]) });
 
     $p->configure(-font => $w->Font(family => 'courier'));
     $p->tag('configure','text', -font => $w->Font(family => 'times'));
