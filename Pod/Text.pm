@@ -1,20 +1,44 @@
+
+require 5;
 package Tk::Pod::Text;
 
 use strict;
+
+BEGIN {  # Make a DEBUG constant very first thing...
+  if(defined &DEBUG) {
+  } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
+    eval("sub DEBUG () {$1}");
+    die "WHAT? Couldn't eval-up a DEBUG constant!? $@" if $@;
+  } else {
+    *DEBUG = sub () {0};
+  }
+}
+
 use Carp;
 use Config;
 use Tk::Frame;
 use Tk::Pod;
 use Tk::Parse;
+use Tk::Pod::SimpleBridge;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.15 $, 10) + 1 . "";
-@ISA = qw(Tk::Frame);
+$VERSION = substr(q$Revision: 3.16 $, 10) + 1 . "";
+@ISA = qw(Tk::Frame Tk::Pod::SimpleBridge);
+
+BEGIN { DEBUG and print "Running ", __PACKAGE__, "\n" }
 
 Construct Tk::Widget 'PodText';
 
-BEGIN { @POD = (@INC, grep(-d, split($Config{path_sep},
-				     $ENV{'PATH'}))); $IDX = undef; };
+BEGIN {
+  @POD = (
+   @INC,
+   $ENV{'PATH'} ?
+     grep(-d, split($Config{path_sep}, $ENV{'PATH'}))
+    : ()
+  );
+  $IDX = undef;
+  DEBUG and print "POD: @POD\n";
+};
 
 use Class::Struct;
 struct '_HistoryEntry' => [
@@ -63,22 +87,30 @@ sub Find
 sub findpod {
     my ($w,$name) = @_;
     unless (defined $name and length $name) {
-	$w->messageBox(-message => "Empty POD file/name");
+	$w->messageBox(
+	  -title => "Tk::Pod Error",
+          -message => "Empty POD file/name",
+	);
 	die;
     }
     return $name if -f $name;
 
     if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
-	$w->messageBox(-message => "Invalid path/file/module name: '$name'\n");
+	$w->messageBox(
+	  -title => "Tk::Pod Error",
+	  -message => "Invalid path/file/module name: '$name'\n");
 	die;
     }
     Find($name) or do {
-	$w->messageBox(-message => "Can't find POD Invalid file/module name: '$name'\n");
+	$w->messageBox(
+	  -title => "Tk::Pod Error",
+	  -message => "Can't find POD Invalid file/module name: '$name'\n"
+	);
 	die;
     };
 }
 
-sub file {
+sub file {   # main entry point
   my $w = shift;
   if (@_)
     {
@@ -139,7 +171,10 @@ sub edit
      $edit = $ENV{XEDITOR};
      if (!$isatty && !defined $edit)
       {
-       $w->messageBox(-message => "No terminal, fallback to ptked");
+       $w->messageBox(
+	 -title => "Tk::Pod Error",
+         -message => "No terminal, fallback to ptked"
+       );
        $edit = 'ptked';
       }
      else
@@ -200,14 +235,16 @@ sub Populate
     $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });#[$w, 'ShiftDoubleClick', $_[0]]);
 
     $p->configure(-font => $w->Font(family => 'courier'));
-    $p->tag('configure','verbatim', -wrap => 'none');
+
+#XXX del:
+    #$p->tag('configure','verbatim', -wrap => 'none');
     $p->tag('configure','text', -font => $w->Font(family => 'times'));
-    $p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
-    $p->tag('configure','S',-font => $w->Font(family=>'courier',   weight=>'bold',   slant => 'o'));
-    $p->tag('configure','B',-font => $w->Font(family=>'times',     weight=>'bold',               ));
-    $p->tag('configure','I',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
-    $p->tag('configure','S',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
-    $p->tag('configure','F',-font => $w->Font(family=>'helvetica', weight=>'bold',               ));
+    #$p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
+    #$p->tag('configure','B',-font => $w->Font(                     weight=>'bold',               ));
+    ##$p->tag('configure','S',-font => $w->Font(                                                   ));
+    #$p->tag('configure','I',-font => $w->Font(                                       slant => 'i'));
+    #$p->tag('configure','F',-font => $w->Font(                                       slant => 'i'));
+
     $p->insert('0.0',"\n");
 
     $w->{List}   = []; # stack of =over
@@ -266,7 +303,7 @@ sub Populate
     $args->{-width} = $w->{Length};
 }
 
-my %tag = qw(C 1 B 1 I 1 L 1 F 1 S 1 Z 1);
+#my %tag = qw(C 1 B 1 I 1 L 1 F 1 S 1 Z 1); # un-used XXX
 
 sub Font
 {
@@ -304,7 +341,10 @@ sub DoubleClick
          $w->configure('-file'=>$file);
         }
    } else {
-       $w->messageBox(-message => "No POD documentation found for '$sel'\n");
+       $w->messageBox(
+         -title => "Tk::Pod Error",
+         -message => "No Pod documentation found for '$sel'\n"
+       );
        die;
    }
   }
@@ -313,42 +353,14 @@ sub DoubleClick
 
 sub Link
 {
- my ($w,$how,$index,$link) = @_;
+ my ($w,$how,$index,$man,$sec) = @_;
+
  # If clicking on a Link, the <Leave> binding is never called, so it
  # have to be done here:
  $w->LeaveLink;
 
- my($man,$sec) = ('','');
-
- # Old versions of Pod::ParseUtils can't handle names
- # like "Inline::C-Cookbook".
- if (eval { require Pod::ParseUtils; 1 })
-  {
-   my $l = Pod::Hyperlink->new($link);
-   if ($l->type eq 'hyperlink')
-    {
-     if (eval { push @INC, "/home/e/eserte/lib/perl" if -d "/home/e/eserte/lib/perl"; require WWWBrowser; 1 }) # XXX bundle WWWBrowser with Tk::Pod or put it as WWW::Browser to CPAN
-      {
-       WWWBrowser::start_browser($l->node);
-      }
-     else
-      {
-       $w->messageBox(-message => 'WWW hyperlinks are not supported (yet)');
-       die;
-      }
-     return;
-    }
-   $man = $l->page;
-   $sec = $l->node;
-  }
- else
-  {
-   warn "No Pod::ParseUtils installed, fallback...";
-   $man = $link;
-   ($man,$sec) = split(m|/|,$link) if ($link =~ m|/|);
-   $man =~ s/::/\//g;
-  }
-
+ $man = '' unless defined $man;
+ $sec = '' unless defined $sec;
 
  if ($how eq 'reuse' && $man ne '')
   {
@@ -373,14 +385,65 @@ sub Link
 
  if ($sec ne '')
   {
-   my $start = ($w->tag('nextrange',$sec, '1.0'))[0];
-   $start = ($w->tag('nextrange',"\"$link\"",'1.0'))[0] unless defined $start;
-   $start = $w->search(qw/-exact -nocase --/, $sec, '1.0') unless defined $start;
+   # XXX the $start-setting logic doesn't seem to work right
+   
+   DEBUG and print "Looking for section \"$sec\"...\n";
+   DEBUG and print "Trying a search across Sections entries...\n";
+   
+   my $start;
+
+   foreach my $s ( @{$w->{'sections'} || []} ) {
+     if($s->[1] eq $sec) {
+       DEBUG and print " $sec is $$s[1] (at $$s[2])\n";
+       $start = $s->[2];
+
+       my($line) = split(/\./, $start);
+       $w->tag('remove', '_section_mark', qw/0.0 end/);
+       $w->tag('add', '_section_mark',
+		  $line-1 . ".0",
+		  $line-1 . ".0 lineend");
+       $w->yview("_section_mark.first");
+       $w->after(500, [$w, qw/tag remove _section_mark 0.0 end/]);
+       return;       
+     } else {
+       DEBUG > 2 and print " Nope, it's not $$s[1] (at $$s[2])\n";
+     }
+   }
+
+
+   if( defined $start ) {
+     DEBUG and print " Found at $start\n";
+   } else {
+     $start = ($w->tag('nextrange',$sec, '1.0'))[0];
+   }
+   
+   my $link = ($man || '') . $sec;
+   
+   if( defined $start ) {
+     DEBUG and print " Found at $start\n";
+   } else {
+     DEBUG and print " Not found so far.  Using a quoted nextrange search...\n";
+     $start = ($w->tag('nextrange',"\"$link\"",'1.0'))[0];
+   }
+
+   if( defined $start ) {
+     DEBUG and print " Found at $start\n";
+   } else {
+     $start = $w->search(qw/-exact -nocase --/, $sec, '1.0');
+   }
+   
+   
    unless (defined $start)
     {
-     $w->messageBox(-message => "Section '$sec' not found\n");
+     DEBUG and print " Not found! (\"sec\")\n";
+
+     $w->messageBox(
+       -title   => "Tk::Pod Error",
+       -message => "Section '$sec' not found\n"
+     );
      die;
     }
+   DEBUG and print "link-zapping to $start linestart\n";
    $w->yview("$start linestart");
   }
 
@@ -432,11 +495,27 @@ sub Print {
     my $w = shift;
     my $path = $w->cget(-path);
     if (!-r $path) {
-	$w->messageBox(-message => "Cannot find file `$path`");
+	$w->messageBox(
+          -title   => "Tk::Pod Error",
+	  -message => "Cannot find file `$path`"
+	);
 	die;
     }
+
+    if($ENV{'TKPODPRINT'}) {  # XXX document this
+      DEBUG and print "Running $ENV{'TKPODPRINT'} $path\n";
+      system($ENV{'TKPODPRINT'}, $path);
+      return;
+    } elsif($^O =~ m/Win32/) {
+      return $w->Print_MSWin($path);
+    }
+    # otherwise fall thru...
+
     if (!eval { require POSIX; 1 }) {
-	$w->messageBox(-message => "The perl module POSIX is missing");
+	$w->messageBox(
+          -title   => "Tk::Pod Error",
+	  -message => "The perl module 'POSIX' is missing"
+	);
 	die;
     }
     if (is_in_path("pod2man") && is_in_path("groff")) {
@@ -449,9 +528,46 @@ sub Print {
 	    return;
 	}
     }
-    $w->messageBox(-message => "Can't print on your system.\nEither pod2man, groff,\ngv or ghostview are missing.");
+    $w->messageBox(
+      -title   => "Tk::Pod Error",
+      -message => "Can't print on your system.\nEither pod2man, groff,\ngv or ghostview are missing."
+    );
     die;
 }
+
+sub Print_MSWin {
+  my($self, $path) = @_;
+  my $is_old;
+  $is_old = 1  if
+   defined(&Win32::GetOSVersion) and
+   eval {require Win32; 1} and
+   defined(&Win32::GetOSName) and
+    (Win32::GetOSName() eq 'Win32s'  or   Win32::GetOSName() eq 'Win95');
+  require POSIX;
+  
+  my $temp = POSIX::tmpnam(); # XXX it never gets deleted
+  $temp =~ tr{/}{\\};
+  $temp =~ s/\.$//;
+  DEBUG and print "Using $temp as the temp file for hardcopying\n";
+  
+  if($is_old) { # so we can't assume that write.exe can handle RTF
+    require Pod::Simple::Text;
+    require Text::Wrap;
+    local $Text::Wrap::columns = 65; # reasonable number, I think.
+    $temp .= '.txt';
+    Pod::Simple::Text->parse_from_file($path, $temp);
+    system("notepad.exe", "/p", $temp);
+    
+  } else { # Assume that our write.exe should understand RTF
+    require Pod::Simple::RTF;
+    $temp .= '.rtf';
+    Pod::Simple::RTF->parse_from_file($path, $temp);
+    system("write.exe", "/p", "\"$temp\"");
+  }
+  
+  return;
+}
+
 
 # Return $first and $last indices of the word under $index
 sub _word_under_index {
@@ -476,264 +592,7 @@ sub SelectToModule {
     }
 }
 
-# '<' and '>' have been replaced with \x7f because E<..> have been
-# turned into real characters.
-sub _expand
-{
- my ($w,$line) = @_;
-
- if ($line =~ /^(.*?)\b([A-Z])\x7f(.*?)\x7f(.*)$/)
-  {
-   my ($pre,$tag,$what,$post) = ($1,$2,$3,$4);
-   $w->insert('end -1c',$pre);
-    {
-     my $start = $w->index('end -1c');
-     $what = $w->_expand($what);
-     if ($tag eq 'L')
-      {
-       if ($what =~ s/^([^|\x7f]+)\|//) # L<showthis|man/sec>
-         {
-            my $show = $1;
-            # print "man/sec=($what) show=($show)\n";
-            $w->delete("$start +".length($show)."c", "end -1c");
-         }
-       $tag = '!'.$what;
-       # XXX: ButtonRelease is same as Button due to tag('nextrange'...)
-       # so leaving link area with pressed button nevertheless selects
-       # a link when button is released
-       $w->tag('bind',$tag, '<ButtonRelease-1>',
-		[$w,'Link', 'reuse',Tk::Ev('@%x,%y'),$what]);
-       $w->tag('bind',$tag, '<Shift-ButtonRelease-1>',
-		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
-       $w->tag('bind',$tag, '<ButtonRelease-2>',
-		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
-       $w->tag('bind',$tag, '<Enter>' => [$w, 'EnterLink']);
-       $w->tag('bind',$tag, '<Leave>' => [$w, 'LeaveLink']);
-       $w->tag('configure',$tag,
-		-underline  => 1,
-		-foreground => 'blue',
-		);
-      }
-     $w->tag('add',$tag,$start,'end -1c');
-    }
-   $post = $w->_expand($post);
-   return $pre . $what . $post;
-  }
- else
-  {
-   $w->insert('end -1c',$line);
-   return $line;
-  }
-}
-
-sub expand
-{
- my ($w,$line) = @_;
-
- $line =~ s/[<>]/\x7f/g;
-
- $line =~ s/E\x7f([A-Za-z]\w*)\x7f/$Tk::Parse::Escapes{$1}/g;
- return (_expand ($w, $line));
-}
-
-sub append
-{
- my $w = shift;
- my $line;
- foreach $line (@_)
-  {
-   $w->expand($line);
-  }
-}
-
-sub text
-{
- my ($w,$body) = @_;
- $body = join(' ',split(/\s*\n/,$body));
- my $start = $w->index('end -1c');
- $w->append($body,"\n\n");
- $w->tag('add','text',$start,'end -1c');
-}
-
-sub verbatim
-{
- my ($w,$body) = @_;
- my $line;
- foreach $line (split(/\n/,$body))
-  {
-   # Really need to have length after tabs expanded.
-   my $l = length($line)+$w->{indent};
-   if ($l > $w->{Length})
-    {
-     $w->{Length} = $l;
-     $w->configure(-width => $l) if ($w->viewable);
-    }
-  }
- $w->insert('end -1c',$body . "\n\n",['verbatim']);
-}
-
-sub head1
-{
- my ($w,$title) = @_;
- my $start = $w->index('end -1c');
-# my $tag = "\"$title\"";  # XXX needed?
-# my $tag = "title";
- my $tag = $title;
- $w->append($title);
- $w->tag('add',$tag,$start,'end -1c');
- $w->tag('configure',$tag,-font => $w->Font(family => 'times',
-         weight => 'bold',size => 180));
- $w->tag('raise',$tag,'text');
- $w->append("\n\n");
-}
-
-sub head2
-{
- my ($w,$title) = @_;
- my $tag ="\"$title\"";
- my $start = $w->index('end -1c');
- $w->append($title);
- $w->tag('add',$tag,$start,'end -1c');
- $w->tag('configure',$tag,
-         -font => $w->Font(family => 'times', weight => 'bold'));
- $w->tag('raise',$tag,'text');
- $w->append("\n\n");
-}
-
-*head3 = \&head2;
-*head4 = \&head2;
-
-sub IndentTag
-{
- my ($w,$indent) = @_;
- my $tag = "Indent" . ($indent+0);
- unless (exists $w->{Indent}{$tag})
-  {
-   $w->{Indent}{$tag} = $indent;
-   $indent *= 8;
-   $w->tag('configure',$tag,
-           -lmargin2 => $indent . 'p',
-           -rmargin  => $indent . 'p',
-           -lmargin1 => $indent . 'p'
-          );
-  }
- return $tag;
-}
-
-sub enditem
-{
- my ($w) = @_;
- my $item = delete $w->{Item};
- if (defined $item)
-  {
-   my ($start,$indent) = @$item;
-   $w->tag('add',$w->IndentTag($indent),$start,'end -1c');
-  }
-}
-
-sub item
-{
- my ($w,$title) = @_;
- $w->enditem;
- my $type = $w->{listtype};
- my $indent = $w->{indent};
- #print STDERR "item(",join(',',@_,$type,$indent),")\n" unless ($type == 1 || $type == 3);
- my $start = $w->index('end -1c');
- $title =~ s/\n/ /;
- $w->append($title);
- $w->tag('add',$title,$start,'end -1c');
- $w->tag('configure',$title,-font => $w->Font(weight => 'bold'));
- $w->tag('raise',$title,'text');
- $w->append("\n") if ($type == 3);
- $w->append(" ")  if ($type != 3);
- $w->{Item} = [ $w->index('end -1c'), $w->{indent} ];
-}
-
-sub setindent
-{
- my ($w,$arg) = @_;
- $w->{'indent'} = $arg
-}
-
-sub listbegin
-{
- my ($w) = @_;
- my $item = delete $w->{Item};
- push(@{$w->{List}},$item);
-}
-
-sub listend
-{
- my ($w) = @_;
- $w->enditem;
- $w->{Item} = pop(@{$w->{List}});
-}
-
-sub over { }
-
-sub back { }
-
-# XXX PodText.pm should not manipulate Toplevel
-#  sub filename
-#  {
-#   my ($w,$title) = @_;
-#   $w->toplevel->title($title);
-#  }
-sub filename
-{
- my ($w,$title) = @_;
- my $tl = $w->toplevel;
- $tl->title($title) if $tl->isa("Tk::Pod");
-}
-
-sub setline   {}
-sub setloc    {}
-sub endfile   {}
-sub listtype  { my ($w,$arg) = @_; $w->{listtype} = $arg }
-sub cut       {}
-
-sub process
-{
- my ($w,$file) = @_;
- my @save = @ARGV;
- @ARGV = $file;
- $w->toplevel->Busy;
-
- my $process_no;
- $w->{ProcessNo}++;
- $process_no = $w->{ProcessNo};
-
-# print STDERR "Parsing $file\n";
- my (@pod) = Simplify(Parse());
- my ($cmd,$arg);
-# print STDERR "Render $file\n";
- my $update = 2;
- undef @{$w->{'sections'}};
- while ($cmd = shift(@pod))
-  {
-   my $arg = shift(@pod);
-   if ($cmd =~ /^head(\d+)/) {
-       my $head = $1;
-       my $arg = $arg;
-       $arg =~ s/E<([^>]+)>/$Tk::Parse::Escapes{$1}/g;
-       $arg =~ s/[IBSCLFXZ]<([^>]+)>/$1/g; # XXX better, but not perfect...
-       $arg =~ s/\s+/ /g; # filter tabs etc.
-       push @{$w->{'sections'}}, [$head, $arg, $w->index('end')];
-   }
-   $w->$cmd($arg);
-   unless ($update--) {
-     $w->update;
-     $update = 2;
-     do { warn "ABORT!"; return } if $w->{ProcessNo} != $process_no;
-   }
-  }
- $w->parent->add_section_menu if $w->parent->can('add_section_menu');
- $w->Callback('-poddone', $file);
- # set (invisible) insertion cursor to top of file
- $w->markSet(insert => '@0,0');
- $w->toplevel->Unbusy;
- @ARGV = @save;
-}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Add the file $file (with optional text index position $index) to the
 # history.
@@ -884,6 +743,8 @@ sub history_view_select {
     }
 }
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # REPO BEGIN
 # REPO NAME is_in_path /home/e/eserte/src/repository
 # REPO MD5 1b42243230d92021e6c361e37c9771d1
@@ -923,6 +784,7 @@ sub is_interactive {
     }
 }
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1;
 
 __END__
