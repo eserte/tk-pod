@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Util.pm,v 1.2 2003/02/05 15:51:39 eserte Exp $
+# $Id: Util.pm,v 1.3 2003/02/05 16:12:30 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2003 Slaven Rezic. All rights reserved.
@@ -15,10 +15,10 @@
 package Tk::Pod::Util;
 use strict;
 use vars qw($VERSION @EXPORT_OK);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
 
 use base qw(Exporter);
-@EXPORT_OK = qw(is_in_path is_interactive);
+@EXPORT_OK = qw(is_in_path is_interactive detect_window_manager);
 
 # REPO BEGIN
 # REPO NAME is_in_path /home/e/eserte/src/repository
@@ -59,6 +59,32 @@ sub is_interactive {
     } else {
 	0;
     }
+}
+
+sub detect_window_manager {
+    my $top = shift;
+    if ($Tk::platform eq 'MSWin32') {
+	return "win32";
+    }
+    if (   get_property($top, "GNOME_NAME_SERVER")) {
+	return "gnome";
+    }
+    if (   get_property($top, "KWM_RUNNING") # KDE 1
+	|| get_property($top, "KWIN_RUNNING") # KDE 2
+       ) {
+	return "kde";
+    }
+    "x11";
+}
+
+sub get_property {
+    my($top, $prop) = @_;
+    my @ret;
+    if ($top->property('exists', $prop, 'root')) {
+	@ret = $top->property('get', $prop, 'root');
+	shift @ret; # get rid of property name
+    }
+    @ret;
 }
 
 1;
