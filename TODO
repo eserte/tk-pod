@@ -16,7 +16,8 @@ C<< -wrap => "none" >> in tags being sometimes ignored)
 
 =item *
 
-PodText: interrupt process() if another file is loaded...
+PodText: interrupt process() if another file is loaded... Sometimes
+strange things may happen like all text is underlined.
 
 =item *
 
