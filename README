@@ -1,0 +1,84 @@
+
+Stuff in Tk-POD distribution is derived from tkpod and Tk::Pod.pm
+of Tk402.003.  All bugs are mine. Gift and other goodies to the
+original author Nick Ing-Simmons <nik@tiuk.ti.com>.
+
+I added a feature just when I needed them.  So code/implementation
+is not in the state I would like.  Nevertheless it's quite more
+useful IMO :-)
+
+	o Interface to perlindex full text POD search added
+	  (you need to install perlindex distribution).
+	o Added some POD to tkpod Tk::Pod and Tk::Pod::Text
+	o Added Open and Help menu item
+	o Don't open new Toplevel window for new selected POD
+	o Added Popup menu for 'Back' 'Reload' 'Edit' 'Search'
+	o CDE default font support
+	o Very Primitive Tk/More widget with '/', 'n', 'N'
+	  bindings
+	 
+The distribution on includes a patch for Tk/Text.pm (already posted
+to ptk list). So when you get an error about 'tagPrevrange' apply it.
+
+If you find a bug please check the TODO file if it's not already
+known.  Please consider to send any nontrivial patch to the
+perl/Tk mailing list
+
+	ptk@lists.stanford.edu
+
+to prevent duplicate work and to get the snow ball running :-)
+
+Comments are always very welcome.
+
+Achim Bohnet <ach@mpe.mpg.de>
+
+
+Win95/NT Users:
+
+	I guess that perlindex (relies on perls dbm support) and
+	'Edit' are too unixish to work out of the box.  But rest
+	of tkpod functionality should work.
+
+History:
+
+version 0.04
+
+	o applied Tk/Parse.pm patch of Slaven Rezic
+	  <eserte@cs.tu-berlin.de> to fix problem
+	  triggered by perlfaq4.pod
+	o Allow upcase chars in E<> as: Auml, Ouml,...
+	o Shift-Button-1 was used to open new window
+	  on L<>.  Now it's Button-2
+	o added 'szlig' to E<>
+	o Added more example POD markup to Tk/Pod/Text for
+	  verification
+
+version 0.03
+
+	o fixed warn on =for.  Perl Data Language has lots
+	  of them
+	o use alpha FcyEntry widget if available
+	o Tk/More status line: flat<->sunken, disabled<->normal
+	
+version 0.02
+
+	o use CDE default fonts if available
+	o first go on Tk::More widget
+	o use perlindex full text index if available
+
+version 0.01
+
+	o derived from Tk402.003 tkpod Tk/Pod.pm
+	o Extracted Tk::Pod::Text  from Tk::Pod  and use ROText
+	o 'better than nothing POD' for tkpod, Tk::Pod, Tk::Pod::Text.pm
+	o Added tkpod Help menu
+	o L<> in blue
+	o Button-* load POD in same window (with shift in separate
+	  window)
+	o tkpod now exits when last Pod widget is closed
+	o quick and dirty 'back' history.
+	o Added Popup menu: back, reload, edit
+	o removed Autoloader and sub old_process
+	o some other little fixes I can't remember right now
+
+__END__

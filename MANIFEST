@@ -1,0 +1,14 @@
+MANIFEST
+MANIFEST.SKIP
+Makefile.PL
+README
+TODO
+Tk/Parse.pm
+Tk/More.pm
+Tk/Pod.pm
+Tk/Pod/Search.pm
+Tk/Pod/Search_db.pm		# should be in perlindex dist after cleanup
+Tk/Pod/Text.pm
+Tk402.Text.patch
+t/tkpod.t
+tkpod

@@ -1,0 +1,10 @@
+\.tkpod\.prcs_aux$
+tkpod\.prj$
+Makefile$
+pm_to_blib$
+\.orig$
+\.bak$
+\.old$
+^blib
+^tt
+^alpha

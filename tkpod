@@ -1,0 +1,168 @@
+#!/usr/local/bin/perl -w
+
+use strict;
+use vars '$VERSION';
+
+$VERSION = substr q$Revision: 1.5 $, 10;
+
+BEGIN {
+	print STDERR <<EOT unless @ARGV;
+
+Usage:	$0  [directory]|name [...]
+
+EOT
+}
+
+		
+use Tk;
+BEGIN { eval { require '../exgui/Tk/FcyEntry.pm'; } }; # FcyEntry not ready for public
+use Tk::Pod;
+
+require Tk::ErrorDialog;
+
+my $mw = MainWindow->new();
+$mw->withdraw;
+
+# CDE use Font Settings if available
+my $ufont = $mw->optionGet('userFont','UserFont');     # fixed width
+my $sfont = $mw->optionGet('systemFont','SystemFont'); # propotional
+if (defined($ufont) and defined($sfont)) {
+    foreach ($ufont, $sfont) { s/:$//; };
+    $mw->optionAdd('*Font',       $sfont);
+    $mw->optionAdd('*Entry.Font', $ufont);
+    $mw->optionAdd('*Text.Font',  $ufont);
+} else {
+# xxx does not work as expected. RTFM!
+#    require Tk::Font;
+#    $top->optionAdd('*Entry.Font', $top->Font(weigth=>'medium', family=>'courier') );
+#    $top->optionAdd('*Text.Font',  $top->Font(weigth=>'medium', family=>'courier') );
+#    $top->optionAdd('*Font',       $top->Font(weigth=>'medium', family=>'times')   );
+}
+
+$mw->optionAdd('*Menu.tearOff', 0);
+
+my $file;
+foreach $file (@ARGV)
+ {
+  if (-d $file)
+   {
+    Tk::Pod->Dir($file);
+   }
+  else
+   {
+    my $tl = $mw->Pod(-file => $file);
+    $tl->focus;
+   }
+ }
+
+# xxx dirty but it works. A simple $mw->destroy if $mw->children
+# does not work because Tk::ErrorDialogs could be created.
+# (they are withdrawn after Ok instead of destory'ed I guess)
+
+if ($mw->children) {
+    $mw->repeat(1000, sub {
+		# ErrorDialog is withdrawn not deleted :-(
+		foreach ($mw->children) {
+			return if "$_" =~ /^Tk::Pod/  # ->isa('Tk::Pod')
+		}
+		$mw->destroy;
+	    });
+} else {
+    $mw->destroy;
+}
+
+MainLoop;
+
+__END__
+
+=head1 NAME
+
+tkpod - Perl/Tk POD browser
+
+=head1 SYNOPSIS
+
+    tkpod  [directory]|name [...]
+
+
+=head1 DESCRIPTION
+
+B<tkpod> is a simple POD browser with hypertext capabilities.
+POD (Plain Old Document, see L<perlpod>) is a simple and readable
+markup language that could be mixed with L<perl> code.
+
+PODs are searched by default in C<@INC>.  Directories listed on
+the command line are added to the default search path.  
+
+For each C<name> listed on the command line B<tkpod> tries to
+to find POD in C<name, name.pod> and C<name.pm> in the search
+path.  For each C<name> a new POD browser window is opened.
+
+
+=head1 USAGE
+
+To navigate through the documentation one could use
+
+=over 4
+
+=item * Hyperlinks
+
+A B<click> on a hyperlinks display the corresponding documentation
+(if there is any) in the same window.
+
+If the B<Shift> key is simultanously pressed a new
+window is opened. 
+
+=item * Selection
+
+A B<double click> tries to load the documentation for the selected
+word in the same window.
+
+If the c<Shift> key is simultanously pressed the new window is
+opened.
+
+=item * Search in POD document
+
+Pressing <Key-/> lets you search the displayed POD
+
+=item * Action Menu
+
+If you press the right mouse button you get a popup menu
+that allows:
+
+=over 4
+
+=item o Back
+
+in history of displayed documentation
+
+=item o Reload
+
+the documentation
+
+=item o Edit
+
+start editor with source of the displayed document.
+
+The used editor is selected by the first defenition of
+the enviroment variables C<XEDITOR>, C<VISUAL>, C<EDITOR>
+or as default F</usr/bin/vi>.
+
+=item o Search ...
+
+Full text search of the POD in the perl library directories.
+(Note: to use it one has to install perlindex distribution.)
+
+=back
+
+=back
+
+=head1 KNOWN BUGS
+
+see L<Tk::Pod::Text>
+
+=head1 SEE ALSO
+
+perlpod, pod2man, pod2text, pod2html, Tk::Pod, Tk::Pod::Text
+
+=cut
+
