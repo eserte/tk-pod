@@ -24,7 +24,7 @@ use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.21 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.22 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -984,7 +984,7 @@ Other POD docu: Tk::Font, Tk::BrowseEntry
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>.
+Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
 
 Copyright (c) 1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
