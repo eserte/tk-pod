@@ -1,54 +1,15 @@
 Scratch pad of bugs, missing features, and misbehaviors
 collected during I used tkpod.
 
-
-o Tk8 font handling is much better for a new PodText
-
-o PodText should not manipulate toplevel title
-  in sub filename (called by Tk::parse)
-
-o replace Tk::Parse with Pod::Parser
-  Hmmm... lets wait for Pod::Base/Simplify
-
-o Parse.pm: problems if parsing POD with DOS newlines on a Unix system
-
-o Stephen J. Lusol suggested:
-	... It would be nice if Tk::Pod had a
-	Print feature in the File menu....
-
-  open (|lpr -h) print $t->get(1.0,end) (too bad)
-  pod2man | groff -man | lpr -h
-  pod2ps
-  wasn't there a ptk lpr wrapper!???
-
-  config via ENV var or is there a Preferences menu out there?
-  (maybe use Tk-getopt and set useful defaults for missing cmd
-  line params?)
-
-  Version 1.0: Now there is a Print menu entry, but the configuration
-  questions are still open.
-
-o perlfunc.pod complains 3 times that -X should be i[BC]<-X>
-  Maybe add silent and 'lint' mode (but output to another
-  text widget)
-
-o after =back missing horizontal white space, see 'sz'
-  in Tk::Pod::Text.pm POD
-
-o Bug: C<> in (e.g.) MakeMakers DESCRIPTION section is in bold
-       roman instead of Courier. After this page is loaded all
-	pages show this bug  (Tag order?)
-
-o Bug: S<> e.g., in SYNOPSIS of perl manpage ignored
+o Bug: S<> seems often to be ignored. May be a core Tk::Text bug (i.e.
+  -wrap => "none" in tags being sometimes ignored)
 
 o cleanup search interface to perlindex.  Maybe patch Ulrichs
   TPJ example code for nroff pages to allow both POD and MAN.
 
 o add meaningful regression tests
 
-o create 'AsToplevel' similar to 'Scrolled'
-
-o Tree: re-read tree, invalidate cache
+o Tree: create new menu entry for re-reading tree, invalidate cache
 
 o PodText: interrupt process() if another file is loaded...
 
@@ -61,10 +22,6 @@ o Double-2 over non-links should load a pod into a new window (like
 o new menu entry with a link list (e.g. all L<...> and everything
 looking like a module /\w+::\w+/)
 
-o zoom +/- (like in tkrevdiff)
-
-o ignore =comment sections
-
 o for Windows: check whether Tk::More/Tk::Tree match the system
 background colors
 
@@ -73,6 +30,8 @@ o if called from the full text search dialog: maybe jump to the first
 
 o maybe special handling for Tk::Pod::FindPods under Mac OS X is
   necessary (pod directory is /System/Library/Perl/pods)
+
+o maybe put the removed WWWBrowser code again to Tk::Pod::Text
 
 Tk::More:
 
