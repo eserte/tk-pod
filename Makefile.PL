@@ -4,7 +4,7 @@ WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk' => 402.000, 'Text::English' => 0 },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk',
-	'VERSION'	=> 0.0401,
+	'VERSION'	=> 0.06,
 
 	'EXE_FILES'	=> [ 'tkpod' ],
 

@@ -1,37 +1,52 @@
 #!/usr/local/bin/perl -w
 
 use strict;
-use vars '$VERSION';
+use vars qw($VERSION $tk_opt);
 
-$VERSION = substr q$Revision: 1.6 $, 10;
+$VERSION = substr q$Revision: 1.7 $, 10;
 
 BEGIN {
+	if (defined($ARGV[0]) and $ARGV[0] eq '-tk') {
+            $tk_opt = 1;
+	    shift @ARGV;
+	} else {
+	    $tk_opt = 0;
+	}
 	print STDERR <<EOT unless @ARGV;
 
-Usage:	$0  [directory]|name [...]
+Usage:	$0  [-tk] [directory]|name [...]
 
 EOT
 }
 
-		
 use Tk;
 BEGIN { eval { require '../exgui/Tk/FcyEntry.pm'; } }; # FcyEntry not ready for public
 use Tk::Pod;
 
 require Tk::ErrorDialog;
 
+# Add 'Tk' subdirectories to search path so, e.g.,
+# 'Scrolled' will find doc in 'Tk/Scrolled'
+if ($tk_opt) {
+   my $tkdir;
+   foreach (reverse @INC) {
+	$tkdir = "$_/Tk";
+	unshift @ARGV, $tkdir if -d $tkdir;
+   } 
+}
+
 my $mw = MainWindow->new();
 $mw->withdraw;
 
 # CDE use Font Settings if available
 my $ufont = $mw->optionGet('userFont','UserFont');     # fixed width
-my $sfont = $mw->optionGet('systemFont','SystemFont'); # propotional
+my $sfont = $mw->optionGet('systemFont','SystemFont'); # proportional
 if (defined($ufont) and defined($sfont)) {
     foreach ($ufont, $sfont) { s/:$//; };
     $mw->optionAdd('*Font',       $sfont);
     $mw->optionAdd('*Entry.Font', $ufont);
     $mw->optionAdd('*Text.Font',  $ufont);
-} else {
+#} else {
 # xxx does not work as expected. RTFM!
 #    require Tk::Font;
 #    $top->optionAdd('*Entry.Font', $top->Font(weigth=>'medium', family=>'courier') );
@@ -81,7 +96,7 @@ tkpod - Perl/Tk POD browser
 
 =head1 SYNOPSIS
 
-    tkpod  [directory]|name [...]
+    tkpod  [-tk]  [directory]|name [...]
 
 
 =head1 DESCRIPTION
@@ -96,6 +111,20 @@ the command line are added to the default search path.
 For each C<name> listed on the command line B<tkpod> tries to
 to find POD in C<name, name.pod> and C<name.pm> in the search
 path.  For each C<name> a new POD browser window is opened.
+
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-tk>
+
+Useful for perl/Tk documentation.  When specified it adds all
+C<Tk> subdirectories in C<@INC> to the POD search path.   This way
+when C<Scrolled> is selected in the browser the C<Tk/Scrolled>
+documentation is found.
+
+=back
 
 
 =head1 USAGE

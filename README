@@ -1,11 +1,9 @@
 
-Stuff in Tk-POD distribution is derived from tkpod and Tk::Pod.pm
-of Tk402.003.  All bugs are mine. Gift and other goodies to the
+Tk-POD distribution is derived from tkpod and Tk::Pod.pm of
+Tk402.003 distribution.  All bugs are mine.  Gifts to the
 original author Nick Ing-Simmons <nik@tiuk.ti.com>.
 
-I added a feature just when I needed them.  So code/implementation
-is not in the state I would like.  Nevertheless it's quite more
-useful IMO :-)
+Added features compared to the version in Tk402.003:
 
 	o Interface to perlindex full text POD search added
 	  (you need to install perlindex distribution).
@@ -16,9 +14,10 @@ useful IMO :-)
 	o CDE default font support
 	o Very Primitive Tk/More widget with '/', 'n', 'N'
 	  bindings
+	o better lookup of Tk docs with -tk switch
 	 
-The distribution on includes a patch for Tk/Text.pm (already posted
-to ptk list). So when you get an error about 'tagPrevrange' apply it.
+The distribution includes a patch for Tk/Text.pm  (already in
+Tk402.004). When you get an error about 'tagPrevrange' apply it.
 
 If you find a bug please check the TODO file if it's not already
 known.  Please consider to send any nontrivial patch to the
@@ -40,6 +39,19 @@ Win95/NT Users:
 	of tkpod functionality should work.
 
 History:
+
+version 0.6
+
+	o fixed 'Quit' error
+	o Pod widgets created from another Pod widget have now
+	  same parent as Pod widget that created them
+
+version 0.5
+
+	o tkpod: added -tk switch so, Pod will be found
+	  even if Tk:: or Tk/ prefix is omitted.
+
+	o Fixed wrong $VERSION of Tk::Pod
 
 version 0.0401
 

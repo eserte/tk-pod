@@ -3,7 +3,7 @@ use strict;
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr q$Revision: 1.4 $, 10 + 1; # so it's > 2.005
+$VERSION = substr(q$Revision: 1.6 $, 10)+ 1; # so it's > 2.005
 
 @ISA = qw(Tk::Toplevel);
 
@@ -31,8 +31,8 @@ sub Populate
  my $help = $mbar->Component('Menubutton' => 'help', '-text' => 'Help', '-underline' => 0);
  $help->pack('-side' => 'right','-anchor' => 'e');
  # xxx restructure to not reference to tkpod
- $help->command('-label' => 'Usage...',       -command => sub{$w->Pod(-file=>'tkpod')} );
- $help->command('-label' => 'Programming...', -command => sub{$w->Pod(-file=>'Tk/Pod.pm')} );
+ $help->command('-label' => 'Usage...',       -command => sub{$w->parent->Pod(-file=>'tkpod')} );
+ $help->command('-label' => 'Programming...', -command => sub{$w->parent->Pod(-file=>'Tk/Pod.pm')} );
 
  $mbar->pack('-side' => 'top', '-fill' => 'x', '-before' => ($w->packSlaves)[0]);
  $w->Delegates('Menubutton' => $mbar, DEFAULT => $p);
@@ -57,17 +57,7 @@ sub openfile {
 sub Dir { require Tk::Pod::Text; Tk::Pod::Text::Dir(@_) } 
 
 
-sub quit
-{
- my ($w) = @_;
- my $p = $w->parent;
- $w->destroy;
- foreach $w ($p->children)
-  {
-   return if ($w->toplevel eq $w);
-  }
- $p->destroy if ($p->state eq 'withdrawn');
-}
+sub quit { shift->destroy }
 
 1;
 

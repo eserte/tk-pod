@@ -1,6 +1,9 @@
 Scratch pad of bugs missing features and misbehavior I've
 found during the usage of tkpod:
 
+o replace Tk::Parse with Pod::Parser subclass
+  Hmmm... lets wait for Pod::Base/Simplify
+
 o Stephen J. Lusol suggested:
 	... It would be nice if Tk::Pod had a
 	Print feature in the File menu....
@@ -22,17 +25,13 @@ o after =back missing horizontal white space, see 'sz'
   in Tk::Pod::Text.pm POD
 
 o add all ISO-Latin1 char names to Tk/Pod/Text $translate
-  (check lwp for lib function).
+  see HTML::Entities
 
 o Set title to name of pod instead of Pod. (But on reload
   title is file).  Some time // prefix, sometimes /./ slips
   in. (Tk403.002 Toplevel patch posted so 'Pod' as title is fixed)
 
 o Tk/More status bar:  filename  %   line x
-
-o add -tk switch for tkpod to add Tk subdir to POD search
-  patch so Tk::Text is found even on selection of the work
-  Text
 
 o Bug: C<> in (e.g.) MakeMakers DESCRIPTION section is in bold
        roman instead of Courier. After this page is loaded all
@@ -48,10 +47,6 @@ o MM workaround: 'Writing Makefile for Tk::Pod' is not
 
 o add 'more' like key bindings to Tk::More. Especially
   'up' 'down' should scroll independent where the cursor is.
-
-o Use for 'Help items' a POD window without Menu  Currently
-  Help Menu Pod have the Pod window as parent and therefore
-  go away if it's closed. (Is this really a good idea?)
 
 o better history support:
 	o disable 'back' menu item on first hist entry
