@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.12 2003/01/29 11:57:22 eserte Exp $
+# $Id: Tree.pm,v 1.13 2003/02/05 14:47:36 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -65,6 +65,16 @@ use Tk qw(Ev);
 Construct Tk::Widget 'PodTree';
 
 BEGIN { @POD = @INC }
+
+BEGIN {  # Make a DEBUG constant very first thing...
+  if(defined &DEBUG) {
+  } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
+    eval("sub DEBUG () {$1}");
+    die "WHAT? Couldn't eval-up a DEBUG constant!? $@" if $@;
+  } else {
+    *DEBUG = sub () {0};
+  }
+}
 
 ######################################################################
 use Class::Struct;
@@ -300,10 +310,16 @@ subtrees to make the C<$path> visible, if necessary.
 
 sub SeePath {
     my($w,$path) = @_;
+    if ($^O eq 'MSWin32') {
+	$path =~ s/\\/\//g;
+	$path = lc $path;
+    }
+    DEBUG and warn "Call SeePath with $path\n";
     return if !$w->Filled; # XXX better solution!
     foreach my $category (keys %pods) {
 	foreach my $pod (keys %{ $pods{$category} }) {
 	    my $podpath = $pods{$category}->{$pod};
+	    $podpath = lc $podpath if $^O eq 'MSWin32'; # XXX should be really File::Spec->is_case_tolerant
 	    if ($path eq $podpath) {
 		my $treepath = "$category/$pod";
 		$w->open($treepath);
@@ -316,6 +332,7 @@ sub SeePath {
 	    }
 	}
     }
+    DEBUG and warn "SeePath: cannot find $path in tree\n";
     0;
 }
 
