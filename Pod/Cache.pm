@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Cache.pm,v 1.1 2002/12/07 12:52:47 eserte Exp $
+# $Id: Cache.pm,v 1.2 2002/12/07 13:08:44 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2002 Slaven Rezic. All rights reserved.
@@ -26,7 +26,7 @@ BEGIN {  # Make a DEBUG constant very first thing...
   }
 }
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
 
 $MAX_CACHE = 20; # documents # XXX not yet used, LRU etc...
 
@@ -48,6 +48,10 @@ sub get_from_cache {
     DEBUG and warn "Restore contents for $pod from cache.\n";
     $w->restore_contents($CACHE{$pod});
     1;
+}
+
+sub clear_cache {
+    %CACHE = ();
 }
 
 sub dump_contents {
