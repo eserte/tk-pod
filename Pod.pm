@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.6 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.7 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -111,12 +111,16 @@ sub openfile {
     my ($cw,$p) = @_;
     my $file;
     if ($cw->can("getOpenFile")) {
-	$file = $cw->getOpenFile(-title => "Choose POD file",
-				 -defaultextension => 'pod',
-				 -filetypes => [['POD files', '*.pod'],
-						['Perl scripts', '*.pl'],
-						['Perl modules', '*.pm'],
-						['All files', '*']]);
+	$file = $cw->getOpenFile
+	    (-title => "Choose POD file",
+	     -defaultextension => 'pod',
+	     -filetypes => [['POD containing files', ['*.pod',
+						      '*.pl',
+						      '*.pm']],
+			    ['POD files', '*.pod'],
+			    ['Perl scripts', '*.pl'],
+			    ['Perl modules', '*.pm'],
+			    ['All files', '*']]);
     } else {
 	unless (defined $fsbox && $fsbox->IsWidget) {
 	    require Tk::FileSelect;
