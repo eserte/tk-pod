@@ -123,6 +123,10 @@ scroll back will not get to the same position as before)
 
 use Tk::HistEntry for search entry
 
+=item *
+
+implement isearch
+
 =back
 
 =head3 Tk::Pod::Cache
