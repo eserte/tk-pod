@@ -1,6 +1,9 @@
 Scratch pad of bugs, missing features, and misbehaviors
 collected during I used tkpod.
 
+o With Term::ReadLine::Gnu::Perl  GetHistory is not available
+  and tkpod croaks on exit
+
 o L</sec> and <2>/<shift-1> do not open a new window :-(
   
 o Make PodText/PodParser accept POD from a handle

@@ -7,7 +7,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr q$Revision: 1.9 $, 10;
+$VERSION = substr q$Revision: 1.11 $, 10;
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -129,12 +129,12 @@ sub Populate
 
  $p->configure(-font => $w->Font(family => 'courier'));
  $p->tag('configure','text', -font => $w->Font(family => 'times'));
- $p->tag('configure','C',-font => $w->Font(family => 'courier', weight => 'medium'));
- $p->tag('configure','S',-font => $w->Font(family => 'courier', weight => 'bold', slant => 'o'));
- $p->tag('configure','B',-font => $w->Font(family => 'times', weight => 'bold' ));
- $p->tag('configure','I',-font => $w->Font(family => 'times',slant => 'i', weight => 'bold' ));
- $p->tag('configure','S',-font => $w->Font(family => 'times',slant => 'i' ));
- $p->tag('configure','F',-font => $w->Font(family => 'helvetica', weight => 'bold'));
+ $p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
+ $p->tag('configure','S',-font => $w->Font(family=>'courier',   weight=>'bold',   slant => 'o'));
+ $p->tag('configure','B',-font => $w->Font(family=>'times',     weight=>'bold',               ));
+ $p->tag('configure','I',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
+ $p->tag('configure','S',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
+ $p->tag('configure','F',-font => $w->Font(family=>'helvetica', weight=>'bold',               ));
  $p->insert('0.0',"\n");
 
  $w->{List}   = []; # stack of =over
@@ -174,12 +174,13 @@ sub Populate
     $w->Delegates(DEFAULT => $p);
 
     $w->ConfigSpecs(
-            '-file'       => ['METHOD',   undef,undef,undef],
-            '-path'       => ['PASSIVE',  undef,undef,undef],
-            '-poddone'    => ['CALLBACK', undef, undef, undef],
+            '-file'       => ['METHOD'  ],
+            '-path'       => ['PASSIVE' ],
+            '-poddone'    => ['CALLBACK'],
 
             '-wrap'       => [ $p, qw(wrap       Wrap       word) ],
-	    '-font'	  => [ $p, qw(font       Font),     $w->Font(family => 'courier')],
+	    # -font ignored because it does not change the other fonts
+	    #'-font'	  => [ 'PASSIVE', undef, undef, undef],
             '-scrollbars' => [ $p, qw(scrollbars Scrollbars w   ) ],
 
             'DEFAULT'     => [ $p ],
@@ -187,18 +188,6 @@ sub Populate
 
     $args->{-width} = $w->{Length};
 }
-
-#sub quit
-#{
-# my ($w) = @_;
-# my $p = $w->parent;
-# $w->destroy;
-# foreach $w ($p->children)
-#  {
-#   return if ($w->toplevel eq $w);
-#  }
-# $p->destroy if ($p->state eq 'withdrawn');
-#}
 
 my %tag = qw(C 1 B 1 I 1 L 1 F 1 S 1 Z 1);
 
@@ -250,11 +239,11 @@ sub Link
  my ($w,$how,$index,$link) = @_;
 
  my (@range) = $w->tag('nextrange',$link,$index);
+ @range = $w->tag('nextrange',"\"$link\"",$index) unless @range == 2;
  # XXX wrong if mode is 'new'  
  if (@range == 2)
   {
-   #print "begin  man=($link)\n";
-   $w->see($range[0]);
+   $w->yview($range[0]);
   }
  else
   {
@@ -290,16 +279,18 @@ sub Link
 
 my %translate =
 (
- 'lt'   => '<',
- 'gt'   => '>',
- 'amp'  => '&',
- 'auml' => 'ä',
- 'Auml' => 'Ä',
- 'ouml' => 'ö',
- 'Ouml' => 'Ö',
- 'uuml' => 'ü',
- 'Uuml' => 'Ü',
+ 'lt'    => '<',
+ 'gt'    => '>',
+ 'amp'   => '&',
+ 'auml'  => 'ä',
+ 'Auml'  => 'Ä',
+ 'ouml'  => 'ö',
+ 'Ouml'  => 'Ö',
+ 'uuml'  => 'ü',
+ 'Uuml'  => 'Ü',
+ 'space' => ' ',
  'szlig' => 'ß',
+ 'tab'   => "\t",
  );
 
 # '<' and '>' have been replaced with \x7f because E<..> have been
@@ -459,7 +450,7 @@ sub item
  $w->enditem;
  my $type = $w->{listtype};
  my $indent = $w->{indent};
- print STDERR "item(",join(',',@_,$type,$indent),")\n" unless ($type == 1 || $type == 3);
+ #print STDERR "item(",join(',',@_,$type,$indent),")\n" unless ($type == 1 || $type == 3);
  my $start = $w->index('end -1c');
  $title =~ s/\n/ /;
  $w->append($title);
@@ -608,6 +599,8 @@ See TODO files of Tk-Pod distribution
 For B<PodText> see L<Tk::Pod::Text>.
 
 A C<fixed width> font.
+
+Text in I<slant italics>.
 
 A <=for> paragraph is hidden between here
 

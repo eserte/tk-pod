@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt);
 
-$VERSION = substr q$Revision: 1.8 $, 10;
+$VERSION = substr q$Revision: 1.9 $, 10;
 
 BEGIN {
 	if (defined($ARGV[0]) and $ARGV[0] eq '-tk') {
@@ -46,12 +46,6 @@ if (defined($ufont) and defined($sfont)) {
     $mw->optionAdd('*Font',       $sfont);
     $mw->optionAdd('*Entry.Font', $ufont);
     $mw->optionAdd('*Text.Font',  $ufont);
-#} else {
-# xxx does not work as expected. RTFM!
-#    require Tk::Font;
-#    $top->optionAdd('*Entry.Font', $top->Font(weigth=>'medium', family=>'courier') );
-#    $top->optionAdd('*Text.Font',  $top->Font(weigth=>'medium', family=>'courier') );
-#    $top->optionAdd('*Font',       $top->Font(weigth=>'medium', family=>'times')   );
 }
 
 $mw->optionAdd('*Menu.tearOff', 0);

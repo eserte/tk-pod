@@ -21,6 +21,7 @@ Added features compared to the version in Tk402.003:
 The distribution includes a patch for Tk/Text.pm  (already in
 Tk402.004). When you get an error about 'tagPrevrange' apply it.
 
+tkpod works with Tk800.0_02 and Tk800.003.
 Known problem with Tk800.000 and Tk800.0_01:
 
         Bad option `Name' at ../tk8/blib/lib/Tk/Menu/Item.pm line 48.
@@ -60,7 +61,13 @@ Win95/NT Users:
 
 History:
 
-version 0.7
+version 0.08
+
+	o E<> support also 'space' 'tab'
+	o I<> is now in weight 'medium' and not 'bold'
+	o -font option removed so it's really 'courier'
+
+version 0.07
 
 	Tk/Pod/Text.pm
 		o Links don't change font size in =head and
@@ -86,13 +93,13 @@ version 0.7
 		o fixed packing so entry does not fanish for
 		  small More widgets
 
-version 0.6
+version 0.06
 
 	o fixed 'Quit' error
 	o Pod widgets created from another Pod widget have now
 	  same parent as Pod widget that created them
 
-version 0.5
+version 0.05
 
 	o tkpod: added -tk switch so, Pod will be found
 	  even if Tk:: or Tk/ prefix is omitted.

@@ -3,7 +3,7 @@ use strict;
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.8 $, 10)+ 1; # so it's > 2.005
+$VERSION = substr(q$Revision: 1.9 $, 10)+ 1; # so it's > 2.005
 
 @ISA = qw(Tk::Toplevel);
 
@@ -27,7 +27,7 @@ sub Populate
  $file->separator;
  $file->command('-label'=>'Close',    '-underline'=>0, '-command' => ['quit',$w] );
 
- my $help = $mbar->Component('Menubutton' => 'help', '-text' => 'Help', '-underline' => 0);
+ my $help = $mbar->Component('Menubutton' => 'help', -side=>'right', '-text' => 'Help', '-underline' => 0);
  # xxx restructure to not reference to tkpod
  $help->command('-label' => 'Usage...', -command => sub{
 		$w->parent->Pod(-file=>
