@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.26 $, 10) + 2 . "";
-$DIST_VERSION = "0.9922";
+$VERSION = substr(q$Revision: 2.27 $, 10) + 2 . "";
+$DIST_VERSION = "0.9923";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -44,7 +44,7 @@ sub Populate
     [Button => '~Reload',    '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
     [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
-    [Button => '~Print...',  '-command' => ['Print',$p]],
+    [Button => '~Print'. ($p->PrintHasDialog ? '...' : ''),  '-command' => ['Print',$p]],
     [Separator => ""],
     [Button => '~Close',     '-command' => ['quit',$w]],
     ($exitbutton
@@ -115,8 +115,8 @@ sub Populate
    $w->bind($w->toplevel->PathName, "<$mod-Right>" => [$p, 'history_move', +1]);
   }
 
- $w->bind($w->toplevel->PathName, "<Control-minus>" => [$p, 'zoom_in']);
- $w->bind($w->toplevel->PathName, "<Control-plus>" => [$p, 'zoom_out']);
+ $w->bind($w->toplevel->PathName, "<Control-minus>" => [$p, 'zoom_out']);
+ $w->bind($w->toplevel->PathName, "<Control-plus>" => [$p, 'zoom_in']);
 
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
 }
