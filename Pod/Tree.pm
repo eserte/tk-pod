@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.1 2001/06/13 08:05:25 eserte Exp $
+# $Id: Tree.pm,v 1.2 2001/06/13 09:03:05 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -15,8 +15,8 @@
 package Tk::Pod::Tree;
 
 use strict;
-use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+use vars qw($VERSION @ISA @POD %pods);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
 
 use Tk::Pod::FindPods;
 
@@ -54,7 +54,9 @@ sub Fill {
 
     $w->delete("all");
 
-    my %pods = Tk::Pod::FindPods::pod_find(-categorized => 1);
+    if (!%pods) {
+	%pods = Tk::Pod::FindPods::pod_find(-categorized => 1);
+    }
     my %category_seen;
 
     foreach (['perl',   'Perl language'],
