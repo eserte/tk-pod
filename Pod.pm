@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9929_99";
 
 @ISA = qw(Tk::Toplevel);
@@ -122,14 +122,14 @@ EOF
     ],
     '-',
     [Button => "Zoom ~in",  '-accelerator' => 'Ctrl++',
-     -command => ['zoom_in', $p],
+     -command => [$w, 'zoom_in'],
      $compound->("viewmag+"),
     ],
-    [Button => "~Normal",   -command => ['zoom_normal', $p],
+    [Button => "~Normal",   -command => [$w, 'zoom_normal'],
      $compound->(),
     ],
     [Button => "Zoom ~out", '-accelerator' => 'Ctrl+-',
-     -command => ['zoom_out', $p],
+     -command => [$w, 'zoom_out'],
      $compound->("viewmag-"),
     ],
    ]
@@ -191,7 +191,7 @@ EOF
    [
     # XXX restructure to not reference to tkpod
     [Button => '~Usage...',       -command => ['help', $w]],
-    [Button => '~Programming...', -command => sub { $w->parent->Pod(-file=>'Tk/Pod.pm', -exitbutton => $w->cget(-exitbutton)) }],
+    [Button => '~Programming...', -command => ['help_programming', $w]],
     [Button => '~About...', -command => ['about', $w]],
     ($ENV{'TKPODDEBUG'}
      ? ('-',
@@ -228,8 +228,8 @@ EOF
     $w->bind($path, "<$mod-Right>" => [$p, 'history_move', +1]);
    }
 
-  $w->bind($path, "<Control-minus>" => [$p, 'zoom_out']);
-  $w->bind($path, "<Control-plus>" => [$p, 'zoom_in']);
+  $w->bind($path, "<Control-minus>" => [$w, 'zoom_out']);
+  $w->bind($path, "<Control-plus>" => [$w, 'zoom_in']);
   $w->bind($path, "<F3>" => [$w,'openfile']);
   $w->bind($path, "<Control-o>" => [$w,'openpod',$p]);
   $w->bind($path, "<Control-n>" => [$w,'newwindow',$p]);
@@ -335,11 +335,13 @@ sub openpod {
 	if ($go == 1) {
 	    $cw->configure(%pod_args);
 	} elsif ($go == 2) {
-	    my $new_cw = $cw->MainWindow->Pod
-		('-tree' => $cw->cget(-tree),
-		 -exitbutton => $cw->cget(-exitbutton),
-		);
-	    $new_cw->configure(%pod_args);
+	    my $new_cw = $cw->clone(%pod_args);
+#XXX del:
+# 	    my $new_cw = $cw->MainWindow->Pod
+# 		('-tree' => $cw->cget(-tree),
+# 		 -exitbutton => $cw->cget(-exitbutton),
+# 		);
+# 	    $new_cw->configure(%pod_args);
 	}
     }
 }
@@ -374,10 +376,7 @@ sub getpodargs {
 }
 
 sub newwindow {
-    my($cw) = @_;
-    $cw->MainWindow->Pod('-tree' => $cw->cget(-tree),
-			 -exitbutton => $cw->cget(-exitbutton),
-			);
+    shift->clone;
 }
 
 sub Dir {
@@ -392,9 +391,21 @@ sub quit { shift->destroy }
 
 sub help {
     my $w = shift;
-    $w->parent->Pod(-file=>'Tk::Pod_usage.pod',
-		    -exitbutton => $w->cget(-exitbutton),
-		   );
+    $w->clone('-tree' => 0,
+	      '-file' => 'Tk::Pod_usage.pod',
+	     );
+#XXX del:
+#     $w->parent->Pod(-file=>,
+# 		    -exitbutton => $w->cget(-exitbutton),
+# 		   );
+}
+
+sub help_programming {
+    my $w = shift;
+    $w->clone('-tree' => 0,
+	      '-file' => 'Tk/Pod.pm',
+	      );
+#XXX del:    $w->parent->Pod(-file=>'Tk/Pod.pm', -exitbutton => $w->cget(-exitbutton)) }],
 }
 
 sub about {
@@ -562,11 +573,14 @@ sub _configure_tree {
 	     my $e = $_[1];
 	     my @args = $common_showcommand->($e);
 	     # XXX -title?
-	     $w->MainWindow->Pod
-		 (@args,
-		  '-exitbutton' => $w->cget(-exitbutton),
-		  '-tree' => !!$tree,
-		 );
+	     $w->clone(-tree => !!$tree,
+		       @args);
+#XXX del:
+# 	     $w->MainWindow->Pod
+# 		 (@args,
+# 		  '-exitbutton' => $w->cget(-exitbutton),
+# 		  '-tree' => !!$tree,
+# 		 );
 	 },
 	);
 }
@@ -634,15 +648,56 @@ sub SearchFAQ {
 		if ($go == 1) {
 		    $cw->configure(-file => $pod);
 		} elsif ($go == 2) {
-		    my $new_cw = $cw->MainWindow->Pod
-			('-tree' => $cw->cget('-tree'),
-			 '-exitbutton' => $cw->cget('-exitbutton'),
-			);
-		    $new_cw->configure('-file' => $pod);
+		    my $new_cw = $cw->clone('-file' => $pod);
+#XXX del:
+# 		    my $new_cw = $cw->MainWindow->Pod
+# 			('-tree' => $cw->cget('-tree'),
+# 			 '-exitbutton' => $cw->cget('-exitbutton'),
+# 			);
+# 		    $new_cw->configure('-file' => $pod);
 		}
 	    }
 	}
     }
+}
+
+sub zoom {
+    my($w, $method) = @_;
+    my $p = $w->Subwidget("pod");
+    $p->$method;
+    $w->set_base_font_size($p->base_font_size);
+}
+
+sub zoom_in     { shift->zoom("zoom_in") }
+sub zoom_out    { shift->zoom("zoom_out") }
+sub zoom_normal { shift->zoom("zoom_normal") }
+
+sub base_font_size {
+    my $w = shift;
+    $w->{Base_Font_Size};
+}
+
+sub set_base_font_size {
+    my($w, $font_size) = @_;
+    $w->{Base_Font_Size} = $font_size;
+}
+
+sub clone {
+    my($w, %pod_args) = @_;
+    my %pre_args;
+    for ('-tree', '-exitbutton') {
+	if (exists $pod_args{$_}) {
+	    $pre_args{$_} = delete $pod_args{$_};
+	} else {
+	    $pre_args{$_} = $w->cget($_);
+	}
+    }
+    my $new_w = $w->MainWindow->Pod
+	(%pre_args,
+	 '-basefontsize' => $w->base_font_size,
+	);
+    $new_w->configure(%pod_args) if %pod_args;
+    $new_w;
 }
 
 1;
