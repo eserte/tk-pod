@@ -1,7 +1,7 @@
 =head1 TODO
 
-Scratch pad of bugs, missing features, and misbehaviors
-collected during I used tkpod.
+Scratch pad of bugs, missing features, and misbehaviors collected
+while using tkpod.
 
 =head2 BUGS
 
@@ -28,8 +28,9 @@ C<< -wrap => "none" >> in tags being sometimes ignored)
 
 =item *
 
-for Windows: check whether Tk::More/Tk::Tree match the system
-background colors
+For Windows: check whether Tk::More/Tk::Tree match the system
+background colors. Also check if the "Help" menu item is on the
+correct place.
 
 =item *
 
@@ -38,9 +39,9 @@ necessary (pod directory is /System/Library/Perl/pods)
 
 =item *
 
-Correct title is not displayed if function pod in displayed in a new
-window or when navigating in the history back or forward to a function
-pod.
+Title is not displayed if function or FAQ pod in displayed in a new
+window or when navigating in the history back or forward to a
+function/FAQ pod.
 
 =item *
 
@@ -80,6 +81,16 @@ Make tree busy while building first time.
 
 =back
 
+=head3 Tk::More
+
+=over
+
+=item *
+
+Highlight matches in link text.
+
+=back
+
 =head2 WISHLIST
 
 =head3 Tk::Pod
@@ -108,6 +119,10 @@ looking like a module /\w+::\w+/)
 
 maybe put the removed WWWBrowser (as a new Launcher::WWW) code again
 to Tk::Pod::Text
+
+=item *
+
+make ManViewer into a standalone widget, link entries in "SEE ALSO" 
 
 =item *
 
@@ -183,6 +198,12 @@ use Tk::HistEntry for search entry
 
 implement isearch
 
+=item *
+
+<Return> over a link opens the link (but this needs some kind of
+"current link" feature, probably by using <Tab> or similar to select
+the next link).
+
 =back
 
 =head3 Tk::Pod::Cache
@@ -216,5 +237,10 @@ Should I include something similar to perlfunc for perlfaq (perldoc
 =item *
 
 Implement C<-rememberopen> in C<Fill> method.
+
+=item *
+
+Maybe categorize perl language pods like in suggested in
+L<http://www.perlmonks.org/index.pl?node_id=352893>.
 
 =back

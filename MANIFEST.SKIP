@@ -1,5 +1,6 @@
 # common files
 \bRCS\b
+\bCVS\b
 \bChangeLog\b
 ^MANIFEST\.
 \bMakefile$
@@ -27,3 +28,4 @@ patch\.gz$
 ^ANNOUNCE$
 # replaced by Tk::Pod::SimpleBridge
 Parse.pm
+\.cvsignore
