@@ -23,6 +23,11 @@ word in the same window.
 If the C<Shift> key is simultaneously pressed a new browser window
 is opened.
 
+=head2 Key bindings
+
+The L<Tk::Pod::Text> widget is based on the L<Tk::More> widget
+inheriting its key bindings.
+
 =head2 Search
 
 Pressing <Key-/> lets you search in the displayed documentation.
@@ -72,13 +77,14 @@ Full text search of the POD in the perl library directories.
 
 =head1 SEE ALSO
 
-L<tkpod>
-L<perlpod>
-L<pod2man>
-L<pod2text>
-L<pod2html>
-L<Tk::Pod>
-L<Tk::Pod::Text>
+L<tkpod>,
+L<perlpod>,
+L<pod2man>,
+L<pod2text>,
+L<pod2html>,
+L<Tk::Pod>,
+L<Tk::Pod::Text>,
+L<Tk::More>.
 
 =head1 KEYWORDS
 
