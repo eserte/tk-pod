@@ -35,13 +35,48 @@ o perlfunc.pod complains 3 times that -X should be i[BC]<-X>
 o after =back missing horizontal white space, see 'sz'
   in Tk::Pod::Text.pm POD
 
-o Tk/More status bar:  filename  %   line x
-
 o Bug: C<> in (e.g.) MakeMakers DESCRIPTION section is in bold
        roman instead of Courier. After this page is loaded all
 	pages show this bug  (Tag order?)
 
 o Bug: S<> e.g., in SYNOPSIS of perl manpage ignored
+
+o cleanup search interface to perlindex.  Maybe patch Ulrichs
+  TPJ example code for nroff pages to allow both POD and MAN.
+
+o add meaningful regression tests
+
+o create 'AsToplevel' similar to 'Scrolled'
+
+o Tree: re-read tree, invalidate cache
+
+o PodText: interrupt process() if another file is loaded...
+
+o use some kind of access control for the -s option
+
+o Double-2 over non-links should load a pod into a new window (like
+  Button-2 opens a new window, and Double-1 recognizes pods in
+  non-links)
+
+o new menu entry with a link list (e.g. all L<...> and everything
+looking like a module /\w+::\w+/)
+
+o zoom +/- (like in tkrevdiff)
+
+o ignore =comment sections
+
+o for Windows: check whether Tk::More/Tk::Tree match the system
+background colors
+
+o if called from the full text search dialog: maybe jump to the first
+  occurence of the term in the pod
+
+o maybe special handling for Tk::Pod::FindPods under Mac OS X is
+  necessary (pod directory is /System/Library/Perl/pods)
+
+Tk::More:
+
+o Tk/More status bar:  filename  %   line x
 
 o more 'more' like key bindings to Tk::More.
 
@@ -51,18 +86,10 @@ o search policies: regexp, glob, incremental (as in xmore)
   and 'normalized' as in perlindex.  Should go into it's own
   Tk::Text::Util.pm module
 
-o cleanup search interface to perlindex.  Maybe patch Ulrichs
-  TPJ example code for nroff pages to allow both POD and MAN.
+o after switching between case sensitive/insensitive highlightning
+  should be updated immediately
 
-o add 'daemon' mode to Tk::Pod so Pod stuff run only once
-  per user (send/receive => -T clean)
-
-o add meaningful regression tests
-
-o create 'AsToplevel' similar to 'Scrolled'
-
-o Tree: re-read tree, invalidate cache
-
-o PodText: interrupt process() if another file is loaded...
+o scrolling is not as exact as it shoule be (i.e. scroll forw, then
+  scroll back will not get to the same position as before)
 
 __END__

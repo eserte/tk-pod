@@ -1,9 +1,42 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 use strict;
-use vars qw($VERSION $tk_opt $tree);
+use vars qw($VERSION $tk_opt $tree $server $portfile);
 
-$VERSION = substr(q$Revision: 1.9 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.12 $ , 10) + 1 . "";
+
+use IO::Socket;
+
+sub INIT {
+    my $home = $ENV{'HOME'} || $ENV{'HOMEDRIVE'}.$ENV{'HOMEPATH'};
+    $portfile = "$home/.tkpodsn";
+    my $port = $ENV{'TKPODPORT'};
+    return if $^C;
+    unless (defined $port) {
+	if (open(SN,"$portfile")) {
+	    $port = <SN>;
+	    close(SN);
+	}
+    }
+    if (defined $port) {
+	my $sock = IO::Socket::INET->new(PeerAddr => 'localhost',
+					 PeerPort => $port, Proto => 'tcp');
+	if ($sock) {
+	    binmode($sock);
+	    $sock->autoflush;
+	    foreach my $file (@ARGV) {
+		unless (print $sock "$file\n") {
+		    die "Cannot print $file to socket: $!";
+		}
+		print "Requested '$file'\n";
+	    }
+	    $sock->close || die "Cannot close socket: $!";
+	    exit(0);
+	} else {
+	    warn "Cannot connect to server on $port: $!";
+	}
+    }
+}
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
@@ -14,6 +47,7 @@ use Getopt::Long;
 $tree = 0;
 if (!GetOptions("tk" => \$tk_opt,
 		"tree!" => \$tree,
+		"s!" => \$server,
 	       )) {
     print STDERR <<EOT unless @ARGV;
 Usage:	$0  [-tk] [[-no]tree] [directory]|name [...]
@@ -35,6 +69,8 @@ my $mw = MainWindow->new();
 eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
 $mw->withdraw;
 
+start_server() if $server;
+
 # CDE use Font Settings if available
 my $ufont = $mw->optionGet('userFont','UserFont');     # fixed width
 my $sfont = $mw->optionGet('systemFont','SystemFont'); # proportional
@@ -43,6 +79,14 @@ if (defined($ufont) and defined($sfont)) {
     $mw->optionAdd('*Font',       $sfont);
     $mw->optionAdd('*Entry.Font', $ufont);
     $mw->optionAdd('*Text.Font',  $ufont);
+}
+
+if (0) { # XXX still decide
+    my $lighter = $mw->Darken(Tk::NORMAL_BG, 110);
+    foreach my $class (qw(Entry More*ROText Pod*Tree)) {
+	$mw->optionAdd("*$class*background", $lighter, "userDefault");
+    }
+    $mw->optionAdd("*Pod*Pod*Frame*More*ROText*background", $lighter, "interactive");
 }
 
 $mw->optionAdd('*Menu.tearOff', $Tk::platform ne 'MSWin32' ? 1 : 0);
@@ -56,7 +100,6 @@ if (!@ARGV)
   else
    {
     my $tl = $mw->Pod(-tree => 1);
-    $tl->focusNext;
    }
  }
 
@@ -69,8 +112,10 @@ foreach $file (@ARGV)
    }
   else
    {
-    my $tl = $mw->Pod(-file => $file, -tree => $tree);
-    $tl->focusNext;
+    my $tl = $mw->Pod(-tree => $tree);
+    # -file => ... should be called after creating the Pod window,
+    # because -title => ... is set implicitly by Pod's new
+    $tl->configure(-file => $file);
    }
  }
 
@@ -80,17 +125,59 @@ foreach $file (@ARGV)
 
 if ($mw->children) {
     $mw->repeat(1000, sub {
-		# ErrorDialog is withdrawn not deleted :-(
-		foreach ($mw->children) {
-			return if "$_" =~ /^Tk::Pod/  # ->isa('Tk::Pod')
-		}
-		$mw->destroy;
-	    });
+        if (Tk::Exists($mw)) {
+	    # ErrorDialog is withdrawn not deleted :-(
+	    foreach ($mw->children) {
+		return if "$_" =~ /^Tk::Pod/  # ->isa('Tk::Pod')
+	    }
+	    $mw->destroy;
+	}
+    });
 } else {
     $mw->destroy;
 }
 #$mw->WidgetDump;
 MainLoop;
+unlink($portfile);
+exit(0);
+
+sub start_server {
+    my $sock = IO::Socket::INET->new(Listen => 5, Proto => 'tcp');
+    die "Cannot open listen socket: $!" unless defined $sock;
+    binmode($sock);
+
+    my $port = $sock->sockport;
+    $ENV{'TKPODPORT'} = $port;
+    open(SN,">$portfile") || die "Cannot open $portfile: $!";
+    print SN $port;
+    close(SN);
+    print STDERR "Accepting connections on $port\n";
+    $mw->fileevent($sock,'readable',
+		   sub {
+		       print STDERR "accepting $sock\n";
+		       my $client = $sock->accept;
+		       if (defined $client) {
+			   binmode($client);
+			   print STDERR "Connection $client\n";
+			   $mw->fileevent($client,'readable',[\&PodRequest,$client]);
+		       }
+		   });
+}
+
+sub PodRequest {
+    my($client) = @_;
+    local $_;
+    while (<$client>) {
+	chomp($_);
+	print STDERR "'$_'\n";
+	my $pod = $mw->Pod(-tree => $tree);
+	$pod->configure(-file => $_);
+    }
+    warn "Odd $!" unless eof($client);
+    $mw->fileevent($client,'readable','');
+    print STDERR "Close $client\n";
+    $client->close;
+}
 
 __END__
 
@@ -100,7 +187,7 @@ tkpod - Perl/Tk POD browser
 
 =head1 SYNOPSIS
 
-    tkpod  [-tk] [[-no]tree]  [directory]|name [...]
+    tkpod  [-tk] [[-no]tree] [-s]  [directory]|name [...]
 
 
 =head1 DESCRIPTION
@@ -133,6 +220,13 @@ Useful for perl/Tk documentation.  When specified it adds all
 C<Tk> subdirectories in C<@INC> to the POD search path.   This way
 when C<Scrolled> is selected in the browser the C<Tk/Scrolled>
 documentation is found.
+
+=item B<-s>
+
+Start C<tkpod> in server mode. Subsequent calls to C<tkpod> (without
+the B<-s> option) will cause to load the requested PODs into the
+server program, thus minimizing startup time and memory usage. Note
+that there is no access control, so this might be a security hole!
 
 =back
 

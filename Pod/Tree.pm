@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.10 2002/02/21 09:18:27 eserte Exp $
+# $Id: Tree.pm,v 1.11 2002/08/14 09:51:07 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -300,6 +300,7 @@ subtrees to make the C<$path> visible, if necessary.
 
 sub SeePath {
     my($w,$path) = @_;
+    return if !$w->Filled; # XXX better solution!
     foreach my $category (keys %pods) {
 	foreach my $pod (keys %{ $pods{$category} }) {
 	    my $podpath = $pods{$category}->{$pod};
@@ -320,13 +321,25 @@ sub SeePath {
 
 sub search_dialog {
     my($w) = @_;
-    my $t = $w->Toplevel;
-    $t->Label(-text => "Search term:")->pack(-side => "left");
+    my $t = $w->Toplevel(-title => "Search");
+    $t->transient($w);
+    $t->Label(-text => "Search module:")->pack(-side => "left");
     my $term;
     my $e = $t->Entry(-textvariable => \$term)->pack(-side => "left");
     $e->focus;
     $e->bind("<Escape>" => sub { $t->destroy });
     $e->bind("<Return>" => sub { $w->search($term) });
+
+    {
+	my $f = $t->Frame->pack(-fill => "x");
+	Tk::grid($f->Button(-text => "Search",
+			    -command => sub { $w->search($term) },
+			   ),
+		 $f->Button(-text => "Close",
+			    -command => sub { $t->destroy },
+			   ),
+		 -sticky => "ew");
+    }
 }
 
 sub search {

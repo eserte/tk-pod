@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.6 2002/03/11 19:59:12 eserte Exp $
+# $Id: FindPods.pm,v 1.7 2002/10/07 19:06:36 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -232,8 +232,8 @@ sub is_site_module {
 }
 
 sub _cache_file {
-    (my $ver = $])  =~ s/[^a-z0-9]/_/gi;
-    (my $os  = $^O) =~ s/[^a-z0-9]/_/gi;
+    (my $ver = $])                  =~ s/[^a-z0-9]/_/gi;
+    (my $os  = $Config{'archname'}) =~ s/[^a-z0-9]/_/gi;
     my $uid  = $<;
 
     if (File::Spec->can('tmpdir')) {

@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 2.4 $, 10) . "";
+$VERSION = substr(q$Revision: 2.5 $, 10) . "";
 
 use Tk::Derived;
 use Tk::Frame;
@@ -77,6 +77,7 @@ sub Populate {
     $t->bind('<Key-h>', sub { $cw->Callback(-helpcommand => $t) });
 
     $e->bind('<Return>',[$cw, 'SearchText']);
+    $e->bind('<Escape>',[$cw, 'SearchTextEscape']);
 
     foreach my $mod (qw(Alt Meta)) {
 	foreach my $key (qw(n N g G j k f b d u h)) {
@@ -135,6 +136,14 @@ sub SearchText {
     $e->configure(-relief=>'flat', -state=>'disabled');
 }
 
+sub SearchTextEscape {
+    my ($cw, %args) = @_;
+    my($t, $e) = ($cw->Subwidget('text'), $cw->Subwidget('searchentry'));
+    $e->configure(-label=>'');
+    $t->focus;
+    $e->configure(-relief=>'flat', -state=>'disabled');
+}
+
 sub ShowMatch {
     my ($cw, $method, %args) = @_;
     my $firsttime = $args{-firsttime};
@@ -151,8 +160,16 @@ sub ShowMatch {
     $method = "tag". $method . "range"; # $method: Next or Prev
     my @ins = $t->$method('search',$cur);
     unless (@ins) {
-	$cw->bell;
-	return;
+	# hack: Maybe the search was not performed yet? (e.g. after loading
+	# a new page but with the same search term)
+	my $e = $cw->Subwidget('searchentry');
+	if (!defined $ {$e->cget('-textvariable')}) {
+	    return;
+	}
+	$cw->SearchText(-searchterm => $ {$e->cget('-textvariable')},
+			-onlymatch => 1);
+	@ins = $t->$method('search',$cur);
+	return if !@ins;
     }
     @ins = reverse @ins unless $method eq 'tagNextrange';
     $t->see($ins[0]);
@@ -206,14 +223,21 @@ sub search_text {
     my $insert = $w->index('insert');
     my @search_args = ('-regexp');
     push @search_args, '-nocase' unless ($w->cget('-searchcase'));
-    while (1) {
-        $current = $w->search(@search_args, -count => \$length, '--', $string, $current, 'end');
-        last if not $current;
-	$found = 1;
-        $w->tag('add', $tag, $current, "$current + $length char");
-        $current = $w->index("$current + $length char");
+    eval {
+	while (1) {
+	    $current = $w->search(@search_args, -count => \$length, '--', $string, $current, 'end');
+	    last if not $current;
+	    $found = 1;
+	    $w->tag('add', $tag, $current, "$current + $length char");
+	    $current = $w->index("$current + $length char");
+	}
+	$w->markSet('insert', $insert);
+    };
+    if ($@) {
+	$w->messageBox(-icon => "error",
+		       -message => $@,
+		      );
     }
-    $w->markSet('insert', $insert);
     $found;
 } # end search_text
 

@@ -14,16 +14,19 @@ EOT
   }
 
 WriteMakefile(
-	'PREREQ_PM'	=> { 'Tk' => 800, 'Text::English' => 0 },
+	'PREREQ_PM'	=> { 'Tk'             => 800,
+	                     'Text::English'  => 0,
+			     'Pod::Simple'    => 0,
+			   },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
-	'VERSION'	=> '0.99_07',
+	'VERSION'	=> '0.99_10',
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
 	'EXE_FILES'	=> [ 'tkpod' ],
 
-        'dist'		=> {'COMPRESS'=>'gzip -9', 'SUFFIX'=>'.gz'}, 
+	'dist' 		=> {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
 );
 
 sub MY::postamble {

@@ -1,5 +1,18 @@
 History for Tk::Pod
 
+version 0.99_10
+	o major changes by Sean Burke:
+	  * Tk::Parse replaced by Pod::Simple and Tk::Pod::SimpleBridge
+	  * changes to Tk::Pod::Text to use the new parser backend
+	  * style definition moved to Tk::Pod::Styles
+	  * printing facility for Windows with write.exe or notepad.exe
+
+version 0.99_08
+	o fixed typo in Tk::Pod::Text --- links to head1 sections should
+	  work now
+	o tkpod -s (server mode) implemented
+	o Adjuster between tree and text widgets works (again)
+
 version 0.99_07
 	o cygwin compatibility
 	o bugfix in Tk::Pod::Text (thanks, John Cerney!)

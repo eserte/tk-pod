@@ -4,7 +4,6 @@ MANIFEST.SKIP
 Makefile.PL
 README
 TODO
-Parse.pm
 More.pm
 Pod.pm
 Pod/FindPods.pm
@@ -13,6 +12,8 @@ Pod/Search.pm
 Pod/Search_db.pm		# should be in perlindex dist after cleanup
 Pod/Text.pm
 Pod/Tree.pm
+Pod/SimpleBridge.pm
+Pod/Styles.pm
 t/basic.t
 t/tkpod.t
 t/podtree.t

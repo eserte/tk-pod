@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.2 $, 10 . "";
+$VERSION = substr q$Revision: 2.3 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -53,7 +53,7 @@ sub Populate {
 		'DEFAULT' =>	[ $cw ],
 		);
 
-    foreach (qw/Return space Double-1/) {
+    foreach (qw/Return space 1/) {
 	$cw->Subwidget('listbox')->bind("<$_>", [\&_load_pod, $cw]);
     }
     $cw->Subwidget('entry')->bind('<Return>',[\&_search,$cw,$l]);
@@ -206,7 +206,7 @@ as argument.
 
 =head1 SEE ALSO
 
-Tk::Pod::Text, tkpod, perlindex, Tk::Pod, Tk::Parse, Tk::Pod::Search_db
+Tk::Pod::Text, tkpod, perlindex, Tk::Pod, Tk::Pod::Search_db
 
 =head1 KEYWORDS
 

@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.6 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.11 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -34,13 +34,14 @@ sub Populate
    [
     [Button => '~Open File...', '-command' => ['openfile',$w]],
     [Button => '~Set Pod...', '-command' => ['openpod',$w,$p]],
+    [Button => '~New Window...', '-command' => ['newwindow',$w,$p]],
     [Button => '~Reload',    '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
     [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
     [Button => '~Print...',  '-command' => ['Print',$p]],
     [Separator => ""],
     [Button => '~Close',     '-command' => ['quit',$w]],
-    [Button => 'E~xit',      '-command' => sub { Tk::exit }],
+    [Button => 'E~xit',      '-command' => sub { $p->MainWindow->destroy }],
    ]
   ],
 
@@ -89,11 +90,7 @@ sub Populate
  $w->configure(-menu => $mbar);
  $w->Advertise(menubar => $mbar);
 
- $w->Delegates('Menubar' => $mbar);#, #, DEFAULT => $p);
-#  	       #$w->Delegates(
-#  	       'pack' => $w, # !!!
-#  	       'place' => $w,
-#  	       DEFAULT => $p);
+ $w->Delegates('Menubar' => $mbar);
  $w->ConfigSpecs(
     -tree => ['METHOD', 'tree', 'Tree', 0],
     'DEFAULT' => [$p],
@@ -111,12 +108,16 @@ sub openfile {
     my ($cw,$p) = @_;
     my $file;
     if ($cw->can("getOpenFile")) {
-	$file = $cw->getOpenFile(-title => "Choose POD file",
-				 -defaultextension => 'pod',
-				 -filetypes => [['POD files', '*.pod'],
-						['Perl scripts', '*.pl'],
-						['Perl modules', '*.pm'],
-						['All files', '*']]);
+	$file = $cw->getOpenFile
+	    (-title => "Choose POD file",
+	     -defaultextension => 'pod',
+	     -filetypes => [['POD containing files', ['*.pod',
+						      '*.pl',
+						      '*.pm']],
+			    ['POD files', '*.pod'],
+			    ['Perl scripts', '*.pl'],
+			    ['Perl modules', '*.pm'],
+			    ['All files', '*']]);
     } else {
 	unless (defined $fsbox && $fsbox->IsWidget) {
 	    require Tk::FileSelect;
@@ -129,7 +130,7 @@ sub openfile {
 
 sub openpod {
     my($cw,$p) = @_;
-    my $t = $cw->Toplevel;
+    my $t = $cw->Toplevel(-title => "Set POD");
     $t->transient($cw);
     $t->grab;
     $t->Label(-text => "POD:")->pack(-side => "left");
@@ -141,6 +142,7 @@ sub openpod {
     $e->bind("<Escape>" => sub { $go = -1 });
     $t->Button(-text => "OK",
 	       -command => sub { $go = 1 })->pack(-side => "left");
+    $t->Popup(-popover => $cw);
     $t->OnDestroy(sub { $go = -1 unless $go });
     $t->waitVariable(\$go);
     $t->grabRelease;
@@ -148,6 +150,11 @@ sub openpod {
     if ($go == 1 && $pod ne "") {
 	$cw->configure(-file => $pod);
     }
+}
+
+sub newwindow {
+    my($cw) = @_;
+    $cw->MainWindow->Pod;
 }
 
 sub Dir {
@@ -165,8 +172,15 @@ sub help {
 }
 
 sub about {
-    shift->messageBox(-icon => "info",
-		      -message => "Tk::Pod $VERSION\nPlease contact <slaven.rezic\@berlin.de>\nin case of problems."
+    shift->messageBox(-title => "About Tk::Pod",
+                      -icon => "info",
+		      -message => join "\n",
+		        "Tk::Pod $VERSION",
+		        $Pod::Simple::VERSION
+		          ? "(Using Pod::Simple $Pod::Simple::VERSION)"
+		          : (),
+		        "Please contact <slaven.rezic\@berlin.de>",
+		        "in case of problems.",
 		     );
 }
 
@@ -196,7 +210,7 @@ sub add_section_menu {
 
     my $sdef;
     foreach $sdef (@{$podtext->{'sections'}}) {
-        my($head, $subject, $pos) = @$sdef;
+        my($head_level, $subject, $pos) = @$sdef;
 
 	my @args;
 	if ($sectionmenu &&
@@ -205,7 +219,7 @@ sub add_section_menu {
 	}
 
         $sectionmenu->command
-	  (-label => ("  " x ($head-1)) . $subject,
+	  (-label => ("  " x ($head_level-1)) . $subject,
 	   -command => sub {
 	       my($line) = split(/\./, $pos);
 	       $text->tag('remove', '_section_mark', qw/0.0 end/);
@@ -226,12 +240,13 @@ sub tree {
 	my $val = shift;
 	$w->{Tree_on} = $val;
 	my $tree = $w->Subwidget('tree');
+	my $p = $w->Subwidget("pod");
 	if ($val) {
-	    my $p = $w->Subwidget("pod");
-	    my @tree_pack = (-before => $p, -side => 'left', -fill => 'y');
+	    $p->packForget;
+	    $tree->packAdjust(-side => 'left', -fill => 'y');
+	    $p->pack(-side => "left", -expand => 1, -fill => 'both');
 	    if (!$tree->Filled) {
 		$w->_configure_tree;
-		$tree->packAdjust(@tree_pack);
 		$w->Busy(-recurse => 1);
 		eval {
 		    $tree->Fill;
@@ -241,12 +256,11 @@ sub tree {
 		if ($err) {
 		    die $err;
 		}
-	    } elsif (!$tree->manager) {
-		$tree->packAdjust(@tree_pack);
 	    }
 	} else {
 	    if ($tree && $tree->manager) {
 		$tree->packForget;
+		$p->packForget;
 		eval {
 		    $w->Walk
 			(sub {
@@ -258,6 +272,7 @@ sub tree {
 			     }
 			 });
 		};
+		$p->pack(-side => "left", -expand => 1, -fill => 'both');
 	    }
 	}
     }
@@ -283,6 +298,7 @@ sub _configure_tree {
 		     $asked++;
 		     $w->messageBox
 			 (-message => "Look into CPAN module $modid?",
+			  -title => "Tk::Pod and CPAN $modid",
 			  -type => 'YesNo',
 			  -icon => 'question') =~ /yes/i
 		      };
@@ -407,6 +423,15 @@ Tk::Pod - POD browser toplevel widget
 
 Simple POD browser with hypertext capabilities in a C<Toplevel> widget
 
+=head1 BUGS
+
+If you set C<-file> while creating the POD widget,
+
+    $parent->Pod(-tree => 1, -file => $pod);
+
+then the title will not be displayed correctly. This is because the
+internal setting of C<-title> may override the title setting caused by
+C<-file>. So it is better to configure C<-file> separately.
 
 =head1 SEE ALSO
 
