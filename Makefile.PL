@@ -23,5 +23,5 @@ WriteMakefile(
 
 	'EXE_FILES'	=> [ 'tkpod' ],
 
-        'dist'		=> {'COMPRESS'=>'gzip -9f', 'SUFFIX'=>'.gz'}, 
+        'dist'		=> {'COMPRESS'=>'gzip -9', 'SUFFIX'=>'.gz'}, 
 );
