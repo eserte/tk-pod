@@ -4,6 +4,8 @@ version 0.9928
 	o -f and -q options for tkpod
 	o fixes for Windows (tested with ActivePerl)
 	o minor usability improvements
+	o full search: it's now possible to restrict to the current
+ 	  selected module subtree
 
 version 0.9927
 	o new script tkmore (installed by default)
