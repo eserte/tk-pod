@@ -24,9 +24,9 @@ use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
-	    @tempfiles @gv_pids);
+	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -269,19 +269,29 @@ sub edit
     {
      $edit = $ENV{TKPODEDITOR};
     }
-   if (!defined $edit)
+   if (!defined $edit || $edit eq "")
     {
      # VISUAL and EDITOR are supposed to have a terminal, but tkpod can
      # be started without a terminal.
      my $isatty = is_interactive();
-     $edit = $ENV{XEDITOR};
-     if (!$isatty && !defined $edit)
+     if (!$isatty)
       {
-       $w->messageBox(
-	 -title => "Tk::Pod Error",
-         -message => "No terminal, fallback to ptked"
-       );
-       $edit = 'ptked';
+       if (!defined $edit || $edit eq "")
+        {
+         $edit = $ENV{XEDITOR};
+        }
+       if (!defined $edit || $edit eq "")
+        {
+         if (!$terminal_fallback_warn_shown)
+	  {
+           $w->messageBox(
+	 	-title => "Tk::Pod Warning",
+         	-message => "No terminal and neither TKPODEDITOR nor XEDITOR environment variables set. Fallback to ptked."
+	   );
+	   $terminal_fallback_warn_shown = 1;
+          }
+         $edit = 'ptked';
+        }
       }
      else
       {
