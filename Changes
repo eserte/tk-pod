@@ -1,9 +1,12 @@
 History for Tk::Pod
 
 version 0.9916
+	o URL and man links are now clickable (Tk::Pod::Text::Link_url and
+	  Tk::Pod::Text::Link_man)
 	o new cmdline.t test
 	o server cleanup on SIGTERM
 	o fixed option handling in tkpod (-I switch not available anymore)
+	o moved some functions into new module Tk::Pod::Util
 	o bugfix for perllocal.pod handling
 	o another workaround for Tk::Pod::FindPods on MSWin32
 
