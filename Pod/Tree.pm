@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.2 2001/06/13 09:03:05 eserte Exp $
+# $Id: Tree.pm,v 1.3 2001/06/16 15:17:49 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -15,12 +15,13 @@
 package Tk::Pod::Tree;
 
 use strict;
-use vars qw($VERSION @ISA @POD %pods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
-
-use Tk::Pod::FindPods;
+use vars qw($VERSION @ISA @POD %pods $pods);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
+
+use Tk::Pod::FindPods;
+use Tk::ItemStyle;
 
 Construct Tk::Widget 'PodTree';
 
@@ -44,8 +45,13 @@ sub Populate {
 
     $w->SUPER::Populate($args);
 
+    $w->{CoreIS}   = $w->ItemStyle('imagetext', -foreground => '#006000');
+    $w->{SiteIS}   = $w->ItemStyle('imagetext', -foreground => '#800000');
+    $w->{FolderIS} = $w->ItemStyle('imagetext', -foreground => '#606060');
+
     $w->ConfigSpecs(
 	-showcommand => ['CALLBACK', undef, undef, undef],
+	-usecache    => ['PASSIVE', undef, undef, 1],
     );
 }
 
@@ -53,6 +59,10 @@ sub Fill {
     my $w = shift;
 
     $w->delete("all");
+
+    if ($w->cget('-usecache')) {
+	$w->LoadCache;
+    }
 
     if (!%pods) {
 	%pods = Tk::Pod::FindPods::pod_find(-categorized => 1);
@@ -76,9 +86,14 @@ sub Fill {
 	    my $treepath = "$category/$pod";
 	    (my $title = $pod) =~ s|/|::|g;
 	    $w->_add_parents($treepath);
+
+	    my $is = Tk::Pod::FindPods::is_site_module($hash->{$pod})
+		     ? $w->{SiteIS}
+		     : $w->{CoreIS};
 	    my @entry_args = ($treepath,
 			      -text => $title,
 			      -data => {File => $hash->{$pod}},
+			      ($is ? (-style => $is) : ()),
 			     );
 	    if ($w->info('exists', $treepath)) {
 		$w->entryconfigure(@entry_args);
@@ -104,6 +119,11 @@ sub Fill {
 	    $w->hide('entry', $entry);
 	}
     }
+
+    if ($w->cget('-usecache') && !$w->{HasCache}) {
+	$w->WriteCache;
+    }
+
 }
 
 sub _add_parents {
@@ -114,7 +134,54 @@ sub _add_parents {
     my @parent = split '/', $parent;
     my $title = join "::", @parent[1..$#parent];
     $w->_add_parents($parent);
-    $w->add($parent, -text => $title);
+    $w->add($parent, -text => $title,
+	    ($w->{FolderIS} ? (-style => $w->{FolderIS}) : ()));
+}
+
+sub _cache_file {
+    require File::Spec;
+
+    (my $ver = $])  =~ s/[^a-z0-9]/_/gi;
+    (my $os  = $^O) =~ s/[^a-z0-9]/_/gi;
+    my $uid  = $<;
+
+    File::Spec->catfile(File::Spec->tmpdir, join('_', 'tkpod',$ver,$os,$uid));
+}
+
+sub WriteCache {
+    my $w = shift;
+
+    if (!%pods) {
+	%pods = Tk::Pod::FindPods::pod_find(-categorized => 1);
+    }
+
+    require Data::Dumper;
+
+    if (!open(CACHE, ">" . $w->_cache_file)) {
+	warn "Can't write to cache file " . $w->_cache_file;
+    } else {
+	my $dd = Data::Dumper->new([\%pods], ['pods']);
+	$dd->Indent(0);
+	print CACHE $dd->Dump;
+	close CACHE;
+    }
+}
+
+sub LoadCache {
+    my $w = shift;
+
+    my $cache_file = $w->_cache_file;
+    if (-r $cache_file) {
+	return if $< != (stat($cache_file))[4];
+	require Safe;
+	my $c = Safe->new;
+	$c->share(qw/$pods/);
+	$c->rdo($cache_file);
+	if (keys %$pods) {
+	    %pods = %$pods;
+	    $w->{HasCache} = 1;
+	}
+    }
 }
 
 
