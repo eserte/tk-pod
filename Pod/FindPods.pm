@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.10 2003/02/05 21:28:36 eserte Exp $
+# $Id: FindPods.pm,v 1.11 2003/02/10 18:11:20 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -37,10 +37,11 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
+use File::Basename;
 use Config;
 
 sub init {
@@ -59,9 +60,10 @@ for Tk::Pod::Tree, as the separator may only be of one character). The
 values are the corresponding filenames.
 
 If C<-categorized> is specified, then the returned hash has an extra
-level with three categories: B<perl> (for core language
-documentation), B<pragmata> (for pragma documentation like L<var|var>
-or L<strict|strict>) and B<modules> (core or CPAN modules).
+level with four categories: B<perl> (for core language documentation),
+B<pragma> (for pragma documentation like L<var|var> or
+L<strict|strict>), B<mod> (core or CPAN modules), and B<script> (perl
+scripts with embedded POD documentation).
 
 If C<-usecache> is specified, then the list of PODs is cached in a
 temporary directory.
@@ -106,6 +108,10 @@ sub pod_find {
 	next if $inc eq '.'; # ignore current directory
 	$curr_dir = $inc;
 	find(\&wanted, $inc);
+    }
+
+    if ($Config{'scriptdir'}) {
+	find(\&wanted_scripts, $Config{'scriptdir'});
     }
 
     #XXX
@@ -163,6 +169,47 @@ sub wanted {
 	    }
 	}
 	$hash->{$name} = "file:" . $File::Find::name;
+    }
+}
+
+sub wanted_scripts {
+    if (-d) {
+	if ($seen_dir{$File::Find::name}) {
+	    $File::Find::prune = 1;
+	    return;
+	} else {
+	    $seen_dir{$File::Find::name}++;
+	}
+    }
+
+    if (-T && open(SCRIPT, $_)) {
+	my $has_pod = 0;
+	{
+	    local $_;
+	    while(<SCRIPT>) {
+		if (/^=(head\d+|pod)/) {
+		    $has_pod = 1;
+		    last;
+		}
+	    }
+	}
+	close SCRIPT;
+	if ($has_pod) {
+	    my $name = $_;
+
+	    my $hash;
+	    if ($args{-categorized}) {
+		my $type = 'script';
+		$hash = $pods{$type} || do { $pods{$type} = {} };
+	    } else {
+		$hash = \%pods;
+	    }
+
+	    if (exists $hash->{$name}) {
+		return;
+	    }
+	    $hash->{$name} = "file:" . $File::Find::name;
+	}
     }
 }
 
@@ -309,7 +356,7 @@ Tk::Tree(3).
 
 Slaven Rezic <F<slaven@rezic.de>>
 
-Copyright (c) 2001 Slaven Rezic.  All rights reserved.  This program
+Copyright (c) 2001,2003 Slaven Rezic.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 
