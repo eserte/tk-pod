@@ -2,6 +2,7 @@ History for Tk::Pod
 
 version 0.9928
 	o -f and -q options for tkpod
+	o fixes for Windows (tested with ActivePerl)
 	o minor usability improvements
 
 version 0.9927
