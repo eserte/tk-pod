@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.32 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.33 $, 10) + 2 . "";
 $DIST_VERSION = "0.9926";
 
 @ISA = qw(Tk::Toplevel);
@@ -47,29 +47,68 @@ sub Populate
 
  my $exitbutton = delete $args->{-exitbutton} || 0;
 
+ # Experimental menu compound images:
+ # XXX Maybe there should be a way to turn this off, as the extra
+ # icons might be memory consuming...
+ my $compound = sub { () };
+ if ($Tk::VERSION >= 804 && eval { require Tk::ToolBar; 1 }) {
+     $w->ToolBar->destroy;
+     if (!$Tk::Pod::empty_image_16) { # XXX multiple MainWindows?
+	 $Tk::Pod::empty_image_16 = $w->MainWindow->Photo(-data => <<EOF);
+R0lGODlhEAAQAIAAAP///////yH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh+QQBCgABACwA
+AAAAEAAQAAACDoyPqcvtD6OctNqLsz4FADs=
+EOF
+     }
+     $compound = sub {
+	 if (@_) {
+	     (-image => $_[0] . "16", -compound => "left");
+	 } else {
+	     (-image => $Tk::Pod::empty_image_16, -compound => "left");
+	 }
+     };
+ }
+
  my $menuitems =
  [
 
   [Cascade => '~File', -menuitems =>
    [
     [Button => '~Open File...', '-accelerator' => 'F3',
-     '-command' => ['openfile',$w]],
+     '-command' => ['openfile',$w],
+     $compound->("fileopen"),
+    ],
     [Button => 'Open ~by Name...', '-accelerator' => 'Ctrl+O',
-     '-command' => ['openpod',$w,$p]],
+     '-command' => ['openpod',$w,$p],
+     $compound->(),
+    ],
     [Button => '~New Window...', '-accelerator' => 'Ctrl+N',
-     '-command' => ['newwindow',$w,$p]],
+     '-command' => ['newwindow',$w,$p],
+     $compound->(),
+    ],
     [Button => '~Reload',    '-accelerator' => 'Ctrl+R',
-     '-command' => ['reload',$p]],
-    [Button => '~Edit',      '-command' => ['edit',$p]],
-    [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
+     '-command' => ['reload',$p],
+     $compound->("actreload"),
+    ],
+    [Button => '~Edit',      '-command' => ['edit',$p],
+     $compound->("edit"),
+    ],
+    [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked'],
+     $compound->(),
+    ],
     [Button => '~Print'. ($p->PrintHasDialog ? '...' : ''),
-     '-accelerator' => 'Ctrl+P', '-command' => ['Print',$p]],
+     '-accelerator' => 'Ctrl+P', '-command' => ['Print',$p],
+     $compound->("fileprint"),
+    ],
     [Separator => ""],
     [Button => '~Close',     '-accelerator' => 'Ctrl+W',
-     '-command' => ['quit',$w]],
+     '-command' => ['quit',$w],
+     $compound->("fileclose"),
+    ],
     ($exitbutton
      ? [Button => 'E~xit',   '-accelerator' => 'Ctrl+Q',
-	'-command' => sub { $p->MainWindow->destroy }]
+	'-command' => sub { $p->MainWindow->destroy },
+	$compound->("actexit"),
+       ]
      : ()
     ),
    ]
@@ -78,34 +117,73 @@ sub Populate
   [Cascade => '~View', -menuitems =>
    [
     [Checkbutton => '~Pod Tree', -variable => \$w->{Tree_on},
-     '-command' => sub { $w->tree($w->{Tree_on}) }],
+     '-command' => sub { $w->tree($w->{Tree_on}) },
+     $compound->(),
+    ],
     '-',
-    [Button => "Zoom ~in",  '-accelerator' => 'Ctrl++', -command => ['zoom_in', $p]],
-    [Button => "~Normal",   -command => ['zoom_normal', $p]],
-    [Button => "Zoom ~out", '-accelerator' => 'Ctrl+-', -command => ['zoom_out', $p]],
+    [Button => "Zoom ~in",  '-accelerator' => 'Ctrl++',
+     -command => ['zoom_in', $p],
+     $compound->("viewmag+"),
+    ],
+    [Button => "~Normal",   -command => ['zoom_normal', $p],
+     $compound->(),
+    ],
+    [Button => "Zoom ~out", '-accelerator' => 'Ctrl+-',
+     -command => ['zoom_out', $p],
+     $compound->("viewmag-"),
+    ],
    ]
   ],
 
   [Cascade => '~Search', -menuitems =>
    [
-    [Button => '~Search',           '-accelerator' => '/', '-command' => ['Search', $p, 'Next']],
-    [Button => 'Search ~backwards', '-accelerator' => '?', '-command' => ['Search', $p, 'Prev']],
-    [Button => '~Repeat search',    '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next']],
-    [Button => 'R~epeat backwards', '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev']],
-    [Checkbutton => '~Case sensitive', -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) }],
+    [Button => '~Search',
+     '-accelerator' => '/', '-command' => ['Search', $p, 'Next'],
+     $compound->("viewmag"),
+    ],
+    [Button => 'Search ~backwards',
+     '-accelerator' => '?', '-command' => ['Search', $p, 'Prev'],
+     $compound->(),
+    ],
+    [Button => '~Repeat search',
+     '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next'],
+     $compound->(),
+    ],
+    [Button => 'R~epeat backwards',
+     '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev'],
+     $compound->(),
+    ],
+    [Checkbutton => '~Case sensitive', -variable => \$searchcase,
+     '-command' => sub { $p->configure(-searchcase => $searchcase) },
+     $compound->(),
+    ],
     [Separator => ""],
-    [Button => 'Search ~full text', '-command' => ['SearchFullText', $p]],
-    [Button => 'Search FA~Q', '-command' => ['SearchFAQ', $w, $p]],
+    [Button => 'Search ~full text', '-command' => ['SearchFullText', $p],
+     $compound->("filefind"),
+    ],
+    [Button => 'Search FA~Q', '-command' => ['SearchFAQ', $w, $p],
+     $compound->(),
+    ],
    ]
   ],
 
   [Cascade => 'H~istory', -menuitems =>
    [
-    [Button => '~Back',    '-accelerator' => 'Alt-Left',  '-command' => ['history_move', $p, -1]],
-    [Button => '~Forward', '-accelerator' => 'Alt-Right', '-command' => ['history_move', $p, +1]],
-    [Button => '~View',    '-command' => ['history_view', $p]],
+    [Button => '~Back',    '-accelerator' => 'Alt-Left',
+     '-command' => ['history_move', $p, -1],
+     $compound->("navback"),
+    ],
+    [Button => '~Forward', '-accelerator' => 'Alt-Right',
+     '-command' => ['history_move', $p, +1],
+     $compound->("navforward"),
+    ],
+    [Button => '~View',    '-command' => ['history_view', $p],
+     $compound->(),
+    ],
     '-',
-    [Button => 'Clear cache', '-command' => ['clear_cache', $p]],
+    [Button => 'Clear cache', '-command' => ['clear_cache', $p],
+     $compound->(),
+    ],
    ]
   ],
 
