@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Tk::Frame;
@@ -47,7 +47,7 @@ sub Populate {
     my $current_path = delete $args->{-currentpath};
     $cw->{RestrictPod} = undef;
     my $cb;
-    if (defined $current_path) {
+    if (defined $current_path && $current_path ne "") {
 	$cb = $cw->Checkbutton(-variable => \$cw->{RestrictPod},
 			       -text => "Restrict to $current_path",
 			       -anchor => "w",
