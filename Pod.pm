@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.9 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.10 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -130,7 +130,7 @@ sub openfile {
 
 sub openpod {
     my($cw,$p) = @_;
-    my $t = $cw->Toplevel;
+    my $t = $cw->Toplevel(-title => "Set POD");
     $t->transient($cw);
     $t->grab;
     $t->Label(-text => "POD:")->pack(-side => "left");
@@ -142,6 +142,7 @@ sub openpod {
     $e->bind("<Escape>" => sub { $go = -1 });
     $t->Button(-text => "OK",
 	       -command => sub { $go = 1 })->pack(-side => "left");
+    $t->Popup(-popover => $cw);
     $t->OnDestroy(sub { $go = -1 unless $go });
     $t->waitVariable(\$go);
     $t->grabRelease;
@@ -232,13 +233,13 @@ sub tree {
 	my $val = shift;
 	$w->{Tree_on} = $val;
 	my $tree = $w->Subwidget('tree');
+	my $p = $w->Subwidget("pod");
 	if ($val) {
-	    my $p = $w->Subwidget("pod");
-	    my @tree_pack = (-before => $p, -side => 'left', -fill => 'y');
+	    $p->packForget;
+	    $tree->packAdjust(-side => 'left', -fill => 'y');
+	    $p->pack(-side => "left", -expand => 1, -fill => 'both');
 	    if (!$tree->Filled) {
 		$w->_configure_tree;
-warn "pack adjust @tree_pack";
-		$tree->packAdjust(@tree_pack);
 		$w->Busy(-recurse => 1);
 		eval {
 		    $tree->Fill;
@@ -248,12 +249,11 @@ warn "pack adjust @tree_pack";
 		if ($err) {
 		    die $err;
 		}
-	    } elsif (!$tree->manager) {
-		$tree->packAdjust(@tree_pack);
 	    }
 	} else {
 	    if ($tree && $tree->manager) {
 		$tree->packForget;
+		$p->packForget;
 		eval {
 		    $w->Walk
 			(sub {
@@ -265,6 +265,7 @@ warn "pack adjust @tree_pack";
 			     }
 			 });
 		};
+		$p->pack(-side => "left", -expand => 1, -fill => 'both');
 	    }
 	}
     }
