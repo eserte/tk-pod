@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 2.7 $, 10) . "";
+$VERSION = substr(q$Revision: 2.8 $, 10) . "";
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -96,6 +96,8 @@ sub Populate {
 		   'Search'    => 'SELF',
 		   'ShowMatch' => 'SELF',
 		  );
+
+    $cw->{DIRECTION} = "Next";
 
     $cw->ConfigSpecs(
 		-insertofftime => [$t, qw(insertOffTime OffTime         0)], # no blinking
