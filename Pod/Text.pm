@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.44 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.45 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -718,6 +718,13 @@ sub SearchFullText {
     unless (defined $IDX && $IDX->IsWidget) {
 	require Tk::Pod::Search; #
 	$IDX = $w->Toplevel(-title=>'Perl Library Full Text Search');
+
+	my $current_path;
+	my $tree_sw = $w->parent->Subwidget("tree");
+	if ($tree_sw) {
+	    $current_path = $tree_sw->GetCurrentPodPath;
+	}
+
 	$IDX->PodSearch(
 			-command =>
 			sub {
@@ -731,7 +738,8 @@ sub SearchFullText {
 				 -searchterm => $args{-searchterm},
 				 -onlymatch => 1,
 				);
-			}
+			},
+			-currentpath => $current_path,
 		       )->pack(-fill=>'both',-expand=>'both');
     }
     $IDX->deiconify;
