@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.9918
+	o fixed the error case in Tk::Pod::Text::file
+	o changed Home, End, Prior and Next callbacks in Tree view
+	o invalidate cache on reload
+	o openpod with history
+	o added <MouseWheel> support
+
 version 0.9917
 	o propagate -exitbutton to new windows
 	o Set Pod: new "New window" button
