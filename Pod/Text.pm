@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 1.19 $, 10) + 1; # so version is  > 1.9
+$VERSION = substr(q$Revision: 1.20 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -686,6 +686,17 @@ F</path/to/a/file>
 Mixed Fonts: B<S<bold-sanserif>>, B<C<bold-fixed>>, B<I<bold-italics>>
 
 Other POD docu: Tk::Font, Tk::BrowseEntry
+
+=head1 AUTHOR
+
+Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
+
+Code currently maintained by Achim Bohnet <F<ach@mpe.mpg.de>>.
+Please send bug reports to <F<ptk@lists.stanford.edu>>.
+
+Copyright (c) 1998 Nick Ing-Simmons.  All rights reserved.  This program
+is free software; you can redistribute it and/or modify it under the same
+terms as Perl itself.
 
 =cut
 

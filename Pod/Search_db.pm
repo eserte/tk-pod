@@ -1,10 +1,10 @@
-# $Id: Search_db.pm 1.3 Wed, 26 Nov 1997 11:49:41 +0100 ach $
-
 #AnyDBM handling from perlindex:
 # NDBM_File as LAST resort
 
 package AnyDBM_File;
+use vars '@ISA';
 @ISA = qw(DB_File GDBM_File SDBM_File ODBM_File NDBM_File) unless @ISA;
+my $mod;
 for $mod (@ISA) {
     last if eval "require $mod"
 };
@@ -14,7 +14,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr q$Revision: 1.3 $, 10;
+$VERSION = substr(q$Revision: 1.4 $, 10) . "";
 
 use Carp;
 use Fcntl;
@@ -194,9 +194,9 @@ tkpod, perlindex perlpod, Tk::Pod::Search
 Achim Bohnet  <F<ach@mpe.mpg.de>>
 
 Most of the code here is borrowed from L<perlindex> written by
-Ulrich Pfeifer <F<pfeifer@ls6.informatik.uni-dortmund.de>>.
+Ulrich Pfeifer <F<Ulrich.Pfeifer@de.uu.net>>.
 
-Copyright (c) 1997 Achim Bohnet. All rights reserved.  This program is
+Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program is
 free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

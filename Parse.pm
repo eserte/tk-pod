@@ -1,11 +1,11 @@
-# $Id: Parse.pm 1.7 Mon, 05 Oct 1998 20:12:57 +0200 ach $
+# $Id: Parse.pm 1.8 Tue, 03 Nov 1998 13:15:34 +0100 ach $
 
 package Tk::Parse;
 
 require Exporter;
 
 use vars qw($VERSION %Escapes);
-$VERSION = substr(q$Revision: 1.7 $, 10) + 1; # bigger than 2.004 before :-)
+$VERSION = substr(q$Revision: 1.8 $, 10) + 1 . "";
 
 @ISA=qw(Exporter);
 @EXPORT=qw(Parse Simplify hide start_hide unhide Normalize Normalize2 Escapes
@@ -37,11 +37,11 @@ $VERSION = substr(q$Revision: 1.7 $, 10) + 1; # bigger than 2.004 before :-)
 
 =head1 NAME
 
-Pod::Parse - Parse perl's pod files.
+Tk::Parse - Parse perl's pod files (code deprecated. Use Pod::Parser instead).
 
 =head1 SYNOPSIS
 
-B<THIS TK SNAPSHOT SHOULD BE REPLACED BY A CPAN MODULE>
+B<THIS TK SNAPSHOT SHOULD BE REPLACED BY CPAN MODULE:> L<Pod::Parser>
 
 =head1 DESCRIPTION
 
@@ -502,6 +502,17 @@ default, as it might confuse your own heuristics.
 This hash is exported from Pod::Parse, and contains default ASCII
 translations for some common HTML escape sequences. You might like to use this
 as a basis for an %HTML_Escapes array in your own formatter.
+
+=head1 AUTHOR
+
+Brad Appleton <F<bradapp@enteract.com>>
+
+Code currently maintained (but deprecated) by Achim Bohnet <F<ach@mpe.mpg.de>>.
+Use L<Pod::Parser> instead.  Send bug reports to <F<ptk@lists.stanford.edu>>.
+
+Copyright (c) 1997-1998 Brad Appleton.  All rights reserved.  This program
+is free software; you can redistribute it and/or modify it under the same
+terms as Perl itself.
 
 =cut
 

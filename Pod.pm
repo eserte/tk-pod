@@ -1,9 +1,10 @@
 package Tk::Pod;
 use strict;
+use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.14 $, 10) + 2; # so it's > 2.005 and 1.9+1
+$VERSION = substr(q$Revision: 1.15 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -147,6 +148,17 @@ L<Tk::Pod_usage|Tk::Pod_usage>
 L<Tk::Pod::Text|Tk::Pod::Text>
 L<tkpod|tkpod>
 L<perlpod|perlpod>
+
+=head1 AUTHOR
+
+Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
+
+Code currently maintained by Achim Bohnet <F<ach@mpe.mpg.de>>.
+Please send bug reports to <F<ptk@lists.stanford.edu>>.
+
+Copyright (c) 1997-1998 Nick Ing-Simmons.  All rights reserved.  This program
+is free software; you can redistribute it and/or modify it under the same
+terms as Perl itself.
 
 =cut
 

@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 1.2 $, 10;
+$VERSION = substr q$Revision: 1.3 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -213,8 +213,8 @@ widget, tk, pod, search, full text
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
 
-Copyright (c) 1997 Achim Bohnet. All rights reserved.  This program is
-free software; you can redistribute it and/or modify it under the same
+Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program
+is free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 
 =cut

@@ -43,6 +43,11 @@ Win95/NT Users:
 
 History:
 
+version 0.11
+
+        o fixed VERSION problem: 1.14+2 < 3.14
+        o Added 'standard perl' COPYRIGHT notices to modules
+
 version 0.10
 
 	o New Search menu, Up/down bindigs and
@@ -57,7 +62,7 @@ version 0.10
 		Better impl. has to wait until Pod::Parser is
 		used 
 	o 'Reload' jumps to same line after document is reloaded
-	o =pod don't generates a warning
+	o =pod doesn't generate a warning anymore
 	o t/basic.t:  basic widget test ala Tk800 t/create.t
 
 version 0.09
