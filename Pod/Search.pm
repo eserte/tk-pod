@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 1.2 $, 10 . "";
+$VERSION = substr q$Revision: 1.3 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -24,7 +24,7 @@ sub Populate {
     require Tk::Label;
     require Tk::BrowseEntry;
 
-    my $l = $cw->Scrolled('Listbox',-scrollbars=>'w');
+    my $l = $cw->Scrolled('Listbox',-scrollbars=>$Tk::platform eq 'MSWin32'?'e':'w');
     #xxx BrowseEntry V1.3 does not honour -label at creation time :-(
     #my $e = $cw->BrowseEntry(-labelPack=>[-side=>'left'],-label=>'foo',
 	#-listcmd=> ['_logit', 'list'],
