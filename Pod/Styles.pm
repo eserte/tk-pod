@@ -3,7 +3,23 @@ require 5;
 use strict;
 package Tk::Pod::Styles;
 
-sub init_styles { return }
+sub init_styles {
+  my $w = shift;
+
+  # Get standard font size
+  my $std_font = $w->optionGet('font', 'Font');
+  my $std_font_size;
+  if (!defined $std_font || $std_font eq '') {
+    my $l = $w->Label;
+    $std_font = $l->cget(-font);
+    $std_font_size = $l->fontActual($std_font, '-size');
+    $l->destroy;
+  } else {
+    $std_font_size = $w->fontActual($std_font, '-size');
+  }
+
+  $w->{'style'}{'base_font_size'} = $std_font_size;
+}
 
 
 sub base_font_size { return $_[0]{'style'}{'base_font_size'} ||= 10 }
