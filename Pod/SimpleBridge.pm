@@ -44,56 +44,56 @@ sub process { # main routine: non-handler
   my $style_stack = $w->{'style_stack'} ||= [];
   my @pod_marks;
 
-  DEBUG and print "Pull-parsing $file (process number $process_no)\n";
+  DEBUG and warn "Pull-parsing $file (process number $process_no)\n";
   $w->{'pod_title'} = $p->get_short_title || $file;
 
   my($token, $tagname, $style);
   my $last_update = Tk::timeofday();
   while($token = $p->get_token) {
 
-    DEBUG > 7 and print " t:", $token->dump, "\n";
+    DEBUG > 7 and warn " t:", $token->dump, "\n";
 
     if($token->is_text) {
-      DEBUG > 10 and print " ->pod_text( ", $token->text, ")\n";
+      DEBUG > 10 and warn " ->pod_text( ", $token->text, ")\n";
       $w->pod_text( $token );
 
     } elsif($token->is_start) {
       ($tagname = $token->tagname ) =~ tr/-:./__/;
       $style    = "style_"     . $tagname;
       $tagname  = "pod_start_" . $tagname;
-      DEBUG > 7 and print " ->$tagname & ->$style\n";
+      DEBUG > 7 and warn " ->$tagname & ->$style\n";
       push @pod_marks, $w->index('end -1c');
        # Yes, save the start-point for every element,
        #  for feeding to its end-tag event.
 
       if( $w->can($style) ) {
         push @$style_stack,  $w->$style($token);
-        DEBUG > 5 and print "Style stack after adding ->$style: ",
+        DEBUG > 5 and warn "Style stack after adding ->$style: ",
          join("|", map join('.',@$_), @{ $w->{'style_stack'} } ), "\n";
       }
 
       &{ $w->can($tagname) || next }( $w, $token );
-      DEBUG > 10 and print "   back from ->$tagname\n";
+      DEBUG > 10 and warn "   back from ->$tagname\n";
 
     } elsif($token->is_end) {
       ($tagname = $token->tagname ) =~ tr/-:./__/;
       $style    = "style_"   . $tagname;
       $tagname  = "pod_end_" . $tagname;
 
-      DEBUG > 7 and print " ->$tagname & $style\n";
+      DEBUG > 7 and warn " ->$tagname & $style\n";
 
       &{ $w->can($tagname) || \&no_op }( $w, $token, pop(@pod_marks) );
        # the output of that pop() is the start-point of this element
-      DEBUG > 10 and print "   back from ->$tagname\n";
+      DEBUG > 10 and warn "   back from ->$tagname\n";
 
       if( $w->can($style) ) {
         pop @$style_stack;
-        DEBUG > 5 and print "Style stack after popping results of ->$style: ",
+        DEBUG > 5 and warn "Style stack after popping results of ->$style: ",
          join("|", map join('.',@$_), @{ $w->{'style_stack'} } ), "\n";
       }
     }
 
-    if (Tk::timeofday() > $last_update+0.5) {
+    if (Tk::timeofday() > $last_update+0.5) { # XXX make configurable
       $w->update;
       $last_update = Tk::timeofday();
       do { warn "ABORT!"; return } if $w->{ProcessNo} != $process_no;
@@ -103,7 +103,7 @@ sub process { # main routine: non-handler
 
   undef $p;
   delete $w->{'pod_parser'};
-  DEBUG and print "Done rendering $file\n";
+  DEBUG and warn "Done rendering $file\n";
 
   $w->parent->add_section_menu if $w->parent->can('add_section_menu');
   $w->Callback('-poddone', $file);
@@ -122,7 +122,7 @@ sub pod_text {
     # Emit it with whatever styles are in effect.
 
     my %attributes = (map @$_, @{ $w->{'style_stack'} } );
-    DEBUG > 4 and print "Inserting <", $t->text, "> with attributes: ",
+    DEBUG > 4 and warn "Inserting <", $t->text, "> with attributes: ",
       join('/', %attributes), "\n";
 
     my $startpoint = $w->index('end -1c');
@@ -192,7 +192,7 @@ sub _indent {
   }
   $indent = 0 if $indent < 0;
   
-  DEBUG > 5 and print "Style stack giving indent of $indent for $start: ",
+  DEBUG > 5 and warn "Style stack giving indent of $indent for $start: ",
          join("|", map join('.',@$_), @{ $w->{'style_stack'} } ), "\n";
   
   my $tag = "Indent" . ($indent+0);
@@ -208,7 +208,7 @@ sub _indent {
            );
   }
   $w->tag('add', $tag, $start, 'end -1c');
-  DEBUG > 3 and print "Applying $tag to $start\n";
+  DEBUG > 3 and warn "Applying $tag to $start\n";
   return;
 }
 
@@ -232,7 +232,7 @@ sub tag_for {
     $w->{'known_tags'}{$canonical_form} ||=
     do {
       # initialize and return a new tagname
-      DEBUG and print "Making a tag for $canonical_form\n";
+      DEBUG and warn "Making a tag for $canonical_form\n";
       $attr->{'family'}  = 'times'  unless exists $attr->{'family'};
       $attr->{'weight'}  = 'medium' unless exists $attr->{'weight'};
       $attr->{'slant'}   = 'r'      unless exists $attr->{'slant'};
@@ -247,7 +247,7 @@ sub tag_for {
         ($attr->{'slant'}  ne 'r'     ) ? 'italic' : (),
       ;
       
-      DEBUG and print "Defining new tag $canonical_form with font $font_name\n";
+      DEBUG and warn "Defining new tag $canonical_form with font $font_name\n";
       
       $w->tagConfigure(
         $canonical_form,
@@ -280,7 +280,7 @@ sub pod_end_L   {
     #"!" . $attr->{'to'}
   ;
   $tag =~ tr/ /_/;
-  DEBUG > 2 and print "Link-tag <$tag>\n";
+  DEBUG > 2 and warn "Link-tag <$tag>\n";
   
   my $to      = $attr->{'to'}     ; # might be undef!
   my $section = $attr->{'section'}; # might be undef!
@@ -294,15 +294,15 @@ sub pod_end_L   {
   } elsif($attr->{'type'} eq 'man') {
     $methodname = 'Link_man'
   } else {
-    DEBUG and print "Unknown link-type $$attr{'type'}!\n";
+    DEBUG and warn "Unknown link-type $$attr{'type'}!\n";
   }
 
   $section = '' . $section if defined $section and ref $section;
 
   if(!defined $methodname) {
-    DEBUG > 2 and print "No method for $$attr{'type'} links.\n";
+    DEBUG > 2 and warn "No method for $$attr{'type'} links.\n";
   } elsif($w->can($methodname)) {
-    DEBUG > 2 and print "Binding $tag to $methodname\n";
+    DEBUG > 2 and warn "Binding $tag to $methodname\n";
     $w->tag('bind', $tag, '<ButtonRelease-1>',
             [$w, $methodname, 'reuse', Tk::Ev('@%x,%y'), $to, $section]);
     $w->tag('bind', $tag, '<Shift-ButtonRelease-1>',
@@ -313,7 +313,7 @@ sub pod_end_L   {
     $w->tag('bind', $tag, '<Leave>' => [$w, 'LeaveLink']);
     $w->tag('configure', $tag, '-underline' => 1, '-foreground' => 'blue' );
   } else {
-    DEBUG > 2 and print "Can't bind $tag to $methodname\n";
+    DEBUG > 2 and warn "Can't bind $tag to $methodname\n";
     # green for no-good
     $w->tag('configure', $tag, '-underline' => 1, '-foreground' => 'darkgreen' );
   }
@@ -361,7 +361,7 @@ sub _common_heading {
     $end_tag =~ m/(\d+)$/ or die "WHAAAT?  $end_tag!?";
     $level = $1;
     push @{$w->{'sections'}}, [$level, $text, $w->index('end')];
-    DEBUG and print "Noting section heading head$level \"$text\".\n";
+    DEBUG and warn "Noting section heading head$level \"$text\".\n";
   }
 
   $p->unget_token(@to_put_back);
