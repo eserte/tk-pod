@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -424,4 +424,3 @@ the old Tk::Pod::Text code that Nick Ing-Simmons
 Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
 
 =cut
-

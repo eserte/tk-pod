@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.37 $, 10) + 2 . "";
-$DIST_VERSION = "0.9928";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = "0.9929";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -703,4 +703,3 @@ is free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 
 =cut
-

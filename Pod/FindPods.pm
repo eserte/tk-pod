@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.13 2004/09/04 01:13:19 eserte Exp $
+# $Id: FindPods.pm,v 5.1 2004/09/08 21:08:44 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2003,2004 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.13 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -467,7 +467,7 @@ Tk::Tree(3).
 
 Slaven Rezic <F<slaven@rezic.de>>
 
-Copyright (c) 2001,2003 Slaven Rezic.  All rights reserved.  This program
+Copyright (c) 2001,2003,2004 Slaven Rezic.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 
