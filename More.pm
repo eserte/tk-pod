@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 2.2 $, 10) . "";
+$VERSION = substr(q$Revision: 2.3 $, 10) . "";
 
 use Tk::Derived;
 use Tk::Frame;
@@ -108,21 +108,30 @@ sub Search {
 }
 
 sub SearchText {
-    my ($cw) = @_;
+    my ($cw, %args) = @_;
     my($t, $e) = ($cw->Subwidget('text'), $cw->Subwidget('searchentry'));
-    $e->historyAdd if ($e->can('historyAdd'));
-    unless ($cw->search_text($t, $e->get, 'search') ) {
-	$cw->bell;
+    $cw->{DIRECTION} = $args{-direction} if $args{-direction};
+    my $searchterm;
+    if (defined $args{-searchterm}) {
+	$searchterm = $args{-searchterm};
+	$ {$e->cget('-textvariable')} = $searchterm;
+    } else {
+	$e->historyAdd if ($e->can('historyAdd'));
+	$searchterm = $e->get;
+    }
+    unless ($cw->search_text($t, $searchterm, 'search') ) {
+	$cw->bell unless $args{-quiet};
     }
     $e->configure(-label=>'');
     $t->see('@0,0');
-    $cw->ShowMatch($cw->{DIRECTION}, 'firsttime');
+    $cw->ShowMatch($cw->{DIRECTION}, -firsttime => 1) unless $args{-onlymatch};
     $t->focus;
     $e->configure(-relief=>'flat', -state=>'disabled');
 }
 
 sub ShowMatch {
-    my ($cw, $method, $firsttime) = @_;
+    my ($cw, $method, %args) = @_;
+    my $firsttime = $args{-firsttime};
 
     my $t = $cw->Subwidget('text');
     if ($cw->{DIRECTION} ne 'Next') {
@@ -212,10 +221,21 @@ sub scroll {
 	if ($unit =~ /^halfpage/) {
 	    $amount = ($y2-$y1)/2;
 	} elsif ($unit =~ /^page/) {
+#  	    if ($no == -1) {
+#  		# loop until top-most line is invisible
+#  		my $inx = $t->index('@0,0');
+#  my $i=0;
+#  		while ($t->bbox($inx)) {
+#  		    $t->yviewScroll(-1,'units');
+#  		    last if ($i++>1000);
+#  		}
+#  		goto XXX;
+#  	    }
 	    $amount = ($y2-$y1);
 	} else {
 	    die "Unknown unit $unit";
 	}
+#warn "$y1 $y2 $amount";
 	$y1 += ($no * $amount);
 	if ($no > 0) {
 	    $y1 = 1.0 if ($y1 > 1.0);
@@ -224,6 +244,7 @@ sub scroll {
 	}
 	$t->yviewMoveto($y1);
     }
+    #XXX:
     Tk->break;
 }
 
