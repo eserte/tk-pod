@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.14 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.15 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -320,6 +320,8 @@ sub Link
 
  my($man,$sec) = ('','');
 
+ # Old versions of Pod::ParseUtils can't handle names
+ # like "Inline::C-Cookbook".
  if (eval { require Pod::ParseUtils; 1 })
   {
    my $l = Pod::Hyperlink->new($link);
@@ -336,7 +338,6 @@ sub Link
       }
      return;
     }
-#XXX Pod::ParseUtils can't handle "Inline::C-Cookbook"!
    $man = $l->page;
    $sec = $l->node;
   }
