@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.8 2003/01/29 11:57:19 eserte Exp $
+# $Id: FindPods.pm,v 1.11 2003/02/10 18:11:20 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -37,10 +37,11 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
+use File::Basename;
 use Config;
 
 sub init {
@@ -59,9 +60,10 @@ for Tk::Pod::Tree, as the separator may only be of one character). The
 values are the corresponding filenames.
 
 If C<-categorized> is specified, then the returned hash has an extra
-level with three categories: B<perl> (for core language
-documentation), B<pragmata> (for pragma documentation like L<var|var>
-or L<strict|strict>) and B<modules> (core or CPAN modules).
+level with four categories: B<perl> (for core language documentation),
+B<pragma> (for pragma documentation like L<var|var> or
+L<strict|strict>), B<mod> (core or CPAN modules), and B<script> (perl
+scripts with embedded POD documentation).
 
 If C<-usecache> is specified, then the list of PODs is cached in a
 temporary directory.
@@ -79,16 +81,20 @@ sub pod_find {
     undef $has_cache;
 
     if ($args{-usecache}) {
-	my $perllocal = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
+	my $perllocal_site = File::Spec->catfile($Config{'installsitearch'},'perllocal.pod');
+	my $perllocal_lib  = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
 	my $cache_file = _cache_file();
-	if (!-r $cache_file || -M $perllocal > -M $cache_file) {
+	if (!-r $cache_file ||
+	    (-e $perllocal_site && -M $perllocal_site > -M $cache_file) ||
+	    (-e $perllocal_lib  && -M $perllocal_lib > -M $cache_file)
+	   ) {
 	    %pods = LoadCache();
 	    if (%pods) {
 		$has_cache = 1;
 		return %pods;
 	    }
 	} else {
-	    warn "$perllocal is more recent than cache file $cache_file";
+	    warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file";
 	}
     }
 
@@ -102,6 +108,10 @@ sub pod_find {
 	next if $inc eq '.'; # ignore current directory
 	$curr_dir = $inc;
 	find(\&wanted, $inc);
+    }
+
+    if ($Config{'scriptdir'}) {
+	find(\&wanted_scripts, $Config{'scriptdir'});
     }
 
     #XXX
@@ -162,17 +172,60 @@ sub wanted {
     }
 }
 
+sub wanted_scripts {
+    if (-d) {
+	if ($seen_dir{$File::Find::name}) {
+	    $File::Find::prune = 1;
+	    return;
+	} else {
+	    $seen_dir{$File::Find::name}++;
+	}
+    }
+
+    if (-T && open(SCRIPT, $_)) {
+	my $has_pod = 0;
+	{
+	    local $_;
+	    while(<SCRIPT>) {
+		if (/^=(head\d+|pod)/) {
+		    $has_pod = 1;
+		    last;
+		}
+	    }
+	}
+	close SCRIPT;
+	if ($has_pod) {
+	    my $name = $_;
+
+	    my $hash;
+	    if ($args{-categorized}) {
+		my $type = 'script';
+		$hash = $pods{$type} || do { $pods{$type} = {} };
+	    } else {
+		$hash = \%pods;
+	    }
+
+	    if (exists $hash->{$name}) {
+		return;
+	    }
+	    $hash->{$name} = "file:" . $File::Find::name;
+	}
+    }
+}
+
 sub simplify_name {
     my $f = shift;
     $f =~ s|^\d+\.\d+\.\d+/?||; # strip perl version
     $f =~ s|^$arch_re|| if defined $arch_re; # strip machine
     $f =~ s/\.(pod|pm)$//;
     $f =~ s|^pod/||;
-    if ($^O =~ /^cygwin/) { # the cygwin solution for pod vs. Pod problem
-	$f =~ s|^pods/||;
-    }
-    if ($^O eq 'MSWin32') { # case-insensitive :-(
+    # Workaround for case insensitive systems --- the pod directory contains
+    # general pod documentation as well as Pod::* documentation:
+    if ($^O =~ /^cygwin/) {
+	$f =~ s|^pods/||; # "pod" is "pods" on cygwin
+    } elsif ($^O eq 'MSWin32') {
 	$f =~ s|^pod/perl|perl|i;
+	$f =~ s|^pod/Win32|Win32|i;
     }
     $f;
 }
@@ -180,7 +233,8 @@ sub simplify_name {
 sub type {
     local $_ = shift;
     if    (/^perl/) { return "perl" }
-    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook|cgi_to_mod_perl)/) { return "pragma" }
+    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook|cgi_to_mod_perl|libapreq)/)
+	            { return "pragma" }
     else            { return "mod" }
 }
 
@@ -302,7 +356,7 @@ Tk::Tree(3).
 
 Slaven Rezic <F<slaven@rezic.de>>
 
-Copyright (c) 2001 Slaven Rezic.  All rights reserved.  This program
+Copyright (c) 2001,2003 Slaven Rezic.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

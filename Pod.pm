@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.16 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.18 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -27,6 +27,8 @@ sub Populate
  my $searchcase = 0;
  my $p = $w->Component('PodText' => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
 
+ my $exitbutton = delete $args->{-exitbutton} || 0;
+
  my $menuitems =
  [
 
@@ -41,7 +43,10 @@ sub Populate
     [Button => '~Print...',  '-command' => ['Print',$p]],
     [Separator => ""],
     [Button => '~Close',     '-command' => ['quit',$w]],
-    [Button => 'E~xit',      '-command' => sub { $p->MainWindow->destroy }],
+    ($exitbutton
+     ? [Button => 'E~xit',      '-command' => sub { $p->MainWindow->destroy }]
+     : ()
+    ),
    ]
   ],
 
@@ -186,7 +191,7 @@ sub about {
 		        $Pod::Simple::VERSION
 		          ? "(Using Pod::Simple $Pod::Simple::VERSION)"
 		          : (),
-		        "Please contact <slaven.rezic\@berlin.de>",
+		        'Please contact <slaven@rezic.de>',
 		        "in case of problems.",
 		     );
 }
@@ -264,7 +269,7 @@ sub tree {
 		    die $err;
 		}
 	    }
-	    $tree->SeePath("file:" . $p->cget(-path));
+	    $tree->SeePath("file:" . $p->cget(-path)) if $p->cget(-path);
 	} else {
 	    if ($tree && $tree->manager) {
 		$tree->packForget;
@@ -408,6 +413,24 @@ Tk::Pod - POD browser toplevel widget
 =head1 DESCRIPTION
 
 Simple POD browser with hypertext capabilities in a C<Toplevel> widget
+
+=head1 OPTIONS
+
+=over
+
+=item -tree
+
+Set tree view by default on or off. Default is false.
+
+=item -exitbutton
+
+Add to the menu an exit entry. This is only useful for standalone pod
+readers. Default is false. This option can only be set on construction
+time.
+
+=back
+
+Other options are propagated to the embedded L<Tk::Pod::Text> widget.
 
 =head1 BUGS
 

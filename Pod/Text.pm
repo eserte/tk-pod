@@ -21,9 +21,10 @@ use Tk::Frame;
 use Tk::Pod;
 use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
+use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.25 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.29 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -405,13 +406,14 @@ sub Link
    $man = $w->cget('-file') if ($man eq "");
    my $tree = eval { $w->parent->cget(-tree) };
    my $old_w = $w;
-   $w = $w->MainWindow->Pod('-tree' => $tree);
-   $w->configure('-file' => $man); # see tkpod for the same problem
+   my $new_pod = $w->MainWindow->Pod('-tree' => $tree);
+   $new_pod->configure('-file' => $man); # see tkpod for the same problem
 
+   $w = $new_pod->Subwidget('pod');
    # set search term for new window
    my $search_term_ref = $old_w->Subwidget('more')->Subwidget('searchentry')->cget(-textvariable);
-   if ($$search_term_ref ne "") {
-       $ {$w->Subwidget('pod')->Subwidget('more')->Subwidget('searchentry')->cget(-textvariable) } = $$search_term_ref;
+   if (defined $$search_term_ref && $$search_term_ref ne "") {
+       $ {$w->Subwidget('more')->Subwidget('searchentry')->cget(-textvariable) } = $$search_term_ref;
    }
   }
   # XXX big docs like Tk::Text take too long until they return
@@ -490,6 +492,59 @@ sub Link
    $w->history_add($w->cget(-path), $w->index('@0,0'));
   }
 
+}
+
+sub Link_url {
+    my ($w,$how,$index,$man,$sec) = @_;
+    if (!defined &WWWBrowser::start_browser && !eval { require WWWBrowser }) {
+	*WWWBrowser::start_browser = sub {
+	    my $url = shift;
+	    if ($^O eq 'MSWin32') {
+		system("start explorer $url");
+	    } elsif ($^O eq 'cygwin') {
+		system("explorer $url &");
+	    } else {
+		system("netscape $url &");
+	    }
+	};
+    }
+    DEBUG and warn "Start browser with $man\n";
+    WWWBrowser::start_browser($man);
+}
+
+sub Link_man {
+    my ($w,$how,$index,$man,$sec) = @_;
+    my $mansec;
+    if ($man =~ s/\s*\((.*)\)\s*$//) {
+	$mansec = $1;
+    }
+    my $manurl = "man:$man($mansec)";
+    if (defined $sec && $sec ne "") {
+	$manurl .= "#$sec";
+    }
+    DEBUG and warn "Try to start any man browser for $manurl\n";
+    my @manbrowser = ('gnome-help-browser', 'khelpcenter');
+    my $wm = detect_window_manager($w);
+    DEBUG and warn "Window manager system is $wm\n";
+    if ($wm eq 'kde') {
+	unshift @manbrowser, 'khelpcenter';
+    }
+    for my $manbrowser (@manbrowser) {
+	DEBUG and warn "Try $manbrowser...\n";
+	if (is_in_path($manbrowser)) {
+	    if (fork == 0) {
+		DEBUG and warn "Use $manbrowser...\n";
+		exec($manbrowser, $manurl);
+		die $!;
+	    }
+	    return;
+	}
+    }
+    $w->messageBox(
+      -title => "Tk::Pod Error",
+      -message => "No useable man browser found. Tried @manbrowser",
+    );
+    die;
 }
 
 sub EnterLink {
@@ -800,50 +855,6 @@ sub history_view_select {
     }
 }
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# REPO BEGIN
-# REPO NAME is_in_path /home/e/eserte/src/repository
-# REPO MD5 1b42243230d92021e6c361e37c9771d1
-
-sub is_in_path {
-    my($prog) = @_;
-    require Config;
-    my $sep = $Config::Config{'path_sep'} || ':';
-    foreach (split(/$sep/o, $ENV{PATH})) {
-	if ($^O eq 'MSWin32') {
-	    return "$_\\$prog"
-		if (-x "$_\\$prog.bat" ||
-		    -x "$_\\$prog.com" ||
-		    -x "$_\\$prog.exe" ||
-		    -x "$_\\$prog.cmd"
-		   );
-	} else {
-	    return "$_/$prog" if (-x "$_/$prog" && !-d "$_/$prog");
-	}
-    }
-    undef;
-}
-# REPO END
-
-sub is_interactive {
-    if ($^O eq 'MSWin32' || !eval { require POSIX; 1 }) {
-	# fallback
-	return -t STDIN && -t STDOUT;
-    }
-
-    # from perlfaq8
-    open(TTY, "/dev/tty") or die $!;
-    my $tpgrp = POSIX::tcgetpgrp(fileno(*TTY));
-    my $pgrp = getpgrp();
-    if ($tpgrp == $pgrp) {
-	1;
-    } else {
-	0;
-    }
-}
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1;
 
 __END__
@@ -857,10 +868,10 @@ Tk::Pod::Text - POD browser widget
 
     use Tk::Pod::Text;
 
-    $pod = $parent->PodText(
-		-file		=> ?
-		-scrollbars	=> ?
-		);
+    $pod = $parent->Scrolled("PodText",
+			     -file	 => $file,
+			     -scrollbars => "osoe",
+		            );
 
     $file = $pod->cget('-path');   # ?? the name path is confusing :-(
 
@@ -875,6 +886,37 @@ Tk::Pod::Text - POD browser widget
 
 B<Tk::Pod::Text> is a readonly text widget that can display POD
 documentation.
+
+=head1 OPTIONS
+
+=over
+
+=item -file
+
+The named (pod) file to be displayed.
+
+=item -path
+
+Return the expanded path of the currently displayed POD. Useable only
+with the C<cget> method.
+
+=item -poddone
+
+A callback to be called if parsing and displaying of the POD is done.
+
+=item -wrap
+
+Set the wrap mode. Default is C<word>.
+
+=item -scrollbars
+
+The position of the scrollbars, see also L<Tk::Scrolled>. By default,
+the vertical scrollbar is on the right on Windows systems and on the
+left on X11 systems.
+
+=back
+
+Other options are propagated to the embedded L<Tk::More> widget.
 
 =head1 ENVIRONMENT
 
@@ -938,7 +980,7 @@ A file: F</usr/local/bin/perl>.  A variable $a without markup.
 
 S<boofar> is in SE<lt>E<gt>.
 
-German Umlaute:
+German umlauts:
 
 =over 4
 
@@ -958,9 +1000,11 @@ German Umlaute:
 
 =back
 
-Pod with Umlaut: L<ExtUtils::MakeMaker> and ExtUtils::MakeMaker.
+Pod with umlaut: L<ExtUtils::MakeMaker>.
 
 Details:  L<perlpod> or perl, perlfunc.
+
+External links: L<http://www.cpan.org> (URL), L<perl(1)> (man page).
 
 Here some code in a as is paragraph
 
@@ -978,7 +1022,8 @@ Mixed Fonts: B<C<bold-fixed>>, B<I<bold-italics>>
 
 Non-breakable text: S<The quick brown fox jumps over the lazy fox.>
 
-I<< Modern >> POD constructs: C<< Double < >>.
+Modern POD constructs (multiple E<lt>E<gt>): I<< italic >>, C<< fixed
+with embedded < and > >>.
 
 Other POD docu: Tk::Font, Tk::BrowseEntry
 
