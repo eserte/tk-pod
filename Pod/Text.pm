@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 1.3 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.4 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -114,13 +114,16 @@ sub edit
 {
  my ($w) = @_;
  my $path = $w->cget('-path');
- if (1||$^O eq 'MSWin32') # XXX what is right?
+ if ($^O eq 'MSWin32') # XXX what is right?
   {
    system("ptked $path");
   }
  else
   {
-   my $edit = $ENV{XEDITOR} || $ENV{VISUAL} || $ENV{'EDITOR'} || 'vi';
+# XXX VISUAL and EDITOR are supposed to have a terminal, but tkpod can
+# be started without a terminal.
+#   my $edit = $ENV{XEDITOR} || $ENV{VISUAL} || $ENV{'EDITOR'} || 'vi';
+   my $edit = $ENV{XEDITOR} || 'ptked';
    if (defined $edit)
     {
      if (fork)
