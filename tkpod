@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile);
 
-$VERSION = substr(q$Revision: 1.10 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.11 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -100,7 +100,6 @@ if (!@ARGV)
   else
    {
     my $tl = $mw->Pod(-tree => 1);
-    $tl->focusNext;
    }
  }
 
@@ -113,8 +112,10 @@ foreach $file (@ARGV)
    }
   else
    {
-    my $tl = $mw->Pod(-file => $file, -tree => $tree);
-    $tl->focusNext;
+    my $tl = $mw->Pod(-tree => $tree);
+    # -file => ... should be called after creating the Pod window,
+    # because -title => ... is set implicitly by Pod's new
+    $tl->configure(-file => $file);
    }
  }
 
@@ -124,18 +125,20 @@ foreach $file (@ARGV)
 
 if ($mw->children) {
     $mw->repeat(1000, sub {
-		# ErrorDialog is withdrawn not deleted :-(
-		foreach ($mw->children) {
-			return if "$_" =~ /^Tk::Pod/  # ->isa('Tk::Pod')
-		}
-		$mw->destroy;
-	    });
+        if (Tk::Exists($mw)) {
+	    # ErrorDialog is withdrawn not deleted :-(
+	    foreach ($mw->children) {
+		return if "$_" =~ /^Tk::Pod/  # ->isa('Tk::Pod')
+	    }
+	    $mw->destroy;
+	}
+    });
 } else {
     $mw->destroy;
 }
 #$mw->WidgetDump;
 MainLoop;
-warn $portfile;
+unlink($portfile);
 exit(0);
 
 sub start_server {
@@ -167,7 +170,8 @@ sub PodRequest {
     while (<$client>) {
 	chomp($_);
 	print STDERR "'$_'\n";
-	$mw->Pod(-file => $_, -tree => $tree);
+	my $pod = $mw->Pod(-tree => $tree);
+	$pod->configure(-file => $_);
     }
     warn "Odd $!" unless eof($client);
     $mw->fileevent($client,'readable','');
@@ -183,7 +187,7 @@ tkpod - Perl/Tk POD browser
 
 =head1 SYNOPSIS
 
-    tkpod  [-tk] [[-no]tree]  [directory]|name [...]
+    tkpod  [-tk] [[-no]tree] [-s]  [directory]|name [...]
 
 
 =head1 DESCRIPTION
@@ -216,6 +220,13 @@ Useful for perl/Tk documentation.  When specified it adds all
 C<Tk> subdirectories in C<@INC> to the POD search path.   This way
 when C<Scrolled> is selected in the browser the C<Tk/Scrolled>
 documentation is found.
+
+=item B<-s>
+
+Start C<tkpod> in server mode. Subsequent calls to C<tkpod> (without
+the B<-s> option) will cause to load the requested PODs into the
+server program, thus minimizing startup time and memory usage. Note
+that there is no access control, so this might be a security hole!
 
 =back
 
