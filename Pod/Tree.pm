@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.4 2001/06/16 15:52:58 eserte Exp $
+# $Id: Tree.pm,v 1.5 2001/06/16 16:03:41 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -14,9 +14,47 @@
 
 package Tk::Pod::Tree;
 
+=head1 NAME
+
+Tk::Pod::Tree - list POD file hierarchy
+
+
+=head1 SYNOPSIS
+
+    use Tk::Pod::Tree;
+
+    $parent->PodTree;
+
+=head1 WIDGET-SPECIFIC OPTIONS
+
+=over 4
+
+=item Name: B<-showcommand>
+
+Specifies a callback for selecting a POD module (Button-1 binding).
+
+=item Name: B<-showcommand2>
+
+Specifies a callback for selecting a POD module in a different window
+(Button-2 binding).
+
+=item Name: B<-usecache>
+
+True, if a cache of POD modules should be created and used. The
+default is true.
+
+=back
+
+=head1 DESCRIPTION
+
+The B<Tk::Pod::Tree> widget shows all available Perl POD documentation
+in a tree.
+
+=cut
+
 use strict;
 use vars qw($VERSION @ISA @POD %pods $pods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -72,12 +110,27 @@ sub Populate {
     );
 }
 
+=head1 WIDGET METHODS
+
+=over 4
+
+=item I<$tree>-E<gt>B<Fill>(?I<-nocache =E<gt> 1>?)
+
+Find POD modules and fill the tree widget. If I<-nocache> is
+specified, then no cache will be used for loading.
+
+A cache of POD modules is written unless the B<-usecache>
+configuration option of the widget is set to false.
+
+=cut
+
 sub Fill {
     my $w = shift;
+    my(%args) = @_;
 
     $w->delete("all");
 
-    if ($w->cget('-usecache')) {
+    if ($w->cget('-usecache') && !$args{'-nocache'}) {
 	$w->LoadCache;
     }
 
@@ -165,6 +218,14 @@ sub _cache_file {
     File::Spec->catfile(File::Spec->tmpdir, join('_', 'tkpod',$ver,$os,$uid));
 }
 
+=item I<$tree>-E<gt>B<WriteCache>()
+
+Write the POD cache. The cache is written to the temporary directory.
+The file name is constructed from the perl version, operation system
+and user id.
+
+=cut
+
 sub WriteCache {
     my $w = shift;
 
@@ -183,6 +244,12 @@ sub WriteCache {
 	close CACHE;
     }
 }
+
+=item I<$tree>-E<gt>B<LoadCache>()
+
+Load the POD cache, if possible
+
+=cut
 
 sub LoadCache {
     my $w = shift;
@@ -206,24 +273,11 @@ sub LoadCache {
 
 __END__
 
-=head1 NAME
-
-Tk::Pod::Tree - list POD file hierarchy
-
-
-=head1 SYNOPSIS
-
-    use Tk::Pod::Tree;
-
-    $parent->PodTree;
-
-=head1 DESCRIPTION
-
-
+=back
 
 =head1 SEE ALSO
 
-
+Tk::Tree(3), Tk::Pod(3), tkpod(1).
 
 =head1 AUTHOR
 
