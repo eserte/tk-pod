@@ -1,5 +1,22 @@
 History for Tk::Pod
 
+version 0.12
+
+	o new Tk::Pod::Tree module and a tree view for POD files
+	o better history support: forward/backward/view history
+          (with new menu) 
+	o new popup menu entry Forward
+	o Alt-Left/Right bindings
+	o usign getOpenFile instead of FileSelect
+	o using messageBox instead of BackTrace
+	o standard editor is ptked
+	o using Tk::Parse::Escapes instead of private translate hash
+	o change cursor image over links
+	o scrollbars are now on the right side (only Windows)
+	o bugfix: remove X<...> from section menu entries
+	o bugfix: internal links and middle button work now
+	o new maintainer
+
 version 0.11
 
         o fixed VERSION problem: 1.14+2 < 3.14
