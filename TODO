@@ -54,9 +54,6 @@ o search policies: regexp, glob, incremental (as in xmore)
 o cleanup search interface to perlindex.  Maybe patch Ulrichs
   TPJ example code for nroff pages to allow both POD and MAN.
 
-o add 'daemon' mode to Tk::Pod so Pod stuff run only once
-  per user (send/receive => -T clean)
-
 o add meaningful regression tests
 
 o create 'AsToplevel' similar to 'Scrolled'
@@ -64,5 +61,7 @@ o create 'AsToplevel' similar to 'Scrolled'
 o Tree: re-read tree, invalidate cache
 
 o PodText: interrupt process() if another file is loaded...
+
+o use some kind of access control for the -s option
 
 __END__
