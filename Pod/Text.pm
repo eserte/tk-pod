@@ -24,7 +24,7 @@ use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.23 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.24 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -413,8 +413,15 @@ sub Link
   {
    $man = $w->cget('-file') if ($man eq "");
    my $tree = eval { $w->parent->cget(-tree) };
+   my $old_w = $w;
    $w = $w->MainWindow->Pod('-tree' => $tree);
    $w->configure('-file' => $man); # see tkpod for the same problem
+
+   # set search term for new window
+   my $search_term_ref = $old_w->Subwidget('more')->Subwidget('searchentry')->cget(-textvariable);
+   if ($$search_term_ref ne "") {
+       $ {$w->Subwidget('pod')->Subwidget('more')->Subwidget('searchentry')->cget(-textvariable) } = $$search_term_ref;
+   }
   }
   # XXX big docs like Tk::Text take too long until they return
 
