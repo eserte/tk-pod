@@ -7,6 +7,7 @@ version 0.9923
 	  instead
 	o experimental support for displaying perlfunc functions in tree
           (by category or alphabetically)
+	o some missing \Q...\E added
 
 version 0.9922
 	o fixed logic in Tk::Pod::FindPods
