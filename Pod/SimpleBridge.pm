@@ -33,7 +33,8 @@ sub process { # main routine: non-handler
   $p->set_source($file);
 
   $w->toplevel->Busy;
- 
+  $w->init_styles;
+
   my $process_no;
   $w->{ProcessNo}++;
   $process_no = $w->{ProcessNo};
@@ -47,7 +48,7 @@ sub process { # main routine: non-handler
   $w->{'pod_title'} = $p->get_short_title || $file;
 
   my($token, $tagname, $style);
-  my $update = 2;  # update every few tokens
+  my $last_update = Tk::timeofday();
   while($token = $p->get_token) {
 
     DEBUG > 7 and print " t:", $token->dump, "\n";
@@ -73,7 +74,7 @@ sub process { # main routine: non-handler
 
       &{ $w->can($tagname) || next }( $w, $token );
       DEBUG > 10 and print "   back from ->$tagname\n";
-      
+
     } elsif($token->is_end) {
       ($tagname = $token->tagname ) =~ tr/-:./__/;
       $style    = "style_"   . $tagname;
@@ -90,15 +91,16 @@ sub process { # main routine: non-handler
         DEBUG > 5 and print "Style stack after popping results of ->$style: ",
          join("|", map join('.',@$_), @{ $w->{'style_stack'} } ), "\n";
       }
-    }   
+    }
 
-    unless ($update--) {
+    if (Tk::timeofday() > $last_update+0.5) {
       $w->update;
-      $update = 2;
+      $last_update = Tk::timeofday();
       do { warn "ABORT!"; return } if $w->{ProcessNo} != $process_no;
     }
+
   }
-  
+
   undef $p;
   delete $w->{'pod_parser'};
   DEBUG and print "Done rendering $file\n";

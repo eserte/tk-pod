@@ -3,8 +3,43 @@ require 5;
 use strict;
 package Tk::Pod::Styles;
 
-sub init_styles { return }
+sub init_styles {
+  my $w = shift;
+  $w->set_base_font_size($w->standard_font_size);
+}
 
+sub standard_font_size {
+  my $w = shift;
+  my $std_font = $w->optionGet('font', 'Font');
+  my $std_font_size;
+  if (!defined $std_font || $std_font eq '') {
+    my $l = $w->Label;
+    $std_font = $l->cget(-font);
+    $std_font_size = $l->fontActual($std_font, '-size');
+    $l->destroy;
+  } else {
+    $std_font_size = $w->fontActual($std_font, '-size');
+  }
+  $std_font_size;
+}
+
+sub adjust_font_size {
+  my($w, $new_size) = @_;
+  my $delta = $new_size - $w->base_font_size;
+  $w->set_base_font_size($new_size);
+
+  for my $tag ($w->tagNames) {
+    my $f = $w->tagCget($tag, '-font');
+    if ($f) {
+      my %f = $w->fontActual($f);
+      $f{-size} += $delta;
+      my $new_f = $w->fontCreate(%f);
+      $w->tagConfigure($tag, -font => $new_f);
+    }
+  }
+}
+
+sub set_base_font_size { $_[0]{'style'}{'base_font_size'} = $_[1] }
 
 sub base_font_size { return $_[0]{'style'}{'base_font_size'} ||= 10 }
 

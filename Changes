@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.99_11
+	o new zoom_normal/in/out menu entries
+	o default OS font size is honored now
+
 version 0.99_10
 	o major changes by Sean Burke:
 	  * Tk::Parse replaced by Pod::Simple and Tk::Pod::SimpleBridge
