@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.99_06
+	o new "Set Pod" menu entry in Pod.pm
+	o another change in Search_db.pm suggested by Martin Raspe
+
+version 0.99_05
+	o change in Search_db.pm for ActivePerl (suggested by Martin Raspe)
+
 version 0.99_04
 	o switch to show PODs of not installed CPAN modules
 	o new View menu
