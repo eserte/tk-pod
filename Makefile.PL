@@ -26,7 +26,7 @@ WriteMakefile(
 
 	'EXE_FILES'	=> [ 'tkpod' ],
 
-        'dist'		=> {'COMPRESS'=>'gzip -9', 'SUFFIX'=>'.gz'}, 
+	'dist' 		=> {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
 );
 
 sub MY::postamble {
