@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 2.1 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.1 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -478,7 +478,7 @@ sub head1
  $w->append($title);
  $num = 2 unless (defined $num);
  $w->tag('add',$tag,$start,'end -1c');
- $w->tag('configure',$tag,-font => $w->Font(family => 'times', 
+ $w->tag('configure',$tag,-font => $w->Font(family => 'times',
          weight => 'bold',size => 180));
  $w->tag('raise',$tag,'text');
  $w->append("\n\n");
@@ -487,7 +487,7 @@ sub head1
 sub head2
 {
  my ($w,$title) = @_;
- my $tag ="\"$title\""; 
+ my $tag ="\"$title\"";
  my $start = $w->index('end -1c');
  $w->append($title);
  $w->tag('add',$tag,$start,'end -1c');
@@ -508,8 +508,8 @@ sub IndentTag
    $w->{Indent}{$tag} = $indent;
    $indent *= 8;
    $w->tag('configure',$tag,
-           -lmargin2 => $indent . 'p', 
-           -rmargin  => $indent . 'p', 
+           -lmargin2 => $indent . 'p',
+           -rmargin  => $indent . 'p',
            -lmargin1 => $indent . 'p'
           );
   }
@@ -545,14 +545,14 @@ sub item
  $w->{Item} = [ $w->index('end -1c'), $w->{indent} ];
 }
 
-sub setindent 
-{ 
- my ($w,$arg) = @_; 
- $w->{'indent'} = $arg 
+sub setindent
+{
+ my ($w,$arg) = @_;
+ $w->{'indent'} = $arg
 }
 
-sub listbegin 
-{ 
+sub listbegin
+{
  my ($w) = @_;
  my $item = delete $w->{Item};
  push(@{$w->{List}},$item);
@@ -565,9 +565,9 @@ sub listend
  $w->{Item} = pop(@{$w->{List}});
 }
 
-sub over { } 
+sub over { }
 
-sub back { } 
+sub back { }
 
 # XXX PodText.pm should not manipulate Toplevel
 sub filename
@@ -580,7 +580,7 @@ sub setline   {}
 sub setloc    {}
 sub endfile   {}
 sub listtype  { my ($w,$arg) = @_; $w->{listtype} = $arg }
-sub cut       {} 
+sub cut       {}
 
 sub process
 {
@@ -767,7 +767,7 @@ sub history_view_select {
 }
 
 # REPO BEGIN
-# REPO NAME is_in_path /home/e/eserte/src/repository 
+# REPO NAME is_in_path /home/e/eserte/src/repository
 # REPO MD5 1b42243230d92021e6c361e37c9771d1
 
 sub is_in_path {
@@ -811,8 +811,8 @@ Tk::Pod::Text - POD browser widget
 =cut
 
 # also works with L<show|man/sec>. Therefore it stays undocumented :-)
- 
-#    $pod->Link(manual/section)	# as L<manual/section> see perlpod 
+
+#    $pod->Link(manual/section)	# as L<manual/section> see perlpod
 
 
 =head1 DESCRIPTION
