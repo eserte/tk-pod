@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.22 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.23 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -37,7 +37,7 @@ sub Populate
   [Cascade => '~File', -menuitems =>
    [
     [Button => '~Open File...', '-command' => ['openfile',$w]],
-    [Button => '~Set Pod...', '-command' => ['openpod',$w,$p]],
+    [Button => 'Open ~by Name...', '-command' => ['openpod',$w,$p]],
     [Button => '~New Window...', '-command' => ['newwindow',$w,$p]],
     [Button => '~Reload',    '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
@@ -57,9 +57,9 @@ sub Populate
     [Checkbutton => '~Pod Tree', -variable => \$w->{Tree_on},
      '-command' => sub { $w->tree($w->{Tree_on}) }],
     '-',
-    [Button => "Zoom ~in",  -command => ['zoom_in', $p]],
+    [Button => "Zoom ~in",  '-accelerator' => 'Ctrl++', -command => ['zoom_in', $p]],
     [Button => "~Normal",   -command => ['zoom_normal', $p]],
-    [Button => "Zoom ~out", -command => ['zoom_out', $p]],
+    [Button => "Zoom ~out", '-accelerator' => 'Ctrl+-', -command => ['zoom_out', $p]],
    ]
   ],
 
@@ -112,6 +112,9 @@ sub Populate
    $w->bind($w->toplevel->PathName, "<$mod-Right>" => [$p, 'history_move', +1]);
   }
 
+ $w->bind($w->toplevel->PathName, "<Control-minus>" => [$p, 'zoom_in']);
+ $w->bind($w->toplevel->PathName, "<Control-plus>" => [$p, 'zoom_out']);
+
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
 }
 
@@ -143,7 +146,7 @@ sub openfile {
 
 sub openpod {
     my($cw,$p) = @_;
-    my $t = $cw->Toplevel(-title => "Set Pod");
+    my $t = $cw->Toplevel(-title => "Open Pod by Name");
     $t->transient($cw);
     $t->grab;
     my($pod, $e, $go);
