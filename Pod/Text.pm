@@ -7,8 +7,8 @@ use strict;
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
   } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
-    eval("sub DEBUG () {$1}");
-    die "WHAT? Couldn't eval-up a DEBUG constant!? $@" if $@;
+    my $debug = $1;
+    *DEBUG = sub () { $debug };
   } else {
     *DEBUG = sub () {0};
   }
@@ -24,7 +24,7 @@ use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.29 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.30 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -366,7 +366,11 @@ sub DoubleClick
    if ($file = $w->findpod($sel)) {
        if (defined $how && $how eq 'new')
 	{
-         $w->MainWindow->Pod('-file' => $sel);
+	 my $tree = eval { $w->parent->cget(-tree) };
+	 my $exitbutton = eval { $w->parent->cget(-exitbutton) };
+         $w->MainWindow->Pod('-file' => $sel,
+			     '-tree' => $tree,
+			     -exitbutton => $exitbutton);
 	}
        else
 	{
@@ -405,8 +409,11 @@ sub Link
   {
    $man = $w->cget('-file') if ($man eq "");
    my $tree = eval { $w->parent->cget(-tree) };
+   my $exitbutton = eval { $w->parent->cget(-exitbutton) };
    my $old_w = $w;
-   my $new_pod = $w->MainWindow->Pod('-tree' => $tree);
+   my $new_pod = $w->MainWindow->Pod('-tree' => $tree,
+				     -exitbutton => $exitbutton,
+				    );
    $new_pod->configure('-file' => $man); # see tkpod for the same problem
 
    $w = $new_pod->Subwidget('pod');
