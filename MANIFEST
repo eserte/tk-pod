@@ -1,3 +1,4 @@
+Changes
 MANIFEST
 MANIFEST.SKIP
 Makefile.PL
@@ -14,4 +15,5 @@ Pod/Text.pm
 Pod/Tree.pm
 t/basic.t
 t/tkpod.t
+t/podtree.t
 tkpod
