@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.1 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.2 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -22,7 +22,7 @@ sub Populate
 
  if (delete $args->{-tree}) {
      require Tk::Pod::Tree;
-     $tree= $w->Scrolled('PodTree', -scrollbars => 'oso'.$Tk::platform eq 'MSWin32'?'e':'w')->packAdjust(-side => "left", -fill => 'y');
+     $tree = $w->Scrolled('PodTree', -scrollbars => 'oso'.($Tk::platform eq 'MSWin32'?'e':'w'))->packAdjust(-side => "left", -fill => 'y');
      $w->Advertise(tree => $tree);
      $tree->Fill;
  }
@@ -45,7 +45,7 @@ sub Populate
   [Cascade => '~File', -menuitems =>
    [
     [Button => '~Open...',   '-command' => ['openfile',$w]],
-    [Button => '~Reload...', '-command' => ['reload',$p]],
+    [Button => '~Reload',    '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
     [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
     [Button => '~Print...',  '-command' => ['Print',$p]],
@@ -140,6 +140,9 @@ sub help {
 
 sub add_section_menu {
     my($pod) = @_;
+
+    my $screenheight = $pod->screenheight;
+
     my $mbar = $pod->Subwidget('menubar');
     my $section = $mbar->Subwidget('section');
     if (defined $section) {
@@ -149,6 +152,7 @@ sub add_section_menu {
                                     '-text' => 'Section',
                                     -underline => 1);
     }
+    my $sectionmenu = $section->menu;
     my $podtext = $pod->Subwidget('pod');
     my $text    = $podtext->Subwidget('more')->Subwidget('text');
 
@@ -160,6 +164,14 @@ sub add_section_menu {
     my $sdef;
     foreach $sdef (@{$podtext->{'sections'}}) {
         my($head, $subject, $pos) = @$sdef;
+
+	# XXX is this necessary on Windows?
+	my @args;
+	if ($sectionmenu &&
+	    $sectionmenu->yposition("last") > $screenheight-40) {
+	    push @args, -columnbreak => 1;
+	}
+
         $section->command
 	  (-label => ("  " x ($head-1)) . $subject,
 	   -command => sub {
@@ -171,6 +183,7 @@ sub add_section_menu {
 	       $text->yview("_section_mark.first");
 	       $text->after(500, [$text, qw/tag remove _section_mark 0.0 end/]);
 	   },
+	   @args,
 	  );
     }
 }
