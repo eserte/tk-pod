@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree);
 
-$VERSION = substr(q$Revision: 1.6 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.7 $ , 10) + 1 . "";
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
@@ -11,7 +11,7 @@ use Tk::Pod;
 use Getopt::Long;
 #require Tk::ErrorDialog;
 
-$tree = 1;
+$tree = 0;
 if (!GetOptions("tk" => \$tk_opt,
 		"tree!" => \$tree,
 	       )) {
@@ -19,10 +19,6 @@ if (!GetOptions("tk" => \$tk_opt,
 Usage:	$0  [-tk] [[-no]tree] [directory]|name [...]
 
 EOT
-}
-
-if (!@ARGV) {
-    push @ARGV, "perl";
 }
 
 # Add 'Tk' subdirectories to search path so, e.g.,
@@ -50,6 +46,19 @@ if (defined($ufont) and defined($sfont)) {
 }
 
 $mw->optionAdd('*Menu.tearOff', $Tk::platform ne 'MSWin32' ? 1 : 0);
+
+if (!@ARGV)
+ {
+  if (!$tree)
+   {
+    push @ARGV, "perl";
+   }
+  else
+   {
+    my $tl = $mw->Pod(-tree => 1);
+    $tl->focus;
+   }
+ }
 
 my $file;
 foreach $file (@ARGV)
@@ -80,7 +89,7 @@ if ($mw->children) {
 } else {
     $mw->destroy;
 }
-
+#$mw->WidgetDump;
 MainLoop;
 
 __END__
