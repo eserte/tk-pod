@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.14 2003/02/10 18:11:38 eserte Exp $
+# $Id: Tree.pm,v 1.15 2003/02/10 18:51:29 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -110,6 +110,15 @@ sub Populate {
     $args->{-separator} = "/";
 
     my $show_command = sub {
+	my($w, $cmd, $ent) = @_;
+
+	my $data = $w->info('data', $ent);
+	if ($data) {
+	    $w->Callback($cmd, $w, $data);
+	}
+    };
+
+    my $show_command_mouse = sub {
 	my $w = shift;
 	my $cmd = shift || '-showcommand';
 
@@ -123,17 +132,30 @@ sub Populate {
 	    return;
 	}
 
-	my $data = $w->info('data', $ent);
-	if ($data) {
-	    $w->Callback($cmd, $w, $data);
-	}
+	$show_command->($w, $cmd, $ent);
     };
 
-    foreach (qw/1 space Return/) {
-	$w->bind("<$_>" => sub { $show_command->(shift) });
+    my $show_command_key = sub {
+	my $w = shift;
+	my $cmd = shift || '-showcommand';
+
+	my($ent) = $w->selectionGet;
+	return unless (defined $ent and length $ent);
+
+	if ($w->info('children', $ent)) {
+	    $w->open($ent);
+	}
+
+	$show_command->($w, $cmd, $ent);
+    };
+
+    $w->bind("<1>" => sub { $show_command_mouse->(shift) });
+    foreach (qw/space Return/) {
+  	$w->bind("<$_>" => sub { $show_command_key->(shift) });
     }
+
     foreach (qw/2 Shift-1/) {
-	$w->bind("<$_>" => sub { $show_command->(shift, '-showcommand2') });
+	$w->bind("<$_>" => sub { $show_command_mouse->(shift, '-showcommand2') });
     }
 
     $w->SUPER::Populate($args);
