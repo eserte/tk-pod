@@ -18,4 +18,5 @@ Pod/Cache.pm
 t/basic.t
 t/tkpod.t
 t/podtree.t
+t/cmdline.t
 tkpod
