@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.4 2001/06/18 18:38:14 eserte Exp $
+# $Id: FindPods.pm,v 1.5 2001/10/26 22:50:37 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -54,8 +54,9 @@ sub init {
 
 The B<pod_find> method scans the current system for available POD
 documentation. The keys of the returned hash are the names of the
-modules or PODs (C<::> substituted by C</>). The values are the
-corresponding filenames.
+modules or PODs (C<::> substituted by C</> --- this makes it easier
+for Tk::Pod::Tree, as the separator may only be of one character). The
+values are the corresponding filenames.
 
 If C<-categorized> is specified, then the returned hash has an extra
 level with three categories: B<perl> (for core language
@@ -103,7 +104,25 @@ sub pod_find {
 	find(\&wanted, $inc);
     }
 
+    #XXX
+    if ($args{-cpan}) {	add_cpan() }
+
     %pods;
+}
+
+# XXX nach .../CPAN.pm auslagern (MANIFEST & RCS nicht vergessen)
+sub add_cpan {
+    require CPAN;
+    for my $mod (CPAN::Shell->expand("Module","/./")) {
+	next if $mod->inst_file;
+	next if $mod->cpan_file =~ /^Contact/;
+        # MakeMaker convention for undefined $VERSION:
+#	next unless $mod->inst_version eq "undef";
+	(my $path = $mod->id) =~ s|::|/|g;
+	do {warn "$path excluded..."; next} if $path =~ m|/$|; # XXX wrong name Audio::Play::, wait for mail from Andreas or Nick
+	# XXX -categorized???
+	$pods{type($mod->id)}->{$path} = "cpan:" . $mod->id; # XXX könnte OK sein
+    }
 }
 
 sub wanted {
@@ -139,7 +158,7 @@ sub wanted {
 		return;
 	    }
 	}
-	$hash->{$name} = $File::Find::name;
+	$hash->{$name} = "file:" . $File::Find::name;
     }
 }
 
@@ -183,6 +202,18 @@ sub guess_architectures {
 	}
     }
     %arch;
+}
+
+sub module_location {
+    my $mod = shift;
+    my($type, $path) = $mod =~ /^([^:]+):(.*)/;
+    if ($type eq 'cpan') {
+	'cpan';
+    } elsif (is_site_module($path)) {
+	'site';
+    } else {
+	'core';
+    }
 }
 
 sub is_site_module {
