@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.9 2003/02/05 14:47:04 eserte Exp $
+# $Id: FindPods.pm,v 1.10 2003/02/05 21:28:36 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -37,7 +37,7 @@ use vars qw($VERSION @EXPORT_OK
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 use File::Spec;
@@ -186,7 +186,7 @@ sub simplify_name {
 sub type {
     local $_ = shift;
     if    (/^perl/) { return "perl" }
-    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook|cgi_to_mod_perl)/)
+    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook|cgi_to_mod_perl|libapreq)/)
 	            { return "pragma" }
     else            { return "mod" }
 }
