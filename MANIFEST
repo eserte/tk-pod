@@ -17,7 +17,6 @@ Pod/Styles.pm
 Pod/Cache.pm
 Pod/Util.pm
 t/basic.t
-t/tkpod.t
 t/podtree.t
 t/cmdline.t
 tkpod
