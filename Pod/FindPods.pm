@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.5 2003/10/15 21:34:53 eserte Exp $
+# $Id: FindPods.pm,v 2.6 2003/10/22 18:58:59 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.6 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -320,6 +320,58 @@ sub _cache_file {
 
 sub pods      { shift->{pods} }
 sub has_cache { shift->{has_cache} }
+
+# Parts stolen from Pod::Perldoc::search_perlfunc
+# Return pod text for given function
+sub function_pod {
+    my($self, $func) = @_;
+
+    my $pod = "";
+
+    my $perlfunc = $self->{pods}{perl}{perlfunc};
+    $perlfunc =~ s{^file:}{};
+    open(PFUNC, "< $perlfunc") or die "Can't open $perlfunc: $!";
+
+    # Functions like -r, -e, etc. are listed under `-X'.
+    my $search_re = ($func =~ /^-[rwxoRWXOeszfdlpSbctugkTBMAC]$/)
+                        ? '(?:I<)?-X' : quotemeta($func) ;
+
+    # Skip introduction
+    local $_;
+    while (<PFUNC>) {
+        last if /^=head2 Alphabetical Listing of Perl Functions/;
+    }
+
+    # Look for our function
+    my $found = 0;
+    my $inlist = 0;
+    while (<PFUNC>) {  # "The Mothership Connection is here!"
+        if ( m/^=item\s+$search_re\W/ )  {
+            $found = 1;
+        }
+        elsif (/^=item/) {
+            last if $found > 1 and not $inlist;
+        }
+        next unless $found;
+        if (/^=over/) {
+            ++$inlist;
+        }
+        elsif (/^=back/) {
+            --$inlist;
+        }
+        $pod .= $_;
+        ++$found if /^\w/;        # found descriptive text
+    }
+    if ($pod eq "") {
+        warn sprintf "No documentation for perl function `%s' found\n", $func;
+    } else {
+	# Fix pod so no warnings are given:
+	$pod = "=over\n\n$pod\n\n=back\n";
+    }
+    close PFUNC                or die "Can't open $perlfunc: $!";
+
+    return $pod;
+}
 
 =head2 WriteCache
 

@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -28,12 +28,11 @@ use vars qw(@ISA);
 sub no_op {return}
 
 sub process { # main routine: non-handler
-  my ($w,$file) = @_;  # window, filename
-  die "WHAT? Null filename?" unless defined $file and length $file;
-  die "WHAT? Non-existent $file" unless -e $file and -f $file;
+  my ($w,$file_or_textref, $title) = @_;  # window, filename or string ref, title (optional)
 
   my $p = $w->{'pod_parser'} = Pod::Simple::PullParser->new;
-  $p->set_source($file);
+  $p->set_source($file_or_textref);
+  my $file = !ref $file_or_textref && $file_or_textref;
 
   $w->toplevel->Busy;
   $w->init_styles;
@@ -49,8 +48,8 @@ sub process { # main routine: non-handler
 
   my @pod_marks;
 
-  DEBUG and warn "Pull-parsing $file (process number $process_no)\n";
-  $w->{'pod_title'} = $p->get_short_title || $file;
+  DEBUG and $file and warn "Pull-parsing $file (process number $process_no)\n";
+  $w->{'pod_title'} = $p->get_short_title || $title || $file;
 
   my($token, $tagname, $style);
   my $last_update = Tk::timeofday();
@@ -108,7 +107,7 @@ sub process { # main routine: non-handler
 
   undef $p;
   delete $w->{'pod_parser'};
-  DEBUG and warn "Done rendering $file\n";
+  DEBUG and $file and warn "Done rendering $file\n";
 
   $w->parent->add_section_menu if $w->parent->can('add_section_menu');
   $w->Callback('-poddone', $file);

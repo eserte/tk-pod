@@ -21,6 +21,7 @@ if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
 WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk'             => 800.004,
 			     'Pod::Simple'    => 0,
+			     'File::Temp'     => 0,
 			     # the following are really only COREQUISITES
 	                     'Text::English'  => 0,
 			     'Tk::HistEntry'  => 0.40,

@@ -35,6 +35,13 @@ background colors
 maybe special handling for Tk::Pod::FindPods under Mac OS X is
 necessary (pod directory is /System/Library/Perl/pods)
 
+=item *
+
+Correct title is not displayed if function pod in displayed in a new
+window or when navigating in the history back or forward to a function
+pod.
+
+
 =back
 
 =head3 Tk::Pod::Cache
@@ -135,7 +142,7 @@ implement isearch
 
 =item *
 
-use a LRU cache
+use a LRU cache with $MAX_CACHE documents
 
 =item *
 
