@@ -23,8 +23,9 @@ use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
 use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
-use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.33 $, 10) + 1 . "";
+use vars qw($VERSION @ISA @POD $IDX
+	    @tempfiles @gv_pids);
+$VERSION = substr(q$Revision: 3.34 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -243,13 +244,13 @@ sub zoom_normal {
 }
 
 # XXX should use different increments for different styles
-sub zoom_in {
+sub zoom_out {
     my $w = shift;
     $w->adjust_font_size($w->base_font_size-1);
     $w->clear_cache;
 }
 
-sub zoom_out {
+sub zoom_in {
     my $w = shift;
     $w->adjust_font_size($w->base_font_size+1);
     $w->clear_cache;
@@ -631,9 +632,18 @@ sub Print {
 	my $gv = is_in_path("gv") || is_in_path("ghostview") || is_in_path("XXXggv") || is_in_path("kghostview");
 	if ($gv) {
 	    my $temp = POSIX::tmpnam();
-	    # XXX $temp is never deleted...
 	    system("pod2man $path | groff -man -Tps > $temp");
-	    system("$gv $temp &");
+	    push @tempfiles, $temp;
+	    my $pid = fork;
+	    if (!defined $pid) {
+		die "Can't fork: $!";
+	    }
+	    if ($pid == 0) {
+		exec($gv, $temp);
+		warn "Exec of $gv $temp failed: $!";
+		CORE::exit(1);
+	    }
+	    push @gv_pids, $pid;
 	    return;
 	}
     }
@@ -689,6 +699,7 @@ sub Print_MSWin {
   return;
 }
 
+sub PrintHasDialog { $^O ne 'MSWin32' }
 
 # Return $first and $last indices of the word under $index
 sub _word_under_index {
@@ -867,6 +878,26 @@ sub history_view_select {
 	my $lb = $t->Subwidget('Lb');
 	$lb->selectionClear(0, "end");
 	$lb->selectionSet($w->privateData()->{history_index});
+    }
+}
+
+END {
+    if (@tempfiles) {
+	my $gv_running;
+	for my $pid (@gv_pids) {
+	    if (kill 0 => $pid) {
+		$gv_running = 1;
+		last;
+	    }
+	}
+
+	if ($gv_running) {
+	    warn "A ghostscript process is still running, do not delete temporary files: @tempfiles\n";
+	} else {
+	    for my $temp (@tempfiles) {
+		unlink $temp;
+	    }
+	}
     }
 }
 
