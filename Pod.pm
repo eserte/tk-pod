@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.10 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.11 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -172,8 +172,15 @@ sub help {
 }
 
 sub about {
-    shift->messageBox(-icon => "info",
-		      -message => "Tk::Pod $VERSION\nPlease contact <slaven.rezic\@berlin.de>\nin case of problems."
+    shift->messageBox(-title => "About Tk::Pod",
+                      -icon => "info",
+		      -message => join "\n",
+		        "Tk::Pod $VERSION",
+		        $Pod::Simple::VERSION
+		          ? "(Using Pod::Simple $Pod::Simple::VERSION)"
+		          : (),
+		        "Please contact <slaven.rezic\@berlin.de>",
+		        "in case of problems.",
 		     );
 }
 
@@ -203,7 +210,7 @@ sub add_section_menu {
 
     my $sdef;
     foreach $sdef (@{$podtext->{'sections'}}) {
-        my($head, $subject, $pos) = @$sdef;
+        my($head_level, $subject, $pos) = @$sdef;
 
 	my @args;
 	if ($sectionmenu &&
@@ -212,7 +219,7 @@ sub add_section_menu {
 	}
 
         $sectionmenu->command
-	  (-label => ("  " x ($head-1)) . $subject,
+	  (-label => ("  " x ($head_level-1)) . $subject,
 	   -command => sub {
 	       my($line) = split(/\./, $pos);
 	       $text->tag('remove', '_section_mark', qw/0.0 end/);
@@ -291,6 +298,7 @@ sub _configure_tree {
 		     $asked++;
 		     $w->messageBox
 			 (-message => "Look into CPAN module $modid?",
+			  -title => "Tk::Pod and CPAN $modid",
 			  -type => 'YesNo',
 			  -icon => 'question') =~ /yes/i
 		      };
@@ -406,9 +414,9 @@ Tk::Pod - POD browser toplevel widget
     Tk::Pod->Dir(@dirs)			# add dirs to search path for POD
 
     $pod = $parent->Pod(
+		-file = > $name,	# search and display POD for name
 		-tree = > $bool		# display pod file tree
 		);
-    $pod->configure(-file = > $name);  # search and display POD for name
 
 
 =head1 DESCRIPTION
