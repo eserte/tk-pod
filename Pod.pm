@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.35 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.36 $, 10) + 2 . "";
 $DIST_VERSION = "0.9927_99";
 
 @ISA = qw(Tk::Toplevel);
@@ -322,28 +322,13 @@ sub openpod {
 	$t->destroy;
     }
 
-    my %pod_args = ('-file' => $pod);
-    if (defined $pod && $pod =~ /^-(f|q)\s+(.+)/) {
+    my %pod_args;
+    if (defined $pod && $pod =~ /^(-[fq])\s+(.+)/) {
 	my $switch = $1;
 	my $func = $2;
-	my $func_pod = "";
-	open(FUNCPOD, "-|") or do {
-	    exec "perldoc", "-u", "-$switch", $func;
-	    warn "Can't execute perldoc: $!";
-	    CORE::exit(1);
-	};
-	local $/ = undef;
-	$func_pod = join "", <FUNCPOD>;
-	close FUNCPOD;
-	if ($func_pod ne "") {
-	    delete $pod_args{'-file'};
-	    $pod_args{'-text'}  = $func_pod;
-	    if ($switch eq "f") {
-		$pod_args{'-title'} = "Function $func";
-	    } else {
-		$pod_args{'-title'} = "FAQ $func";
-	    }
-	}
+	%pod_args = $cw->getpodargs($switch, $func);
+    } else {
+	%pod_args = $cw->getpodargs($pod);
     }
 
     if (defined $pod && $pod ne "") {
@@ -357,6 +342,35 @@ sub openpod {
 	    $new_cw->configure(%pod_args);
 	}
     }
+}
+
+sub getpodargs {
+    my($cw, @args) = @_;
+    my @pod_args;
+    if (@args == 1) {
+	@pod_args = ('-file' => $args[0]);
+    } elsif (@args == 2 && $args[0] =~ /^-([fq])$/) {
+	my $switch = $1;
+	my $func = $args[1];
+	my $func_pod = "";
+	open(FUNCPOD, "-|") or do {
+	    exec "perldoc", "-u", "-$switch", $func;
+	    warn "Can't execute perldoc: $!";
+	    CORE::exit(1);
+	};
+	local $/ = undef;
+	$func_pod = join "", <FUNCPOD>;
+	close FUNCPOD;
+	if ($func_pod ne "") {
+	    push @pod_args, '-text' => $func_pod;
+	    if ($switch eq "f") {
+		push @pod_args, '-title' => "Function $func";
+	    } else {
+		push @pod_args, '-title' => "FAQ $func";
+	    }
+	}
+    }
+    @pod_args;
 }
 
 sub newwindow {
