@@ -17,7 +17,7 @@ WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk' => 800, 'Text::English' => 0 },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
-	'VERSION'	=> '0.99_04',
+	'VERSION'	=> '0.99_06',
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
@@ -25,3 +25,13 @@ WriteMakefile(
 
         'dist'		=> {'COMPRESS'=>'gzip -9', 'SUFFIX'=>'.gz'}, 
 );
+
+sub MY::postamble {
+	if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
+		<<'EOF';
+release :: dist
+	cpan-upload $(DISTVNAME).tar$(SUFFIX)
+
+EOF
+	}
+}

@@ -229,7 +229,7 @@ sub Populate
 	   ($Tk::VERSION > 800.015 && $p->can('ViewMenuItems') ? (-menuitems => $p->ViewMenuItems) : ()),
 	  ]
 	 ]);
-    $p->menu($m);
+    eval { $p->menu($m) }; warn $@ if $@;
 
     $w->Delegates(DEFAULT => $p,
 		  'SearchFullText' => 'SELF',

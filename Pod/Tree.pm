@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.9 2001/10/26 22:57:59 eserte Exp $
+# $Id: Tree.pm,v 1.10 2002/02/21 09:18:27 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -90,7 +90,8 @@ sub Dir {
 sub ClassInit {
     my ($class,$mw) = @_;
     $class->SUPER::ClassInit($mw);
-    $mw->bind($class, '<3>', ['PostPopupMenu', Ev('X'), Ev('Y')]  );
+    $mw->bind($class, '<3>', ['PostPopupMenu', Ev('X'), Ev('Y')]  )
+	if $Tk::VERSION > 800.014;
 }
 
 sub Populate {
@@ -134,7 +135,7 @@ sub Populate {
     $w->{Style}{'folder'} = $w->ItemStyle('imagetext', -foreground => '#606060');
 
     my $m = $w->Menu(-tearoff => $Tk::platform ne 'MSWin32');
-    $w->menu($m);
+    eval { $w->menu($m) }; warn $@ if $@;
     $m->command(-label => 'Reload', -command => sub {
 		    $w->Busy(-recurse => 1);
 		    eval {

@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree);
 
-$VERSION = substr(q$Revision: 1.7 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.8 $ , 10) + 1 . "";
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
@@ -32,7 +32,7 @@ if ($tk_opt) {
 }
 
 my $mw = MainWindow->new();
-#eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
+eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
 $mw->withdraw;
 
 # CDE use Font Settings if available
@@ -56,7 +56,7 @@ if (!@ARGV)
   else
    {
     my $tl = $mw->Pod(-tree => 1);
-    $tl->focus;
+    $tl->focusNext;
    }
  }
 
@@ -70,7 +70,7 @@ foreach $file (@ARGV)
   else
    {
     my $tl = $mw->Pod(-file => $file, -tree => $tree);
-    $tl->focus;
+    $tl->focusNext;
    }
  }
 

@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.4 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.5 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -32,7 +32,8 @@ sub Populate
 
   [Cascade => '~File', -menuitems =>
    [
-    [Button => '~Open...',   '-command' => ['openfile',$w]],
+    [Button => '~Open File...', '-command' => ['openfile',$w]],
+    [Button => '~Set Pod...', '-command' => ['openpod',$w,$p]],
     [Button => '~Reload',    '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
     [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
@@ -123,6 +124,29 @@ sub openfile {
 	$file = $fsbox->Show();
     }
     $cw->configure(-file => $file) if defined $file && -r $file;
+}
+
+sub openpod {
+    my($cw,$p) = @_;
+    my $t = $cw->Toplevel;
+    $t->transient($cw);
+    $t->grab;
+    $t->Label(-text => "POD:")->pack(-side => "left");
+    my $pod;
+    my $e = $t->Entry(-textvariable => \$pod)->pack(-side => "left");
+    $e->focus;
+    my $go = 0;
+    $e->bind("<Return>" => sub { $go = 1 });
+    $e->bind("<Escape>" => sub { $go = -1 });
+    $t->Button(-text => "OK",
+	       -command => sub { $go = 1 })->pack(-side => "left");
+    $t->OnDestroy(sub { $go = -1 unless $go });
+    $t->waitVariable(\$go);
+    $t->grabRelease;
+    $t->destroy;
+    if ($go == 1 && $pod ne "") {
+	$cw->configure(-file => $pod);
+    }
 }
 
 sub Dir {
