@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.6 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.7 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -128,11 +128,7 @@ sub edit
     {
      # VISUAL and EDITOR are supposed to have a terminal, but tkpod can
      # be started without a terminal.
-     my $isatty;
-     if (eval { require POSIX; 1 })
-      {
-       $isatty = (POSIX::isatty(\*STDOUT) && POSIX::isatty(\*STDIN));
-      }
+     my $isatty = is_interactive();
      $edit = $ENV{XEDITOR} || ($isatty
 			       ? ($ENV{VISUAL} || $ENV{'EDITOR'} || 'vi')
 			       : 'ptked');
@@ -881,6 +877,23 @@ sub is_in_path {
     undef;
 }
 # REPO END
+
+sub is_interactive {
+    if ($^O eq 'MSWin32' || !eval { require POSIX; 1 }) {
+	# fallback
+	return -t STDIN && -t STDOUT;
+    }
+
+    # from perlfaq8
+    open(TTY, "/dev/tty") or die $!;
+    my $tpgrp = POSIX::tcgetpgrp(fileno(*TTY));
+    my $pgrp = getpgrp();
+    if ($tpgrp == $pgrp) {
+	1;
+    } else {
+	0;
+    }
+}
 
 1;
 
