@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.10 2003/11/09 22:16:06 eserte Exp $
+# $Id: FindPods.pm,v 2.11 2003/11/09 22:17:59 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.11 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -283,7 +283,6 @@ sub guess_architectures {
 	    next if !-d File::Spec->catdir($inc, $base);
 	    my $cfgpm = File::Spec->catfile($inc, $base, "Config.pm");
 	    if (-r $cfgpm) {
-		warn $cfgpm;
 		push @configs, $cfgpm;
 	    }
 	}
