@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.3 2001/06/16 15:17:49 eserte Exp $
+# $Id: Tree.pm,v 1.4 2001/06/16 15:52:58 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -16,7 +16,7 @@ package Tk::Pod::Tree;
 
 use strict;
 use vars qw($VERSION @ISA @POD %pods $pods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -36,12 +36,28 @@ sub Populate {
     my($w,$args) = @_;
 
     $args->{-separator} = "/";
-    $args->{-command} = sub {
-	my $data = $w->info('data', $_[0]);
+
+    my $show_command = sub {
+	my $w = shift;
+	my $cmd = shift || '-showcommand';
+
+	my $Ev = $w->XEvent;
+
+	my $ent = $w->GetNearest($Ev->y, 1);
+	return unless (defined($ent) and length($ent));
+
+	my $data = $w->info('data', $ent);
 	if ($data) {
-	    $w->Callback(-showcommand => $w, $data);
+	    $w->Callback($cmd, $w, $data);
 	}
     };
+
+    foreach (qw/1 space Return/) {
+	$w->bind("<$_>" => sub { $show_command->(shift) });
+    }
+    foreach (qw/2 Shift-1/) {
+	$w->bind("<$_>" => sub { $show_command->(shift, '-showcommand2') });
+    }
 
     $w->SUPER::Populate($args);
 
@@ -50,8 +66,9 @@ sub Populate {
     $w->{FolderIS} = $w->ItemStyle('imagetext', -foreground => '#606060');
 
     $w->ConfigSpecs(
-	-showcommand => ['CALLBACK', undef, undef, undef],
-	-usecache    => ['PASSIVE', undef, undef, 1],
+	-showcommand  => ['CALLBACK', undef, undef, undef],
+	-showcommand2 => ['CALLBACK', undef, undef, undef],
+	-usecache     => ['PASSIVE', undef, undef, 1],
     );
 }
 
