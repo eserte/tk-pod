@@ -1,5 +1,10 @@
 History for Tk::Pod
 
+version 0.9926
+	o changed search order: .pod files first, then .pm, .pl and
+	  extension-less files
+	o new test t/pods.t
+
 version 0.9925
 	o Tk::Pod::FindPods: using opendir/readdir instead of glob
 
