@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.12 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.13 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -565,8 +565,6 @@ sub verbatim
  $w->insert('end -1c',$body . "\n\n",['verbatim']);
 }
 
-my $num;
-
 sub head1
 {
  my ($w,$title) = @_;
@@ -575,7 +573,6 @@ sub head1
 # my $tag = "title";
  my $tag = $title;
  $w->append($title);
- $num = 2 unless (defined $num);
  $w->tag('add',$tag,$start,'end -1c');
  $w->tag('configure',$tag,-font => $w->Font(family => 'times',
          weight => 'bold',size => 180));
@@ -840,6 +837,7 @@ sub history_view {
     my $t = $w->privateData()->{'history_view_toplevel'};
     if (!$t || !Tk::Exists($t)) {
 	$t = $w->Toplevel(-title => 'History');
+	$t->transient($w);
 	$w->privateData()->{'history_view_toplevel'} = $t;
 	my $lb = $t->Scrolled("Listbox", -scrollbars => 'oso'.($Tk::platform eq 'MSWin32'?'e':'w'))->pack(-fill => "both", '-expand' => 1);
 	$t->Advertise(Lb => $lb);
