@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.34 $, 10) + 2 . "";
-$DIST_VERSION = "0.9926_99";
+$VERSION = substr(q$Revision: 2.35 $, 10) + 2 . "";
+$DIST_VERSION = "0.9927_99";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -196,6 +196,10 @@ EOF
     ($ENV{'TKPODDEBUG'}
      ? ('-',
 	[Button => 'WidgetDump', -command => sub { $w->WidgetDump }],
+	(defined &Tk::App::Reloader::reload_new_modules
+	 ? [Button => 'Reloader', -command => sub { Tk::App::Reloader::reload_new_modules() }]
+	 : ()
+	),
        )
      : ()
     ),
@@ -211,6 +215,8 @@ EOF
  $w->ConfigSpecs(
     -tree => ['METHOD', 'tree', 'Tree', 0],
     -exitbutton => ['PASSIVE', 'exitButton', 'ExitButton', $exitbutton],
+    -background => ['PASSIVE'], # XXX see comment in Tk::More
+    -cursor => ['CHILDREN'],
     'DEFAULT' => [$p],
  );
 
@@ -290,6 +296,13 @@ sub openpod {
 
     {
 	my $f = $t->Frame->pack;
+	Tk::grid($f->Label(-text => "Use 'Module::Name' for module documentation"), -sticky => "w");
+	Tk::grid($f->Label(-text => "Use '-f function' for function documentation"), -sticky => "w");
+	Tk::grid($f->Label(-text => "Use '-q terms' for FAQ entries"), -sticky => "w");
+    }
+
+    {
+	my $f = $t->Frame->pack;
 	$f->Button(-text => "OK",
 		   -command => sub { $go = 1 })->pack(-side => "left");
 	$f->Button(-text => "New window",
@@ -308,15 +321,40 @@ sub openpod {
 	$t->grabRelease;
 	$t->destroy;
     }
+
+    my %pod_args = ('-file' => $pod);
+    if (defined $pod && $pod =~ /^-(f|q)\s+(.+)/) {
+	my $switch = $1;
+	my $func = $2;
+	my $func_pod = "";
+	open(FUNCPOD, "-|") or do {
+	    exec "perldoc", "-u", "-$switch", $func;
+	    warn "Can't execute perldoc: $!";
+	    CORE::exit(1);
+	};
+	local $/ = undef;
+	$func_pod = join "", <FUNCPOD>;
+	close FUNCPOD;
+	if ($func_pod ne "") {
+	    delete $pod_args{'-file'};
+	    $pod_args{'-text'}  = $func_pod;
+	    if ($switch eq "f") {
+		$pod_args{'-title'} = "Function $func";
+	    } else {
+		$pod_args{'-title'} = "FAQ $func";
+	    }
+	}
+    }
+
     if (defined $pod && $pod ne "") {
 	if ($go == 1) {
-	    $cw->configure(-file => $pod);
+	    $cw->configure(%pod_args);
 	} elsif ($go == 2) {
 	    my $new_cw = $cw->MainWindow->Pod
 		('-tree' => $cw->cget(-tree),
 		 -exitbutton => $cw->cget(-exitbutton),
 		);
-	    $new_cw->configure('-file' => $pod);
+	    $new_cw->configure(%pod_args);
 	}
     }
 }
@@ -347,14 +385,18 @@ sub help {
 
 sub about {
     my $message = <<EOF;
+This is:
 Tk-Pod distribution $DIST_VERSION
 Tk::Pod module $VERSION
-(Using Tk $Tk::VERSION@{[ $Pod::Simple::VERSION
-			  ? " and Pod::Simple $Pod::Simple::VERSION"
+
+Using:
+@{[ $Pod::Simple::VERSION ? "Pod::Simple $Pod::Simple::VERSION\n"
 			  : ""
-			]}
-on $^O)
-Please contact <slaven\@rezic.de>
+]}Tk $Tk::VERSION
+Perl $]
+OS $^O
+
+Please contact <srezic\@cpan.org>
 in case of problems.
 EOF
     $_[0]->messageBox(-title   => "About Tk::Pod",
