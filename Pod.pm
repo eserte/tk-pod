@@ -4,13 +4,13 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.21 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.22 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
 Construct Tk::Widget 'Pod';
 
-my $history;
+my $openpod_history;
 
 sub Populate
 {
@@ -158,8 +158,8 @@ sub openpod {
 	my $f = $t->Frame->pack(-fill => "x");
 	$f->Label(-text => "Pod:")->pack(-side => "left");
 	$e = $f->$Entry(-textvariable => \$pod)->pack(-side => "left", -fill => "x", -expand => 1);
-	if ($e->can('history') && $history) {
-	    $e->history($history);
+	if ($e->can('history') && $openpod_history) {
+	    $e->history($openpod_history);
 	}
 	$e->focus;
 	$go = 0;
@@ -182,7 +182,7 @@ sub openpod {
     if (Tk::Exists($t)) {
 	if ($pod ne "" && $go > 0 && $e->can('historyAdd')) {
 	    $e->historyAdd($pod);
-	    $history = [ $e->history ];
+	    $openpod_history = [ $e->history ];
 	}
 	$t->grabRelease;
 	$t->destroy;
