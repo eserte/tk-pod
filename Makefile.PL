@@ -37,11 +37,19 @@ WriteMakefile(
 );
 
 sub MY::postamble {
+    my $postamble = <<'EOF';
+demo :: pure_all
+	$(FULLPERL) -w -Mblib tkpod -tree -nodebug
+
+EOF
+
     if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
-	<<'EOF';
+	$postamble .= <<'EOF';
 release :: $(DISTVNAME).tar$(SUFFIX)
 	cpan-upload $(DISTVNAME).tar$(SUFFIX)
 
 EOF
     }
+
+    $postamble;
 }
