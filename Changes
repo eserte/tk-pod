@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9915
+	o use Tk::HistEntry in fulltext search dialog, if available
+
 version 0.9914
 	o changed email address
 	o first non-development 0.99* version
