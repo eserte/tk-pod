@@ -79,6 +79,11 @@ option for interleaving POD and code
 show "No documentation found for "..."" if there's no pod in the file
 (just like perldoc)
 
+=item *
+
+maybe you something selectable and copyable (e.g. Tk::ROText) in the
+About dialog
+
 =back
 
 =head3 Tk::More
