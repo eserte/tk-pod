@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Tk::Frame;
@@ -40,7 +40,7 @@ sub Populate {
     my $s = $f->Label();
 
     $l->pack(-fill=>'both', -side=>'top',  -expand=>1);
-    $f->pack(-fill => "x", -expand => 1, -side => "top");
+    $f->pack(-fill => "x", -side => "top");
     $s->pack(-anchor => 'e', -side=>'left');
     $e->pack(-fill=>'x', -side=>'left', -expand=>1);
 
