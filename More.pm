@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 1.2 $, 10) . "";
+$VERSION = substr(q$Revision: 1.3 $, 10) . "";
 
 use Tk::Derived;
 use Tk::Frame;
@@ -293,6 +293,8 @@ more(1)
 =head1 AUTHOR
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
+
+Currently maintained by Slaven Rezic <F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program is
 free software; you can redistribute it and/or modify it under the same

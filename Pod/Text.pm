@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 1.2 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.3 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -873,8 +873,7 @@ Other POD docu: Tk::Font, Tk::BrowseEntry
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Code currently maintained by Achim Bohnet <F<ach@mpe.mpg.de>>.
-Please send bug reports to <F<ptk@lists.stanford.edu>>.
+Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

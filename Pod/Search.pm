@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 1.1 $, 10 . "";
+$VERSION = substr q$Revision: 1.2 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -212,6 +212,8 @@ widget, tk, pod, search, full text
 =head1 AUTHOR
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
+
+Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
