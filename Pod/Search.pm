@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.6 $, 10 . "";
+$VERSION = substr q$Revision: 2.7 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -127,7 +127,7 @@ sub _search {
 	$l->see(0);
 	$l->activate(0);
     } else {
-	my $msg = "No POD documentation in Library matches: '$find'";
+	my $msg = "No Pod documentation in Library matches: '$find'";
 	$e->messageBox(-icon => "error",
 		       -title => "No match",
 		       -message => $msg);
@@ -169,7 +169,7 @@ __END__
 
 =head1 NAME
 
-Tk::Pod::Search - Widget to access perlindex POD full text index
+Tk::Pod::Search - Widget to access perlindex Pod full text index
 
 =for section General Purpose Widget
 
@@ -184,7 +184,7 @@ Tk::Pod::Search - Widget to access perlindex POD full text index
 
 =head1 DESCRIPTION
 
-GUI interface to the full POD text indexer B<perlindex>.
+GUI interface to the full Pod text indexer B<perlindex>.
 
 =head1 OPTIONS
 
@@ -205,7 +205,7 @@ Expects a list of words (or a whitespace seperated list).
 =item B<Option:> -command
 
 Defines a call back that is called when the use selects
-a POD file. It gets the full path name of the POD file
+a Pod file. It gets the full path name of the Pod file
 as argument.
 
 =back

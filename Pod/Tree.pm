@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.17 2003/02/11 11:17:33 eserte Exp $
+# $Id: Tree.pm,v 1.18 2003/02/11 11:37:06 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -16,7 +16,7 @@ package Tk::Pod::Tree;
 
 =head1 NAME
 
-Tk::Pod::Tree - list POD file hierarchy
+Tk::Pod::Tree - list Pod file hierarchy
 
 
 =head1 SYNOPSIS
@@ -31,30 +31,30 @@ Tk::Pod::Tree - list POD file hierarchy
 
 =item Name: B<-showcommand>
 
-Specifies a callback for selecting a POD module (Button-1 binding).
+Specifies a callback for selecting a Pod module (Button-1 binding).
 
 =item Name: B<-showcommand2>
 
-Specifies a callback for selecting a POD module in a different window
+Specifies a callback for selecting a Pod module in a different window
 (Button-2 binding).
 
 =item Name: B<-usecache>
 
-True, if a cache of POD modules should be created and used. The
+True, if a cache of Pod modules should be created and used. The
 default is true.
 
 =back
 
 =head1 DESCRIPTION
 
-The B<Tk::Pod::Tree> widget shows all available Perl POD documentation
+The B<Tk::Pod::Tree> widget shows all available Perl Pod documentation
 in a tree.
 
 =cut
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -214,10 +214,10 @@ sub cpan {
 
 =item I<$tree>-E<gt>B<Fill>(?I<-nocache =E<gt> 1>?)
 
-Find POD modules and fill the tree widget. If I<-nocache> is
+Find Pod modules and fill the tree widget. If I<-nocache> is
 specified, then no cache will be used for loading.
 
-A cache of POD modules is written unless the B<-usecache>
+A cache of Pod modules is written unless the B<-usecache>
 configuration option of the widget is set to false.
 
 =cut
