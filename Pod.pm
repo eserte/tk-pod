@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.15 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 1.1 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 

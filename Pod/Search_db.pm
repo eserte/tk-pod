@@ -14,7 +14,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 1.4 $, 10) . "";
+$VERSION = substr(q$Revision: 1.1 $, 10) . "";
 
 use Carp;
 use Fcntl;

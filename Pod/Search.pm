@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 1.3 $, 10 . "";
+$VERSION = substr q$Revision: 1.1 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
