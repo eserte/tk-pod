@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = substr(q$Revision: 2.33 $, 10) + 2 . "";
-$DIST_VERSION = "0.9926";
+$VERSION = substr(q$Revision: 2.34 $, 10) + 2 . "";
+$DIST_VERSION = "0.9926_99";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -193,6 +193,12 @@ EOF
     [Button => '~Usage...',       -command => ['help', $w]],
     [Button => '~Programming...', -command => sub { $w->parent->Pod(-file=>'Tk/Pod.pm', -exitbutton => $w->cget(-exitbutton)) }],
     [Button => '~About...', -command => ['about', $w]],
+    ($ENV{'TKPODDEBUG'}
+     ? ('-',
+	[Button => 'WidgetDump', -command => sub { $w->WidgetDump }],
+       )
+     : ()
+    ),
    ]
   ]
  ];
