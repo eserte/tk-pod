@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.16 2003/02/10 22:35:14 eserte Exp $
+# $Id: Tree.pm,v 1.17 2003/02/11 11:17:33 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -69,8 +69,8 @@ BEGIN { @POD = @INC }
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
   } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
-    eval("sub DEBUG () {$1}");
-    die "WHAT? Couldn't eval-up a DEBUG constant!? $@" if $@;
+    my $debug = $1;
+    *DEBUG = sub () { $debug };
   } else {
     *DEBUG = sub () {0};
   }
