@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.1 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.2 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -150,7 +150,7 @@ sub edit
 
 sub Populate
 {
- my ($w,$args) = @_;
+    my ($w,$args) = @_;
 
     require Tk::More;
 
@@ -160,29 +160,32 @@ sub Populate
     $w->privateData()->{history_index} = -1;
 
     my $p = $w->Scrolled('More', -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w');
-    $w->Advertise('more' => $p->Subwidget('more'));
+    my $p_scr = $p->Subwidget('more');
+    $w->Advertise('more' => $p_scr);
     $p->pack(-expand => 1, -fill => 'both');
+
     # XXX Subwidget stuff needed because Scrolled does not
     #     delegate bind, bindtag to the scrolled widget. Tk402.* (and before?)
     #	  (patch posted and included in Tk402.004)
-    $p->Subwidget('scrolled')->bind('<Double-1>',      [$w, 'DoubleClick']);
-    $p->Subwidget('scrolled')->bind('<Shift-Double-1>',[$w, 'ShiftDoubleClick']);
+    $p_scr->bindtags([$p_scr, $p_scr->bindtags]);
+    $p_scr->bind('<Double-1>',       sub  { $w->DoubleClick($_[0]) });#[$w, 'DoubleClick']);
+    $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });#[$w, 'ShiftDoubleClick', $_[0]]);
 
- $p->configure(-font => $w->Font(family => 'courier'));
- $p->tag('configure','text', -font => $w->Font(family => 'times'));
- $p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
- $p->tag('configure','S',-font => $w->Font(family=>'courier',   weight=>'bold',   slant => 'o'));
- $p->tag('configure','B',-font => $w->Font(family=>'times',     weight=>'bold',               ));
- $p->tag('configure','I',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
- $p->tag('configure','S',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
- $p->tag('configure','F',-font => $w->Font(family=>'helvetica', weight=>'bold',               ));
- $p->insert('0.0',"\n");
+    $p->configure(-font => $w->Font(family => 'courier'));
+    $p->tag('configure','text', -font => $w->Font(family => 'times'));
+    $p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
+    $p->tag('configure','S',-font => $w->Font(family=>'courier',   weight=>'bold',   slant => 'o'));
+    $p->tag('configure','B',-font => $w->Font(family=>'times',     weight=>'bold',               ));
+    $p->tag('configure','I',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
+    $p->tag('configure','S',-font => $w->Font(family=>'times',     weight=>'medium', slant => 'i'));
+    $p->tag('configure','F',-font => $w->Font(family=>'helvetica', weight=>'bold',               ));
+    $p->insert('0.0',"\n");
 
- $w->{List}   = []; # stack of =over
- $w->{Item}   = undef;
- $w->{'indent'} = 0;
- $w->{Length}  = 64;
- $w->{Indent}  = {}; # tags for various indents
+    $w->{List}   = []; # stack of =over
+    $w->{Item}   = undef;
+    $w->{'indent'} = 0;
+    $w->{Length}  = 64;
+    $w->{Indent}  = {}; # tags for various indents
 
     my $m = $p->Menu(-tearoff => $Tk::platform ne 'MSWin32');
     $p->Subwidget('scrolled')->bind('<Button-3>', sub {
@@ -227,36 +230,34 @@ sub Font
  return $name;
 }
 
-sub ShiftDoubleClick
-{
- my ($w) = @_;
- my $sel = $w->SelectionGet;
- if (defined $sel)
-  {
-   my $file;
-   if ($file = $w->findpod($sel)) {
-       $w->MainWindow->Pod('-file' => $sel);
-   } else {
-       $w->messageBox(-message => "No POD documentation found for '$sel'\n");
-       die;
-   }
-  }
+sub ShiftDoubleClick {
+    shift->DoubleClick(shift, 'new');
 }
 
 sub DoubleClick
 {
- my ($w) = @_;
+ my ($w,$ww,$how) = @_;
+ my $Ev = $ww->XEvent;
+ $w->SelectToModule($Ev->xy);
  my $sel = $w->SelectionGet;
  if (defined $sel)
   {
    my $file;
    if ($file = $w->findpod($sel)) {
-       $w->configure('-file'=>$file);
+       if (defined $how && $how eq 'new')
+	{
+         $w->MainWindow->Pod('-file' => $sel);
+	}
+       else
+	{
+         $w->configure('-file'=>$file);
+        }
    } else {
        $w->messageBox(-message => "No POD documentation found for '$sel'\n");
        die;
    }
   }
+ Tk->break;
 }
 
 sub Link
@@ -271,8 +272,16 @@ sub Link
  my $l = Pod::Hyperlink->new($link);
  if ($l->type eq 'hyperlink')
   {
-   $w->messageBox(-message => 'Hyperlinks are not supported (yet)');
-   die;
+   if (eval { push @INC, "/home/e/eserte/lib/perl" if -d "/home/e/eserte/lib/perl"; require WWWBrowser; 1 }) # XXX bundle WWWBrowser with Tk::Pod
+    {
+     WWWBrowser::start_browser($l->node);
+    }
+   else
+    {
+     $w->messageBox(-message => 'Hyperlinks are not supported (yet)');
+     die;
+    }
+   return;
   }
 
  my $man = $l->page;
@@ -369,6 +378,23 @@ sub Print {
     }
     $w->messageBox(-message => "Can't print on your system.\nEither pod2man, groff,\ngv or ghostview are missing.");
     die;
+}
+
+sub SelectToModule {
+    my($w, $index)= @_;
+    my $cur = $w->index($index);
+    my ($first,$last);
+    $first = $w->search(qw/-backwards -regexp --/, '[^\w:]', $index, "$index linestart");
+    $first = $w->index("$index linestart") unless $first;
+    $last  = $w->search(qw/-regexp --/, '[^\w:]', $index, "$index lineend");
+    $last  = $w->index("$index lineend") unless $last;
+
+    if ($first && $last) {
+	$w->tagRemove('sel','1.0',$first);
+	$w->tagAdd('sel',$first,$last);
+	$w->tagRemove('sel',$last,'end');
+	$w->idletasks;
+    }
 }
 
 # '<' and '>' have been replaced with \x7f because E<..> have been
