@@ -18,11 +18,11 @@ use Carp;
 use Config;
 use Tk::Frame;
 use Tk::Pod;
-use Tk::Parse;
+#XXX del: use Tk::Parse;
 use Tk::Pod::SimpleBridge;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.16 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.17 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge);
 
 BEGIN { DEBUG and print "Running ", __PACKAGE__, "\n" }
@@ -93,21 +93,31 @@ sub findpod {
 	);
 	die;
     }
-    return $name if -f $name;
 
-    if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
-	$w->messageBox(
-	  -title => "Tk::Pod Error",
-	  -message => "Invalid path/file/module name: '$name'\n");
-	die;
+    my $absname;
+    if (-f $name) {
+	$absname = $name;
+    } else {
+	if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
+	    $w->messageBox(
+	      -title => "Tk::Pod Error",
+	      -message => "Invalid path/file/module name: '$name'\n");
+	    die;
+	}
+	$absname = Find($name);
     }
-    Find($name) or do {
+    if (!defined $absname) {
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
-	  -message => "Can't find POD Invalid file/module name: '$name'\n"
+	  -message => "Can't find POD. Invalid file/module name: '$name'\n"
 	);
 	die;
-    };
+    }
+    if (eval { require File::Spec; File::Spec->can("rel2abs") }) {
+	DEBUG and print "Turn $absname into an absolute file name";
+	$absname = File::Spec->rel2abs($absname);
+    }
+    $absname;
 }
 
 sub file {   # main entry point
@@ -386,10 +396,10 @@ sub Link
  if ($sec ne '')
   {
    # XXX the $start-setting logic doesn't seem to work right
-   
+
    DEBUG and print "Looking for section \"$sec\"...\n";
    DEBUG and print "Trying a search across Sections entries...\n";
-   
+
    my $start;
 
    foreach my $s ( @{$w->{'sections'} || []} ) {
@@ -404,7 +414,7 @@ sub Link
 		  $line-1 . ".0 lineend");
        $w->yview("_section_mark.first");
        $w->after(500, [$w, qw/tag remove _section_mark 0.0 end/]);
-       return;       
+       return;
      } else {
        DEBUG > 2 and print " Nope, it's not $$s[1] (at $$s[2])\n";
      }
@@ -416,9 +426,9 @@ sub Link
    } else {
      $start = ($w->tag('nextrange',$sec, '1.0'))[0];
    }
-   
+
    my $link = ($man || '') . $sec;
-   
+
    if( defined $start ) {
      DEBUG and print " Found at $start\n";
    } else {
@@ -431,8 +441,8 @@ sub Link
    } else {
      $start = $w->search(qw/-exact -nocase --/, $sec, '1.0');
    }
-   
-   
+
+
    unless (defined $start)
     {
      DEBUG and print " Not found! (\"sec\")\n";
@@ -502,12 +512,18 @@ sub Print {
 	die;
     }
 
-    if($ENV{'TKPODPRINT'}) {  # XXX document this
-      DEBUG and print "Running $ENV{'TKPODPRINT'} $path\n";
-      system($ENV{'TKPODPRINT'}, $path);
-      return;
-    } elsif($^O =~ m/Win32/) {
-      return $w->Print_MSWin($path);
+    if ($ENV{'TKPODPRINT'}) {
+	my @cmd;
+	if ($ENV{'TKPODPRINT'} =~ /%s/) {
+	    ($cmd[0] = $ENV{'TKPODPRINT'}) =~ s/%s/$path/g;
+	} else {
+	    @cmd = ($ENV{'TKPODPRINT'}, $path);
+	}
+	DEBUG and print "Running @cmd\n";
+	system @cmd;
+	return;
+    } elsif ($^O =~ m/Win32/) {
+	return $w->Print_MSWin($path);
     }
     # otherwise fall thru...
 
@@ -544,12 +560,12 @@ sub Print_MSWin {
    defined(&Win32::GetOSName) and
     (Win32::GetOSName() eq 'Win32s'  or   Win32::GetOSName() eq 'Win95');
   require POSIX;
-  
+
   my $temp = POSIX::tmpnam(); # XXX it never gets deleted
   $temp =~ tr{/}{\\};
   $temp =~ s/\.$//;
   DEBUG and print "Using $temp as the temp file for hardcopying\n";
-  
+
   if($is_old) { # so we can't assume that write.exe can handle RTF
     require Pod::Simple::Text;
     require Text::Wrap;
@@ -557,14 +573,14 @@ sub Print_MSWin {
     $temp .= '.txt';
     Pod::Simple::Text->parse_from_file($path, $temp);
     system("notepad.exe", "/p", $temp);
-    
+
   } else { # Assume that our write.exe should understand RTF
     require Pod::Simple::RTF;
     $temp .= '.rtf';
     Pod::Simple::RTF->parse_from_file($path, $temp);
     system("write.exe", "/p", "\"$temp\"");
   }
-  
+
   return;
 }
 
@@ -817,11 +833,31 @@ Tk::Pod::Text - POD browser widget
 B<Tk::Pod::Text> is a readonly text widget that can display POD
 documentation.
 
+=head1 ENVIRONMENT
+
+=over
+
+=item TKPODDEBUG
+
+Turn debugging mode on if set to a true value.
+
+=item TKPODPRINT
+
+Use the specified program for printing the current pod. If the string
+contains a C<%s>, then filename substitution is used, otherwise the
+filename of the POD document is appended to the value of
+C<TKPODPRINT>. Here is a silly example to send the POD to a web browser:
+
+    env TKPODPRINT="pod2html %s > %s.html; galeon %s.html" tkpod ...
 
 =head1 SEE ALSO
 
 L<Tk::More|Tk::More>
 L<Tk::Pod|Tk::Pod>
+L<Tk::Pod::SimpleBridge|Tk::Pod::SimpleBridge>
+L<Tk::Pod::Styles|Tk::Pod::Styles>
+L<Tk::Pod::Search|Tk::Pod::Search>
+L<Tk::Pod::Search_db|Tk::Pod::Search_db>
 L<perlpod|perlpod>
 L<tkpod|tkpod>
 L<perlindex|perlindex>
@@ -855,19 +891,19 @@ German Umlaute:
 
 =over 4
 
-=item auml: E<auml>,
+=item auml: E<auml> ä,
 
-=item Auml: E<Auml>,
+=item Auml: E<Auml> Ä,
 
-=item ouml: E<ouml>,
+=item ouml: E<ouml> ö,
 
-=item Ouml: E<Ouml>,
+=item Ouml: E<Ouml> Ö,
 
-=item Uuml: E<uuml>,
+=item Uuml: E<uuml> ü,
 
-=item Uuml: E<Uuml>,
+=item Uuml: E<Uuml> Ü,
 
-=item sz: E<szlig>.
+=item sz: E<szlig> ß.
 
 =back
 
@@ -884,10 +920,12 @@ Here some code in a as is paragraph
     __END__
 
 
-Fonts: S<sanserif>, C<fixed>, B<bold>, I<italics>, normal, or file
+Fonts: C<fixed>, B<bold>, I<italics>, normal, or file
 F</path/to/a/file>
 
-Mixed Fonts: B<S<bold-sanserif>>, B<C<bold-fixed>>, B<I<bold-italics>>
+Mixed Fonts: B<C<bold-fixed>>, B<I<bold-italics>>
+
+Non-breakable text: S<The quick brown fox jumps over the lazy fox.>
 
 Other POD docu: Tk::Font, Tk::BrowseEntry
 
