@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.37 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.38 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -82,7 +82,7 @@ sub Find
    foreach $prefix ("","pod/","pods/")
     {
      my $suffix;
-     foreach $suffix ("",".pod",".pm")
+     foreach $suffix (".pod",".pm",".pl","")
       {
        my $path = "$dir/" . $prefix . $file . $suffix;
        return $path if (-r $path && -T $path);
