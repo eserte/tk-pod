@@ -25,7 +25,9 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.45 $, 10) + 1 . "";
+
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -1119,7 +1121,6 @@ __END__
 =head1 NAME
 
 Tk::Pod::Text - Pod browser widget
-
 
 =head1 SYNOPSIS
 

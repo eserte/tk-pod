@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Cache.pm,v 1.6 2003/08/01 10:37:30 eserte Exp $
+# $Id: Cache.pm,v 5.1 2004/09/08 21:09:32 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2002 Slaven Rezic. All rights reserved.
@@ -26,7 +26,7 @@ BEGIN {  # Make a DEBUG constant very first thing...
   }
 }
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
 
 $MAX_CACHE = 20; # documents # XXX not yet used, LRU etc...
 
@@ -169,3 +169,5 @@ Tk::Pod::Cache - internal Tk-Pod module for cache control
 =head1 DESCRIPTION
 
 No user-servicable parts here.
+
+=cut

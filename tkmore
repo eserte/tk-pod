@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
 
 use Tk;
 use Tk::More;
@@ -45,3 +45,5 @@ sub load_file {
     $more->Load($file);
     $mw->title("tkmore - $file");
 }
+
+__END__
