@@ -1,6 +1,11 @@
 History for Tk::Pod
 
-version 0.99
+version 0.99_02
+
+	o some fixes for MSWin32 and Perl 5.005
+	o Reload menu for PodTree
+
+version 0.99_01
 
 	o various bug fixes
 	o colored entries in pod tree
