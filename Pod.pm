@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.11 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.12 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -49,10 +49,10 @@ sub Populate
    [
     [Checkbutton => '~POD Tree', -variable => \$w->{Tree_on},
      '-command' => sub { $w->tree($w->{Tree_on}) }],
-#      '-',
-#      [Button => "Zoom ~in",  -command => 'zoom_in'],
-#      [Button => "~Normal",   -command => 'zoom_normal'],
-#      [Button => "Zoom ~out", -command => 'zoom_out'],
+    '-',
+    [Button => "Zoom ~in",  -command => ['zoom_in', $p]],
+    [Button => "~Normal",   -command => ['zoom_normal', $p]],
+    [Button => "Zoom ~out", -command => ['zoom_out', $p]],
    ]
   ],
 
@@ -375,28 +375,6 @@ sub _configure_tree {
 	 },
 	);
 }
-
-#  sub zoom_normal {
-#      $t->fontConfigure($ff, -size => 10); # XXX don't hardcode
-#  }
-
-#  sub zoom_in {
-#      my $size = $t->fontActual($ff, '-size');
-#      return if ($size > 72);
-#      if    ($size > 24) { $size+=4 }
-#      elsif ($size > 12) { $size+=2 }
-#      else               { $size++ }
-#      $t->fontConfigure($ff, -size => $size);
-#  }
-
-#  sub zoom_out {
-#      my $size = $t->fontActual($ff, '-size');
-#      return if ($size < 4);
-#      if    ($size < 12) { $size-- }
-#      elsif ($size < 24) { $size-=2 }
-#      else               { $size-=4 }
-#      $t->fontConfigure($ff, -size => $size);
-#  }
 
 1;
 
