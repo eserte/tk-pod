@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.41 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.42 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -618,6 +618,7 @@ sub Link_man {
     if ($man =~ s/\s*\((.*)\)\s*$//) {
 	$mansec = $1;
     }
+return $w->InternalManViewer($mansec, $man);
     my $manurl = "man:$man($mansec)";
     if (defined $sec && $sec ne "") {
 	$manurl .= "#$sec";
@@ -645,6 +646,24 @@ sub Link_man {
       -message => "No useable man browser found. Tried @manbrowser",
     );
     die;
+}
+
+sub InternalManViewer {
+    my($w, $mansec, $man) = @_;
+    my $t = $w->Toplevel(-title => "Manpage $man($mansec)");
+    my $more = $t->Scrolled("More",
+			    -font => "Courier 10", # XXX do not hardcode
+			    -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w',
+			   )->pack(-fill => "both", -expand => 1);
+    my $menu = $more->menu;
+    $t->configure(-menu => $menu);
+    local $SIG{PIPE} = "IGNORE";
+    open(MAN, "man $mansec $man |") or die $!;
+    while(<MAN>) {
+	s/.\cH//g;
+	$more->insert("end", $_);
+    }
+    close MAN;
 }
 
 sub EnterLink {
