@@ -11,6 +11,10 @@ while using tkpod.
 
 =item *
 
+Ctrl-O Exporter does not work?!
+
+=item *
+
 What about the reported error on Suse Linux (see Tk-Pod entry on
 rt.cpan.org)? I can't reproduce this bug...
 
