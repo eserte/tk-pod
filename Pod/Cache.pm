@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Cache.pm,v 1.5 2003/02/22 09:15:20 eserte Exp $
+# $Id: Cache.pm,v 1.6 2003/08/01 10:37:30 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2002 Slaven Rezic. All rights reserved.
@@ -26,7 +26,7 @@ BEGIN {  # Make a DEBUG constant very first thing...
   }
 }
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
 
 $MAX_CACHE = 20; # documents # XXX not yet used, LRU etc...
 
@@ -34,7 +34,7 @@ sub add_to_cache {
     my($w, $pod) = @_;
     $pod = $w->cget(-path) if !defined $pod;
     return if !defined $pod;
-    return if exists $CACHE{$pod}; # XXX check for recentness
+    return if $CACHE{$pod}; # XXX check for recentness
     DEBUG and warn "Add contents for $pod to cache.\n";
     $CACHE{$pod} = $w->dump_contents;
 }
@@ -42,7 +42,7 @@ sub add_to_cache {
 sub get_from_cache {
     my($w, $pod) = @_;
     $pod = $w->cget(-path) if !defined $pod;
-    return 0 if !exists $CACHE{$pod};
+    return 0 if !$CACHE{$pod};
     # XXX check for recentness
     $w->delete("1.0", "end");
     DEBUG and warn "Restore contents for $pod from cache.\n";
@@ -65,6 +65,14 @@ sub clear_cache {
 sub dump_contents {
     my $w = shift;
     my @dump = $w->dump('-all', "1.0", "end");
+    if (@dump == 0) {
+	warn "Workaround strange bug under RedHat 8.0 --- try dump again...";	
+	@dump = $w->dump('-all', "1.0", "end");
+	if (@dump == 0) {
+	    warn "Giving up, cache disabled for current page";
+	    return undef;
+	}
+    }
     my %tags_def;
     foreach my $tag ($w->tagNames) {
 	# XXX check for used/existing tags missing
