@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.3 2003/08/13 19:49:29 eserte Exp $
+# $Id: FindPods.pm,v 2.4 2003/10/15 21:30:20 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.4 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -149,7 +149,8 @@ sub pod_find {
 	}
 
 	if (-f && /\.(pod|pm)$/) {
-	    (my $name = $File::Find::name) =~ s|^$curr_dir/?||;
+	    my $curr_dir_rx = quotemeta $curr_dir;
+	    (my $name = $File::Find::name) =~ s|^$curr_dir_rx/?||;
 	    $name = simplify_name($name);
 
 	    my $hash;
