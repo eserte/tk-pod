@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.23 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.24 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -160,20 +160,8 @@ if ($ENV{TKPODDIRS}) {
     }
 }
 
-if (!@ARGV)
- {
-  if (!$tree)
-   {
-    push @ARGV, "perl";
-   }
-  else
-   {
-    my $tl = $mw->Pod(-tree => 1,
-		      -exitbutton => 1);
-   }
- }
-
 my $file;
+my $opened = 0;
 foreach $file (@ARGV)
  {
   if (-d $file)
@@ -187,6 +175,19 @@ foreach $file (@ARGV)
     # -file => ... should be called after creating the Pod window,
     # because -title => ... is set implicitly by Pod's new
     $tl->configure(-file => $file);
+    $opened++;
+   }
+ }
+if (!$opened) # This may happen if all arguments are directories
+ {
+  if ($tree)
+   {
+    $mw->Pod(-tree => 1, -exitbutton => 1);
+   }
+  else
+   {
+    my $tl = $mw->Pod(-tree => $tree, -exitbutton => 1);
+    $tl->configure(-file => "perl");
    }
  }
 
