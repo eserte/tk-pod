@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.8 2003/11/09 21:14:24 eserte Exp $
+# $Id: FindPods.pm,v 2.11 2003/11/09 22:17:59 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.11 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -264,12 +264,33 @@ sub type {
     else            { return "mod" }
 }
 
+# It's not possible to just use $Config{archname} --- it is necessary
+# to get the names of all the installated archnames. This may be
+# something like i386-freebsd vs. i386-freebsd-64int.
 sub guess_architectures {
     my %arch;
     my @configs;
     foreach my $inc (@INC) {
-	push @configs, glob("$inc/*/Config.pm");
+	if (!opendir(DIR, $inc)) {
+	    warn "Can't opendir $inc: $!";
+	    next;
+	}
+	while(defined(my $base = readdir DIR)) {
+	    # Skip . and .., and some obviously wrong directories
+	    # containing a Config.pm file. This is not strictly necessary,
+	    # but so we avoid to scan the file itself.
+	    next if $base =~ /^(\.|\.\.|CPANPLUS|Encode|Prima|Tk|PDL|Template|Net|App)$/;
+	    next if !-d File::Spec->catdir($inc, $base);
+	    my $cfgpm = File::Spec->catfile($inc, $base, "Config.pm");
+	    if (-r $cfgpm) {
+		push @configs, $cfgpm;
+	    }
+	}
+	closedir DIR;
     }
+
+    # Scan the Config.pm file to see if it's really a perl Config.pm
+    # file.
     foreach my $config (@configs) {
 	my($arch) = $config =~ m|/([^/]+)/Config.pm|;
 	if (open(CFG, $config)) {
