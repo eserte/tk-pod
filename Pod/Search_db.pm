@@ -1,7 +1,8 @@
 #AnyDBM handling from perlindex:
 # NDBM_File as LAST resort
 
-package AnyDBM_File;
+package
+    AnyDBM_File; # hide from indexer
 use vars '@ISA';
 @ISA = qw(DB_File GDBM_File SDBM_File ODBM_File NDBM_File) unless @ISA;
 my $mod;
@@ -14,7 +15,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 2.4 $, 10) . "";
+$VERSION = substr(q$Revision: 2.5 $, 10) . "";
 
 use Carp;
 use Fcntl;
