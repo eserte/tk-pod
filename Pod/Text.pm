@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.13 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.14 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -62,6 +62,12 @@ sub Find
 
 sub findpod {
     my ($w,$name) = @_;
+    unless (defined $name and length $name) {
+	$w->messageBox(-message => "Empty POD file/name");
+	die;
+    }
+    return $name if -f $name;
+
     if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
 	$w->messageBox(-message => "Invalid path/file/module name: '$name'\n");
 	die;
