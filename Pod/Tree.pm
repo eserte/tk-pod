@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.7 2001/06/17 23:55:33 eserte Exp $
+# $Id: Tree.pm,v 1.8 2001/06/18 18:47:05 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,12 +54,13 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
 use Tk::Pod::FindPods qw/%pods $has_cache pod_find/;
 use Tk::ItemStyle;
+use Tk qw(Ev);
 
 Construct Tk::Widget 'PodTree';
 
@@ -68,6 +69,12 @@ BEGIN { @POD = @INC }
 sub Dir {
     my $class = shift;
     unshift @POD, @_;
+}
+
+sub ClassInit {
+    my ($class,$mw) = @_;
+    $class->SUPER::ClassInit($mw);
+    $mw->bind($class, '<3>', ['PostPopupMenu', Ev('X'), Ev('Y')]  );
 }
 
 sub Populate {
@@ -108,6 +115,18 @@ sub Populate {
     $w->{SiteIS}   = $w->ItemStyle('imagetext', -foreground => '#e08000');
     $w->{FolderIS} = $w->ItemStyle('imagetext', -foreground => '#606060');
 
+    my $m = $w->Menu(-tearoff => $Tk::platform ne 'MSWin32');
+    $w->menu($m);
+    $m->command(-label => 'Reload', -command => sub {
+		    $w->Busy(-recurse => 1);
+		    eval {
+			$w->Fill(-nocache => 1);
+		    };
+		    my $err = $@;
+		    $w->Unbusy(-recurse => 1);
+		    die $err if $err;
+		});
+
     $w->ConfigSpecs(
 	-showcommand  => ['CALLBACK', undef, undef, undef],
 	-showcommand2 => ['CALLBACK', undef, undef, undef],
@@ -137,9 +156,9 @@ sub Fill {
 
     my $usecache = ($w->cget('-usecache') && !$args{'-nocache'});
 
-    if (!%pods) {
-	pod_find(-categorized => 1, -usecache => 1);
-    }
+    # fills %pods hash:
+    pod_find(-categorized => 1, -usecache => $usecache);
+
     my %category_seen;
 
     foreach (['perl',   'Perl language'],
