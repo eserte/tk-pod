@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.2 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.3 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -98,7 +98,6 @@ sub Populate
  $w->bind('<Alt-Left>'  => [$p, 'history_move', -1]);
  $w->bind('<Alt-Right>' => [$p, 'history_move', +1]);
 
- # $w->process($path);
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
 }
 
@@ -142,17 +141,18 @@ sub add_section_menu {
     my($pod) = @_;
 
     my $screenheight = $pod->screenheight;
-
     my $mbar = $pod->Subwidget('menubar');
-    my $section = $mbar->Subwidget('section');
-    if (defined $section) {
-        $section->cget(-menu)->delete(0, 'end');
+    my $sectionmenu = $mbar->Subwidget('sectionmenu');
+    if (defined $sectionmenu) {
+        $sectionmenu->delete(0, 'end');
     } else {
-        $section = $mbar->Component('Menubutton' => 'section',
-                                    '-text' => 'Section',
-                                    -underline => 1);
+	$mbar->insert($mbar->index("last"), "cascade",
+		      '-label' => 'Section', -underline => 1);
+	$sectionmenu = $mbar->Menu;
+	$mbar->entryconfigure($mbar->index("last")-1, -menu => $sectionmenu);
+	$mbar->Advertise(sectionmenu => $sectionmenu);
     }
-    my $sectionmenu = $section->menu;
+
     my $podtext = $pod->Subwidget('pod');
     my $text    = $podtext->Subwidget('more')->Subwidget('text');
 
@@ -165,14 +165,13 @@ sub add_section_menu {
     foreach $sdef (@{$podtext->{'sections'}}) {
         my($head, $subject, $pos) = @$sdef;
 
-	# XXX is this necessary on Windows?
 	my @args;
 	if ($sectionmenu &&
 	    $sectionmenu->yposition("last") > $screenheight-40) {
 	    push @args, -columnbreak => 1;
 	}
 
-        $section->command
+        $sectionmenu->command
 	  (-label => ("  " x ($head-1)) . $subject,
 	   -command => sub {
 	       my($line) = split(/\./, $pos);
