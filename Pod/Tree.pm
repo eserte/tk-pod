@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.22 2003/03/28 11:05:37 eserte Exp $
+# $Id: Tree.pm,v 1.23 2003/03/28 20:55:37 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -63,6 +63,8 @@ use Tk::ItemStyle;
 use Tk qw(Ev);
 
 Construct Tk::Widget 'PodTree';
+
+my $search_history;
 
 BEGIN { @POD = @INC }
 
@@ -446,15 +448,35 @@ sub search_dialog {
     $t->transient($w);
     $t->Label(-text => "Search module:")->pack(-side => "left");
     my $term;
-    my $e = $t->Entry(-textvariable => \$term)->pack(-side => "left");
+
+    my $Entry = 'Entry';
+    eval {
+	require Tk::HistEntry;
+	Tk::HistEntry->VERSION(0.40);
+	$Entry = "HistEntry";
+    };
+
+    my $e = $t->$Entry(-textvariable => \$term)->pack(-side => "left");
+    if ($e->can('history') && $search_history) {
+	$e->history($search_history);
+    }
     $e->focus;
     $e->bind("<Escape>" => sub { $t->destroy });
-    $e->bind("<Return>" => sub { $w->search($term) });
+
+    my $do_search = sub {
+	if ($e->can('historyAdd')) {
+	    $e->historyAdd($term);
+	    $search_history = [ $e->history ];
+	}
+	$w->search($term);
+    };
+
+    $e->bind("<Return>" => $do_search);
 
     {
 	my $f = $t->Frame->pack(-fill => "x");
 	Tk::grid($f->Button(-text => "Search",
-			    -command => sub { $w->search($term) },
+			    -command => $do_search,
 			   ),
 		 $f->Button(-text => "Close",
 			    -command => sub { $t->destroy },
