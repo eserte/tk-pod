@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.7 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.8 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -34,6 +34,7 @@ sub Populate
    [
     [Button => '~Open File...', '-command' => ['openfile',$w]],
     [Button => '~Set Pod...', '-command' => ['openpod',$w,$p]],
+    [Button => '~New Window...', '-command' => ['newwindow',$w,$p]],
     [Button => '~Reload',    '-command' => ['reload',$p]],
     [Button => '~Edit',      '-command' => ['edit',$p]],
     [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
@@ -152,6 +153,11 @@ sub openpod {
     if ($go == 1 && $pod ne "") {
 	$cw->configure(-file => $pod);
     }
+}
+
+sub newwindow {
+    my($cw) = @_;
+    $cw->MainWindow->Pod;
 }
 
 sub Dir {
