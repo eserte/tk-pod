@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9929_99";
 
 @ISA = qw(Tk::Toplevel);
@@ -336,12 +336,6 @@ sub openpod {
 	    $cw->configure(%pod_args);
 	} elsif ($go == 2) {
 	    my $new_cw = $cw->clone(%pod_args);
-#XXX del:
-# 	    my $new_cw = $cw->MainWindow->Pod
-# 		('-tree' => $cw->cget(-tree),
-# 		 -exitbutton => $cw->cget(-exitbutton),
-# 		);
-# 	    $new_cw->configure(%pod_args);
 	}
     }
 }
@@ -394,10 +388,6 @@ sub help {
     $w->clone('-tree' => 0,
 	      '-file' => 'Tk::Pod_usage.pod',
 	     );
-#XXX del:
-#     $w->parent->Pod(-file=>,
-# 		    -exitbutton => $w->cget(-exitbutton),
-# 		   );
 }
 
 sub help_programming {
@@ -405,7 +395,6 @@ sub help_programming {
     $w->clone('-tree' => 0,
 	      '-file' => 'Tk/Pod.pm',
 	      );
-#XXX del:    $w->parent->Pod(-file=>'Tk/Pod.pm', -exitbutton => $w->cget(-exitbutton)) }],
 }
 
 sub about {
@@ -430,14 +419,16 @@ System information:
     OS $^O
 
 Please contact <srezic\@cpan.org> in case of problems.
+Send the contents of this window for diagnostics.
+
 EOF
-    my @lines = split /\n/, $message;
+    my @lines = split /\n/, $message, -1;
     my $width = 0;
     for (@lines) {
 	$width = length $_ if length $_ > $width;
     }
     my $txt = $d->add("Scrolled", "ROText",
-		      -height => scalar @lines + 1,
+		      -height => scalar @lines,
 		      -width => $width + 1,
 		      -relief => "flat",
 		      -scrollbars => "oe",
@@ -575,12 +566,6 @@ sub _configure_tree {
 	     # XXX -title?
 	     $w->clone(-tree => !!$tree,
 		       @args);
-#XXX del:
-# 	     $w->MainWindow->Pod
-# 		 (@args,
-# 		  '-exitbutton' => $w->cget(-exitbutton),
-# 		  '-tree' => !!$tree,
-# 		 );
 	 },
 	);
 }
@@ -649,12 +634,6 @@ sub SearchFAQ {
 		    $cw->configure(-file => $pod);
 		} elsif ($go == 2) {
 		    my $new_cw = $cw->clone('-file' => $pod);
-#XXX del:
-# 		    my $new_cw = $cw->MainWindow->Pod
-# 			('-tree' => $cw->cget('-tree'),
-# 			 '-exitbutton' => $cw->cget('-exitbutton'),
-# 			);
-# 		    $new_cw->configure('-file' => $pod);
 		}
 	    }
 	}
