@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree);
 
-$VERSION = substr(q$Revision: 1.4 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.5 $ , 10) + 1 . "";
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
@@ -101,7 +101,7 @@ POD (L<Plain Old Document|perlpod>) is a simple and readable
 markup language that could be mixed with L<perl> code.
 
 PODs are searched by default in C<@INC>.  Directories listed on
-the command line are added to the default search path.  
+the command line are added to the default search path.
 
 For each C<name> listed on the command line B<tkpod> tries to
 to find POD in C<name, name.pod> and C<name.pm> in the search
@@ -112,18 +112,18 @@ path.  For each C<name> a new POD browser window is opened.
 
 =over 4
 
+=item B<-tree>
+
+By default, tkpod will show a tree window with all available PODs.
+However, this is slow on startup. With the option B<-notree> only the
+given POD will be shown and no tree view will be available.
+
 =item B<-tk>
 
 Useful for perl/Tk documentation.  When specified it adds all
 C<Tk> subdirectories in C<@INC> to the POD search path.   This way
 when C<Scrolled> is selected in the browser the C<Tk/Scrolled>
 documentation is found.
-
-=item B<-tree>
-
-By default, tkpod will show a tree window with all available PODs.
-However, this is slow on startup. With the option B<-notree> only the
-plain POD will be shown.
 
 =back
 
