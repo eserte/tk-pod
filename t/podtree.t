@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: podtree.t,v 1.1 2001/06/13 08:05:30 eserte Exp $
+# $Id: podtree.t,v 1.2 2003/10/22 18:59:02 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -10,6 +10,7 @@ use strict;
 
 use Tk;
 use Tk::Pod::Tree;
+use Tk::Pod::FindPods;
 
 BEGIN {
     if (!eval q{
@@ -23,7 +24,7 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 2 }
+BEGIN { plan tests => 5 }
 
 my $mw = tkinit;
 
@@ -40,6 +41,15 @@ $mw->gridRowconfigure(0, -weight => 1);
 ok(Tk::Exists($pt), 1);
 $pt->Fill;
 ok(1);
+
+my $FindPods = Tk::Pod::FindPods->new;
+ok($FindPods->isa("Tk::Pod::FindPods"));
+my $pods = $FindPods->pod_find(-categorized => 0, -usecache => 1);
+ok(UNIVERSAL::isa($pods, "HASH"));
+my $path = $pods->{perl}{ (keys %{ $pods->{perl} })[0] };
+$pt->SeePath($path);
+ok(1);
+
 $mw->after(1*1000,sub{$mw->destroy});
 MainLoop;
 

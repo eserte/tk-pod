@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.34 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.35 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -46,12 +46,19 @@ BEGIN {
 use Class::Struct;
 struct '_HistoryEntry' => [
     'file'  => '$',
+    'text'  => '$',
     'index' => '$',
 ];
 sub _HistoryEntry::create {
     my $o = shift->new;
-    $o->file(shift);
-    $o->index(shift);
+    my($what, $index) = @_;
+    if (ref $what eq 'HASH') {
+	$o->file($what->{file});
+	$o->text($what->{text});
+    } else {
+	$o->file($what);
+    }
+    $o->index($index);
     $o;
 }
 
@@ -123,19 +130,33 @@ sub findpod {
     $absname;
 }
 
+sub _remember_old {
+    my $w = shift;
+    for (qw(File Text)) {
+	$w->{"Old$_"} = $w->{$_};
+    }
+}
+
+sub _restore_old {
+    my $w = shift;
+    for (qw(File Text)) {
+	$w->{$_} = $w->{"Old$_"};
+    }
+}
+
 sub file {   # main entry point
   my $w = shift;
   if (@_)
     {
-      #print "loading $_[0] ...\n";
       my $file = shift;
-      my $old_file = $w->{File};
+      $w->_remember_old;
       eval {
 	  $w->{'File'} = $file;
+	  $w->{'Text'} = undef;
 	  my $path = $w->findpod($file);
 	  if (!$w->privateData()->{'from_history'}) {
 	      $w->history_modify_entry;
-	      $w->history_add($path, "1.0");
+	      $w->history_add({file => $path}, "1.0");
 	  }
 	  $w->configure('-path' => $path);
 	  $w->delete('1.0' => 'end');
@@ -158,11 +179,53 @@ sub file {   # main entry point
 	  $w->focus;
       };
       if ($@) {
-	  $w->{'File'} = $old_file;
+	  $w->_restore_old;
 	  die $@;
       }
     }
   $w->{'File'};
+}
+
+sub text {
+  my $w = shift;
+  if (@_)
+    {
+      my $text = shift;
+      $w->_remember_old;
+      eval {
+	  $w->{'Text'} = $text;
+	  $w->{'File'} = undef;
+	  if (!$w->privateData()->{'from_history'}) {
+	      $w->history_modify_entry;
+	      $w->history_add({text => $text}, "1.0");
+	  }
+	  $w->configure('-path' => undef);
+	  $w->delete('1.0' => 'end');
+## XXX Implementation unclear, maybe should be done in showcommand call...
+#	  my $tree_sw = $w->parent->Subwidget("tree");
+#	  if ($tree_sw) {
+#	      $tree_sw->SeeFunc("file:$path");
+#	  }
+	  my $t;
+	  if (DEBUG) {
+	      require Benchmark;
+	      $t = Benchmark->new;
+	  }
+	  # No caching here
+	  # XXX title: the 2nd part of the hack
+	  my $title = $w->cget(-title);
+	  $w->process(\$text, $title);
+	  if (defined $t) {
+	      print Benchmark::timediff(Benchmark->new, $t)->timestr,"\n";
+	  }
+	  $w->focus;
+      };
+      if ($@) {
+	  $w->_restore_old;
+	  die $@;
+      }
+    }
+  $w->{'Text'};
 }
 
 sub reload
@@ -332,8 +395,10 @@ sub Populate
 
     $w->ConfigSpecs(
             '-file'       => ['METHOD'  ],
+            '-text'       => ['METHOD'  ],
             '-path'       => ['PASSIVE' ],
             '-poddone'    => ['CALLBACK'],
+	    '-title'      => ['PASSIVE' ], # XXX unclear
 
             '-wrap'       => [ $p, qw(wrap       Wrap       word) ],
 	    # -font ignored because it does not change the other fonts
@@ -434,7 +499,7 @@ sub Link
   }
   # XXX big docs like Tk::Text take too long until they return
 
- if ($sec ne '' && $man eq '') # XXX reuse vs. new`
+ if ($sec ne '' && $man eq '') # XXX reuse vs. new
   {
    $w->history_modify_entry;
   }
@@ -503,9 +568,9 @@ sub Link
    $w->yview("$start linestart");
   }
 
- if ($sec ne '' && $man eq '') # XXX reuse vs. new`
+ if ($sec ne '' && $man eq '') # XXX reuse vs. new
   {
-   $w->history_add($w->cget(-path), $w->index('@0,0'));
+   $w->history_add({file => $w->cget(-path)}, $w->index('@0,0'));
   }
 
 }
@@ -602,13 +667,35 @@ sub SearchFullText {
 
 sub Print {
     my $w = shift;
-    my $path = $w->cget(-path);
-    if (!-r $path) {
-	$w->messageBox(
-          -title   => "Tk::Pod Error",
-	  -message => "Cannot find file `$path`"
-	);
-	die;
+
+    my $need_File_Temp = sub {
+	if (!eval { require File::Temp; 1 }) {
+	    $w->messageBox(
+		-title   => "Tk::Pod Error",
+		-message => "The perl module 'File::Temp' is missing"
+	    );
+	    die;
+	}
+    };
+
+    my($text, $path);
+    $path = $w->cget(-path);
+    if (defined $path) {
+	if (!-r $path) {
+	    $w->messageBox(
+		-title   => "Tk::Pod Error",
+		-message => "Cannot find file `$path`"
+	    );
+	    die;
+	}
+    } else {
+	$text = $w->cget("-text");
+	$need_File_Temp->();
+	my($fh,$fname) = File::Temp::tempfile(UNLINK => 1,
+					      SUFFIX => ".pod");
+	print $fh $text;
+	close $fh;
+	$path = $fname;
     }
 
     if ($ENV{'TKPODPRINT'}) {
@@ -621,26 +708,25 @@ sub Print {
     }
     # otherwise fall thru...
 
-    if (!eval { require POSIX; 1 }) {
-	$w->messageBox(
-          -title   => "Tk::Pod Error",
-	  -message => "The perl module 'POSIX' is missing"
-	);
-	die;
-    }
     if (is_in_path("pod2man") && is_in_path("groff")) {
-	my $gv = is_in_path("gv") || is_in_path("ghostview") || is_in_path("XXXggv") || is_in_path("kghostview");
+	# XXX maybe determine user's environment (GNOME vs. KDE vs. plain X11)?
+	my $gv = is_in_path("gv")
+	      || is_in_path("ghostview")
+	      || is_in_path("ggv")         # newer versions seem to work
+	      || is_in_path("kghostview");
 	if ($gv) {
-	    my $temp = POSIX::tmpnam();
-	    system("pod2man $path | groff -man -Tps > $temp");
-	    push @tempfiles, $temp;
+	    $need_File_Temp->();
+
+	    my($fh,$fname) = File::Temp::tempfile(SUFFIX => ".ps");
+	    system("pod2man $path | groff -man -Tps > $fname");
+	    push @tempfiles, $fname;
 	    my $pid = fork;
 	    if (!defined $pid) {
 		die "Can't fork: $!";
 	    }
 	    if ($pid == 0) {
-		exec($gv, $temp);
-		warn "Exec of $gv $temp failed: $!";
+		exec($gv, $fname);
+		warn "Exec of $gv $fname failed: $!";
 		CORE::exit(1);
 	    }
 	    push @gv_pids, $pid;
@@ -673,7 +759,7 @@ sub Print_MSWin {
    eval {require Win32; 1} and
    defined(&Win32::GetOSName) and
     (Win32::GetOSName() eq 'Win32s'  or   Win32::GetOSName() eq 'Win95');
-  require POSIX;
+  require POSIX; # XXX should be probably replaced by File::Temp, but I have no Win machine to test...
 
   my $temp = POSIX::tmpnam(); # XXX it never gets deleted
   $temp =~ tr{/}{\\};
@@ -729,14 +815,24 @@ sub SelectToModule {
 # Add the file $file (with optional text index position $index) to the
 # history.
 sub history_add {
-    my ($w,$file,$index) = @_;
-    unless (-f $file) {
-	$w->messageBox(-message => "Not a file '$file'. Can't add to history\n",
-		       @{&HISTORY_DIALOG_ARGS});
-	return;
+    my ($w,$what,$index) = @_;
+    my($file, $text);
+    if (ref $what eq 'HASH') {
+	$file = $what->{file};
+	$text = $what->{text};
+    } else {
+	$file = $what;
+	$what = {file => $file};
+    }
+    if (defined $file) {
+	unless (-f $file) {
+	    $w->messageBox(-message => "Not a file '$file'. Can't add to history\n",
+			   @{&HISTORY_DIALOG_ARGS});
+	    return;
+	}
     }
     my $hist = $w->privateData()->{history};
-    my $hist_entry = _HistoryEntry->create($file, $index);
+    my $hist_entry = _HistoryEntry->create($what, $index);
     $hist->[++$w->privateData()->{history_index}] = $hist_entry;
     splice @$hist, $w->privateData()->{history_index}+1;
     $w->history_view_update;
@@ -791,9 +887,15 @@ sub history_forward {
 sub _history_update {
     my($w, $hist_entry) = @_;
     if ($hist_entry) {
-	if ($w->cget('-path') ne $hist_entry->file) {
+	if (defined $hist_entry->file) {
+	    if ($w->cget('-path') ne $hist_entry->file) {
+		$w->privateData()->{'from_history'} = 1;
+		$w->configure('-file' => $hist_entry->file);
+		$w->privateData()->{'from_history'} = 0;
+	    }
+	} elsif (defined $hist_entry->text) {
 	    $w->privateData()->{'from_history'} = 1;
-	    $w->configure('-file' => $hist_entry->file);
+	    $w->configure('-text' => $hist_entry->text);
 	    $w->privateData()->{'from_history'} = 0;
 	}
 	$w->afterIdle(sub { $w->see($hist_entry->index) })
@@ -823,8 +925,9 @@ sub history_set {
 sub history_modify_entry {
     my $w = shift;
     if ($w->privateData()->{'history_index'} >= 0) {
-	my $old_entry = _HistoryEntry->create($w->cget('-path'),
-					      $w->index('@0,0'));
+	my $old_entry = _HistoryEntry->create({file => $w->cget('-path'),
+					       text => $w->cget('-text')
+					      }, $w->index('@0,0'));
 	$w->privateData()->{'history'}->[$w->privateData()->{'history_index'}] = $old_entry;
     }
 }
@@ -892,7 +995,7 @@ END {
 	}
 
 	if ($gv_running) {
-	    warn "A ghostscript process is still running, do not delete temporary files: @tempfiles\n";
+	    warn "A ghostscript (or equivalent) process is still running, do not delete temporary files: @tempfiles\n";
 	} else {
 	    for my $temp (@tempfiles) {
 		unlink $temp;
