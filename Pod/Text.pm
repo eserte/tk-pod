@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.3 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.4 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -206,8 +206,7 @@ sub Populate
     $w->{Indent}  = {}; # tags for various indents
 
     my $m = $p->Menu(-tearoff => $Tk::platform ne 'MSWin32');
-    $p->Subwidget('scrolled')->bind('<Button-3>', sub {
-		$m->Popup(-popover => 'cursor', -popanchor => 'nw')});
+    $p->menu($m);
     $m->command(-label => 'Back',    -command => [$w, 'history_move', -1]);
     $m->command(-label => 'Forward', -command => [$w, 'history_move', +1]);
     $m->command(-label => 'Reload', -command => sub{$w->reload} );
@@ -286,24 +285,35 @@ sub Link
  # have to be done here:
  $w->LeaveLink;
 
- require Pod::ParseUtils;
- my $l = Pod::Hyperlink->new($link);
- if ($l->type eq 'hyperlink')
+ my($man,$sec) = ('','');
+
+ if (eval { require Pod::ParseUtils; 1 })
   {
-   if (eval { push @INC, "/home/e/eserte/lib/perl" if -d "/home/e/eserte/lib/perl"; require WWWBrowser; 1 }) # XXX bundle WWWBrowser with Tk::Pod
+   my $l = Pod::Hyperlink->new($link);
+   if ($l->type eq 'hyperlink')
     {
-     WWWBrowser::start_browser($l->node);
+     if (eval { push @INC, "/home/e/eserte/lib/perl" if -d "/home/e/eserte/lib/perl"; require WWWBrowser; 1 }) # XXX bundle WWWBrowser with Tk::Pod
+      {
+       WWWBrowser::start_browser($l->node);
+      }
+     else
+      {
+       $w->messageBox(-message => 'Hyperlinks are not supported (yet)');
+       die;
+      }
+     return;
     }
-   else
-    {
-     $w->messageBox(-message => 'Hyperlinks are not supported (yet)');
-     die;
-    }
-   return;
+   $man = $l->page;
+   $sec = $l->node;
+  }
+ else
+  {
+   warn "No Pod::ParseUtils installed, fallback...";
+   $man = $link;
+   ($man,$sec) = split(m|/|,$link) if ($link =~ m|/|);
+   $man =~ s/::/\//g;
   }
 
- my $man = $l->page;
- my $sec = $l->node;
 
  if ($how eq 'reuse' && $man ne '')
   {
@@ -370,6 +380,7 @@ sub SearchFullText {
     }
     $IDX->deiconify;
     $IDX->raise;
+    $IDX->bind('<Escape>' => [$IDX, 'destroy']);
     (($IDX->children)[0])->focus;
 }
 
@@ -647,6 +658,7 @@ sub process
        my $arg = $arg;
        $arg =~ s/E<([^>]+)>/$Tk::Parse::Escapes{$1}/g;
        $arg =~ s/[IBSCLFXZ]<([^>]+)>/$1/g; # XXX better, but not perfect...
+       $arg =~ s/\s+/ /g; # filter tabs etc.
        push @{$w->{'sections'}}, [$head, $arg, $w->index('end')];
    }
    $w->$cmd($arg);
@@ -773,7 +785,7 @@ sub history_view {
     if (!$t || !Tk::Exists($t)) {
 	$t = $w->Toplevel(-title => 'History');
 	$w->privateData()->{'history_view_toplevel'} = $t;
-	my $lb = $t->Scrolled("Listbox", -scrollbars => 'oso'.$Tk::platform eq 'MSWin32'?'e':'w')->pack(-fill => "both", '-expand' => 1);
+	my $lb = $t->Scrolled("Listbox", -scrollbars => 'oso'.($Tk::platform eq 'MSWin32'?'e':'w'))->pack(-fill => "both", '-expand' => 1);
 	$t->Advertise(Lb => $lb);
 	$lb->bind("<1>" => sub {
 		      my $lb = shift;
