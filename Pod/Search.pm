@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.9 $, 10 . "";
+$VERSION = substr q$Revision: 2.10 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -115,7 +115,6 @@ sub _search {
     #xxx: always open/close DBM files???
     my $idx;
     eval {
-die "bla";
         require Tk::Pod::Search_db;
 	$idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});
     };
@@ -139,6 +138,8 @@ EOF
         }
 	$l->see(0);
 	$l->activate(0);
+	$l->selectionSet(0);
+	$l->focus;
     } else {
 	my $msg = "No Pod documentation in Library matches: '$find'";
 	$e->messageBox(-icon => "error",
