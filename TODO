@@ -2,14 +2,6 @@ Scratch pad of bugs, missing features, and misbehaviors
 collected during I used tkpod.
 
 
-o Make PodText/PodParser accept POD from a handle
-  so own can create & display POD on the fly.
-
-o Back does not remember the internal jumps in a document
-
-o Current section/item tag names should made save (no blank
-  + or -)
-
 o Tk8 font handling is much better for a new PodText
 
 o PodText should not manipulate toplevel title
@@ -31,8 +23,8 @@ o Stephen J. Lusol suggested:
   (maybe use Tk-getopt and set useful defaults for missing cmd
   line params?)
 
-  Now there is a Print menu entry, but the configuration questions are
-  still open.
+  Version 1.0: Now there is a Print menu entry, but the configuration
+  questions are still open.
 
 o perlfunc.pod complains 3 times that -X should be i[BC]<-X>
   Maybe add silent and 'lint' mode (but output to another
@@ -40,10 +32,6 @@ o perlfunc.pod complains 3 times that -X should be i[BC]<-X>
 
 o after =back missing horizontal white space, see 'sz'
   in Tk::Pod::Text.pm POD
-
-o Set title to name of pod instead of Pod. (But on reload
-  title is file).  Some time // prefix, sometimes /./ slips
-  in. (Tk403.002 Toplevel patch posted so 'Pod' as title is fixed)
 
 o Tk/More status bar:  filename  %   line x
 
@@ -54,6 +42,8 @@ o Bug: C<> in (e.g.) MakeMakers DESCRIPTION section is in bold
 o Bug: S<> e.g., in SYNOPSIS of perl manpage ignored
 
 o more 'more' like key bindings to Tk::More.
+
+o More.pm: search should scroll per page
 
 o search policies: regexp, glob, incremental (as in xmore)
   and 'normalized' as in perlindex.  Should go into it's own
@@ -69,6 +59,8 @@ o add meaningful regression tests
 
 o create 'AsToplevel' similar to 'Scrolled'
 
-o 'back'/'forward' should do the right thing for internal links
+o Tree: re-read tree, invalidate cache
+
+o PodText: interrupt process() if another file is loaded...
 
 __END__
