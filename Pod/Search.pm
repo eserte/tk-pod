@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.7 $, 10 . "";
+$VERSION = substr q$Revision: 2.8 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -11,11 +11,7 @@ use Tk::Frame;
 Construct Tk::Widget 'PodSearch';
 @ISA = 'Tk::Frame';
 
-
-#sub ClassInit {
-#    my ($class,$mw) = @_;
-#
-#}
+my $searchfull_history;
 
 sub Populate {
     my ($cw, $args) = @_;
@@ -37,6 +33,9 @@ sub Populate {
 	#-browsecmd=> ['_logit', 'browse'],
 	#);
     my $e = $cw->$Entry();
+    if ($e->can('history') && $searchfull_history) {
+	$e->history($searchfull_history);
+    }
     my $s = $cw->Label();
 
     $l->pack(-fill=>'both', -side=>'top',  -expand=>1);
@@ -73,6 +72,7 @@ sub addHistory {
     my $entry_or_browse = $w->Subwidget('browse');
     if ($entry_or_browse->can('historyAdd')) {
 	$entry_or_browse->historyAdd($obj);
+	$searchfull_history = [ $entry_or_browse->history ];
     } else {
 	$entry_or_browse->insert(0,$obj);
     }
