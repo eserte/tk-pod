@@ -7,8 +7,8 @@ package Tk::Pod::SimpleBridge;
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
   } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
-    eval("sub DEBUG () {$1}");
-    die "WHAT? Couldn't eval-up a DEBUG constant!? $@" if $@;
+    my $debug = $1;
+    *DEBUG = sub () { $debug };
   } else {
     *DEBUG = sub () {0};
   }
