@@ -58,6 +58,10 @@ use the name of a module in perl's pod path (specified without .pm or
     * now click on bbbike link => bbbike itself will be loaded, not bbbike.pod
       because of a -f test in findpod
 
+=item *
+
+Do not move focus if already in PodText's search entry.
+
 =back
 
 =head3 Tk::Pod::Cache
@@ -112,6 +116,10 @@ About dialog
 =item *
 
 support for the new Pod::Index module (similar to the fulltext search)
+
+=item *
+
+some kind of stylesheet support
 
 =back
 
