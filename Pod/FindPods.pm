@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.2 2003/03/28 10:59:29 eserte Exp $
+# $Id: FindPods.pm,v 2.3 2003/08/13 19:49:29 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,17 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.3 $ =~ /(\d+)\.(\d+)/);
+
+BEGIN {  # Make a DEBUG constant very first thing...
+  if(defined &DEBUG) {
+  } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
+    my $debug = $1;
+    *DEBUG = sub () { $debug };
+  } else {
+    *DEBUG = sub () {0};
+  }
+}
 
 use File::Find;
 use File::Spec;
@@ -96,8 +106,8 @@ sub pod_find {
 	my $perllocal_site = File::Spec->catfile($Config{'installsitearch'},'perllocal.pod');
 	my $perllocal_lib  = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
 	my $cache_file = _cache_file();
-	if (!-r $cache_file ||
-	    (-e $perllocal_site && -M $perllocal_site > -M $cache_file) ||
+	if (-r $cache_file &&
+	    (-e $perllocal_site && -M $perllocal_site > -M $cache_file) &&
 	    (-e $perllocal_lib  && -M $perllocal_lib > -M $cache_file)
 	   ) {
 	    $self->LoadCache;
@@ -106,7 +116,7 @@ sub pod_find {
 		return $self->{pods};
 	    }
 	} else {
-	    warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file";
+	    DEBUG and warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file or cache file does not exist\n";
 	}
     }
 
