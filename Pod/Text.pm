@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.7 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.10 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -45,7 +45,7 @@ sub Find
  foreach $dir ("",@POD)
   {
    my $prefix;
-   foreach $prefix ("","pod/")
+   foreach $prefix ("","pod/","pods/")
     {
      my $suffix;
      foreach $suffix ("",".pod",".pm")
@@ -88,7 +88,7 @@ sub file {
       $w->delete('1.0' => 'end');
       my $tree_sw = $w->parent->Subwidget("tree");
       if ($tree_sw) {
-	  $tree_sw->SeePath($path);
+	  $tree_sw->SeePath("file:$path");
       }
       #use Benchmark;
       # my $t = new Benchmark;
@@ -129,9 +129,16 @@ sub edit
      # VISUAL and EDITOR are supposed to have a terminal, but tkpod can
      # be started without a terminal.
      my $isatty = is_interactive();
-     $edit = $ENV{XEDITOR} || ($isatty
-			       ? ($ENV{VISUAL} || $ENV{'EDITOR'} || 'vi')
-			       : 'ptked');
+     $edit = $ENV{XEDITOR};
+     if (!$isatty && !defined $edit)
+      {
+       $w->messageBox(-message => "No terminal, fallback to ptked");
+       $edit = 'ptked';
+      }
+     else
+      {
+       $edit = $ENV{VISUAL} || $ENV{'EDITOR'} || '/usr/bin/vi';
+      }
     }
 
    if (defined $edit)
@@ -186,6 +193,7 @@ sub Populate
     $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });#[$w, 'ShiftDoubleClick', $_[0]]);
 
     $p->configure(-font => $w->Font(family => 'courier'));
+    $p->tag('configure','verbatim', -wrap => 'none');
     $p->tag('configure','text', -font => $w->Font(family => 'times'));
     $p->tag('configure','C',-font => $w->Font(family=>'courier',   weight=>'medium'              ));
     $p->tag('configure','S',-font => $w->Font(family=>'courier',   weight=>'bold',   slant => 'o'));
@@ -436,16 +444,21 @@ sub Print {
     die;
 }
 
-sub SelectToModule {
+# Return $first and $last indices of the word under $index
+sub _word_under_index {
     my($w, $index)= @_;
-    my $cur = $w->index($index);
     my ($first,$last);
     $first = $w->search(qw/-backwards -regexp --/, '[^\w:]', $index, "$index linestart");
     $first = $w->index("$first + 1c") if $first;
     $first = $w->index("$index linestart") unless $first;
     $last  = $w->search(qw/-regexp --/, '[^\w:]', $index, "$index lineend");
     $last  = $w->index("$index lineend") unless $last;
+    ($first, $last);
+}
 
+sub SelectToModule {
+    my($w, $index)= @_;
+    my ($first,$last) = $w->_word_under_index($index);
     if ($first && $last) {
 	$w->tagRemove('sel','1.0',$first);
 	$w->tagAdd('sel',$first,$last);
@@ -581,6 +594,7 @@ sub head2
 }
 
 *head3 = \&head2;
+*head4 = \&head2;
 
 sub IndentTag
 {

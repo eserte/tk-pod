@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.99_07
+	o cygwin compatibility
+	o bugfix in Tk::Pod::Text (thanks, John Cerney!)
+
 version 0.99_06
 	o new "Set Pod" menu entry in Pod.pm
 	o Double-2 opens pod in new window (like Shift-Double-1)

@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree);
 
-$VERSION = substr(q$Revision: 1.8 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.9 $ , 10) + 1 . "";
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
@@ -123,9 +123,9 @@ path.  For each C<name> a new POD browser window is opened.
 
 =item B<-tree>
 
-By default, tkpod will show a tree window with all available PODs.
-However, this is slow on startup. With the option B<-notree> only the
-given POD will be shown and no tree view will be available.
+When specified, C<tkpod> will show a tree window with all available
+PODs on the local host. However, this may be slow on startup. You can
+always turn on the tree view with the menu entry 'View' -E<gt> 'POD Tree'.
 
 =item B<-tk>
 
@@ -155,6 +155,7 @@ L<pod2text|pod2text>
 L<pod2html|pod2html>
 L<Tk::Pod|Tk::Pod>
 L<Tk::Pod::Text|Tk::Pod::Text>
+L<Tk::Pod::Tree|Tk::Pod::Tree>
 
 =head1 AUTHOR
 

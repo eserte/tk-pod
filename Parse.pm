@@ -1,11 +1,11 @@
-# $Id: Parse.pm,v 2.2 2001/10/26 22:48:21 eserte Exp $
+# $Id: Parse.pm,v 2.3 2002/03/16 14:09:27 eserte Exp $
 
 package Tk::Parse;
 
 require Exporter;
 
 use vars qw($VERSION %Escapes);
-$VERSION = substr(q$Revision: 2.2 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 2.3 $, 10) + 1 . "";
 
 @ISA=qw(Exporter);
 @EXPORT=qw(Parse Simplify hide start_hide unhide Normalize Normalize2 Escapes
@@ -840,73 +840,115 @@ if (eval { require Pod::Text &&
 } else {
     # fallback...
 %Escapes = (
-    'amp'	=>	'&',	#   ampersand
-    'lt'	=>	'<',	#   left chevron, less-than
-    'gt'	=>	'>',	#   right chevron, greater-than
-    'quot'	=>	'"',	#   double quote
+    'amp'       =>    '&',      # ampersand
+    'apos'      =>    "'",      # apostrophe
+    'lt'        =>    '<',      # left chevron, less-than
+    'gt'        =>    '>',      # right chevron, greater-than
+    'quot'      =>    '"',      # double quote
+    'sol'       =>    '/',      # solidus (forward slash)
+    'verbar'    =>    '|',      # vertical bar
 
-    "Aacute"	=>	"A",	#   capital A, acute accent
-    "aacute"	=>	"a",	#   small a, acute accent
-    "Acirc"	=>	"A",	#   capital A, circumflex accent
-    "acirc"	=>	"a",	#   small a, circumflex accent
-    "AElig"	=>	'Ae',		#   capital AE diphthong (ligature)
-    "aelig"	=>	'ae',		#   small ae diphthong (ligature)
-    "Agrave"	=>	"A",	#   capital A, grave accent
-    "agrave"	=>	"a",	#   small a, grave accent
-    "Aring"	=>	'A',	#   capital A, ring
-    "aring"	=>	'a',	#   small a, ring
-    "Atilde"	=>	'A',	#   capital A, tilde
-    "atilde"	=>	'a',	#   small a, tilde
-    "Auml"	=>	'A',	#   capital A, dieresis or umlaut mark
-    "auml"	=>	'a',	#   small a, dieresis or umlaut mark
-    "Ccedil"	=>	'C',	#   capital C, cedilla
-    "ccedil"	=>	'c',	#   small c, cedilla
-    "Eacute"	=>	"E",	#   capital E, acute accent
-    "eacute"	=>	"e",	#   small e, acute accent
-    "Ecirc"	=>	"E",	#   capital E, circumflex accent
-    "ecirc"	=>	"e",	#   small e, circumflex accent
-    "Egrave"	=>	"E",	#   capital E, grave accent
-    "egrave"	=>	"e",	#   small e, grave accent
-    "ETH"	=>	'Oe',		#   capital Eth, Icelandic
-    "eth"	=>	'oe',		#   small eth, Icelandic
-    "Euml"	=>	'E',	#   capital E, dieresis or umlaut mark
-    "euml"	=>	'e',	#   small e, dieresis or umlaut mark
-    "Iacute"	=>	"I",	#   capital I, acute accent
-    "iacute"	=>	"i",	#   small i, acute accent
-    "Icirc"	=>	"I",	#   capital I, circumflex accent
-    "icirc"	=>	"i",	#   small i, circumflex accent
-    "Igrave"	=>	"I",	#   capital I, grave accent
-    "igrave"	=>	"i",	#   small i, grave accent
-    "Iuml"	=>	'I',	#   capital I, dieresis or umlaut mark
-    "iuml"	=>	'i',	#   small i, dieresis or umlaut mark
-    "Ntilde"	=>	'N',	#   capital N, tilde
-    "ntilde"	=>	'n',	#   small n, tilde
-    "Oacute"	=>	"O",	#   capital O, acute accent
-    "oacute"	=>	"o",	#   small o, acute accent
-    "Ocirc"	=>	"O",	#   capital O, circumflex accent
-    "ocirc"	=>	"o",	#   small o, circumflex accent
-    "Ograve"	=>	"O",	#   capital O, grave accent
-    "ograve"	=>	"o",	#   small o, grave accent
-    "Oslash"	=>	"O",		#   capital O, slash
-    "oslash"	=>	"o",		#   small o, slash
-    "Otilde"	=>	"O",	#   capital O, tilde
-    "otilde"	=>	"o",	#   small o, tilde
-    "Ouml"	=>	'O',	#   capital O, dieresis or umlaut mark
-    "ouml"	=>	'o',	#   small o, dieresis or umlaut mark
-    "szlig"	=>	'ss',		#   small sharp s, German (sz ligature)
-    "THORN"	=>	'L',		#   capital THORN, Icelandic
-    "thorn"	=>	'l',		#   small thorn, Icelandic
-    "Uacute"	=>	"U",	#   capital U, acute accent
-    "uacute"	=>	"u",	#   small u, acute accent
-    "Ucirc"	=>	"U",	#   capital U, circumflex accent
-    "ucirc"	=>	"u",	#   small u, circumflex accent
-    "Ugrave"	=>	"U",	#   capital U, grave accent
-    "ugrave"	=>	"u",	#   small u, grave accent
-    "Uuml"	=>	'U',	#   capital U, dieresis or umlaut mark
-    "uuml"	=>	'u',	#   small u, dieresis or umlaut mark
-    "Yacute"	=>	"Y",	#   capital Y, acute accent
-    "yacute"	=>	"y",	#   small y, acute accent
-    "yuml"	=>	'y',	#   small y, dieresis or umlaut mark
+    "Aacute"    =>    "\xC1",   # capital A, acute accent
+    "aacute"    =>    "\xE1",   # small a, acute accent
+    "Acirc"     =>    "\xC2",   # capital A, circumflex accent
+    "acirc"     =>    "\xE2",   # small a, circumflex accent
+    "AElig"     =>    "\xC6",   # capital AE diphthong (ligature)
+    "aelig"     =>    "\xE6",   # small ae diphthong (ligature)
+    "Agrave"    =>    "\xC0",   # capital A, grave accent
+    "agrave"    =>    "\xE0",   # small a, grave accent
+    "Aring"     =>    "\xC5",   # capital A, ring
+    "aring"     =>    "\xE5",   # small a, ring
+    "Atilde"    =>    "\xC3",   # capital A, tilde
+    "atilde"    =>    "\xE3",   # small a, tilde
+    "Auml"      =>    "\xC4",   # capital A, dieresis or umlaut mark
+    "auml"      =>    "\xE4",   # small a, dieresis or umlaut mark
+    "Ccedil"    =>    "\xC7",   # capital C, cedilla
+    "ccedil"    =>    "\xE7",   # small c, cedilla
+    "Eacute"    =>    "\xC9",   # capital E, acute accent
+    "eacute"    =>    "\xE9",   # small e, acute accent
+    "Ecirc"     =>    "\xCA",   # capital E, circumflex accent
+    "ecirc"     =>    "\xEA",   # small e, circumflex accent
+    "Egrave"    =>    "\xC8",   # capital E, grave accent
+    "egrave"    =>    "\xE8",   # small e, grave accent
+    "ETH"       =>    "\xD0",   # capital Eth, Icelandic
+    "eth"       =>    "\xF0",   # small eth, Icelandic
+    "Euml"      =>    "\xCB",   # capital E, dieresis or umlaut mark
+    "euml"      =>    "\xEB",   # small e, dieresis or umlaut mark
+    "Iacute"    =>    "\xCD",   # capital I, acute accent
+    "iacute"    =>    "\xED",   # small i, acute accent
+    "Icirc"     =>    "\xCE",   # capital I, circumflex accent
+    "icirc"     =>    "\xEE",   # small i, circumflex accent
+    "Igrave"    =>    "\xCC",   # capital I, grave accent
+    "igrave"    =>    "\xEC",   # small i, grave accent
+    "Iuml"      =>    "\xCF",   # capital I, dieresis or umlaut mark
+    "iuml"      =>    "\xEF",   # small i, dieresis or umlaut mark
+    "Ntilde"    =>    "\xD1",   # capital N, tilde
+    "ntilde"    =>    "\xF1",   # small n, tilde
+    "Oacute"    =>    "\xD3",   # capital O, acute accent
+    "oacute"    =>    "\xF3",   # small o, acute accent
+    "Ocirc"     =>    "\xD4",   # capital O, circumflex accent
+    "ocirc"     =>    "\xF4",   # small o, circumflex accent
+    "Ograve"    =>    "\xD2",   # capital O, grave accent
+    "ograve"    =>    "\xF2",   # small o, grave accent
+    "Oslash"    =>    "\xD8",   # capital O, slash
+    "oslash"    =>    "\xF8",   # small o, slash
+    "Otilde"    =>    "\xD5",   # capital O, tilde
+    "otilde"    =>    "\xF5",   # small o, tilde
+    "Ouml"      =>    "\xD6",   # capital O, dieresis or umlaut mark
+    "ouml"      =>    "\xF6",   # small o, dieresis or umlaut mark
+    "szlig"     =>    "\xDF",   # small sharp s, German (sz ligature)
+    "THORN"     =>    "\xDE",   # capital THORN, Icelandic
+    "thorn"     =>    "\xFE",   # small thorn, Icelandic
+    "Uacute"    =>    "\xDA",   # capital U, acute accent
+    "uacute"    =>    "\xFA",   # small u, acute accent
+    "Ucirc"     =>    "\xDB",   # capital U, circumflex accent
+    "ucirc"     =>    "\xFB",   # small u, circumflex accent
+    "Ugrave"    =>    "\xD9",   # capital U, grave accent
+    "ugrave"    =>    "\xF9",   # small u, grave accent
+    "Uuml"      =>    "\xDC",   # capital U, dieresis or umlaut mark
+    "uuml"      =>    "\xFC",   # small u, dieresis or umlaut mark
+    "Yacute"    =>    "\xDD",   # capital Y, acute accent
+    "yacute"    =>    "\xFD",   # small y, acute accent
+    "yuml"      =>    "\xFF",   # small y, dieresis or umlaut mark
+
+    "laquo"     =>    "\xAB",   # left pointing double angle quotation mark
+    "lchevron"  =>    "\xAB",   #  synonym (backwards compatibility)
+    "raquo"     =>    "\xBB",   # right pointing double angle quotation mark
+    "rchevron"  =>    "\xBB",   #  synonym (backwards compatibility)
+
+    "iexcl"     =>    "\xA1",   # inverted exclamation mark
+    "cent"      =>    "\xA2",   # cent sign
+    "pound"     =>    "\xA3",   # (UK) pound sign
+    "curren"    =>    "\xA4",   # currency sign
+    "yen"       =>    "\xA5",   # yen sign
+    "brvbar"    =>    "\xA6",   # broken vertical bar
+    "sect"      =>    "\xA7",   # section sign
+    "uml"       =>    "\xA8",   # diaresis
+    "copy"      =>    "\xA9",   # Copyright symbol
+    "ordf"      =>    "\xAA",   # feminine ordinal indicator
+    "not"       =>    "\xAC",   # not sign
+    "shy"       =>    '',       # soft (discretionary) hyphen
+    "reg"       =>    "\xAE",   # registered trademark
+    "macr"      =>    "\xAF",   # macron, overline
+    "deg"       =>    "\xB0",   # degree sign
+    "plusmn"    =>    "\xB1",   # plus-minus sign
+    "sup2"      =>    "\xB2",   # superscript 2
+    "sup3"      =>    "\xB3",   # superscript 3
+    "acute"     =>    "\xB4",   # acute accent
+    "micro"     =>    "\xB5",   # micro sign
+    "para"      =>    "\xB6",   # pilcrow sign = paragraph sign
+    "middot"    =>    "\xB7",   # middle dot = Georgian comma
+    "cedil"     =>    "\xB8",   # cedilla
+    "sup1"      =>    "\xB9",   # superscript 1
+    "ordm"      =>    "\xBA",   # masculine ordinal indicator
+    "frac14"    =>    "\xBC",   # vulgar fraction one quarter
+    "frac12"    =>    "\xBD",   # vulgar fraction one half
+    "frac34"    =>    "\xBE",   # vulgar fraction three quarters
+    "iquest"    =>    "\xBF",   # inverted question mark
+    "times"     =>    "\xD7",   # multiplication sign
+    "divide"    =>    "\xF7",   # division sign
+
+    "nbsp"      =>    "\xA0",   # non-breaking space # XXX differs!
 );
 }
 
