@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.2 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 1.3 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -112,6 +112,7 @@ sub openfile {
 
 sub Dir {
     require Tk::Pod::Text;
+    require Tk::Pod::Tree;
     Tk::Pod::Text::Dir(@_);
     Tk::Pod::Tree::Dir(@_);
 }
