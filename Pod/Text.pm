@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.39 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.40 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -857,6 +857,7 @@ sub history_add {
     splice @$hist, $w->privateData()->{history_index}+1;
     $w->history_view_update;
     $w->history_view_select;
+    $w->_history_navigation_update;
     undef;
 }
 
@@ -871,7 +872,7 @@ sub history_back {
 	return;
     }
     if ($w->privateData()->{history_index} <= 0) {
-	$w->messageBox(-message => "Can't go back",
+	$w->messageBox(-message => "Can't go back in history",
 		       @{&HISTORY_DIALOG_ARGS});
 	return;
     }
@@ -892,7 +893,7 @@ sub history_forward {
 	return;
     }
     if ($w->privateData()->{history_index} >= $#$hist) {
-	$w->messageBox(-message => "Can't go forward",
+	$w->messageBox(-message => "Can't go forward in history",
 		       @{&HISTORY_DIALOG_ARGS});
 	return;
     }
@@ -918,8 +919,30 @@ sub _history_update {
 	    $w->configure('-text' => $hist_entry->text);
 	    $w->privateData()->{'from_history'} = 0;
 	}
+	$w->_history_navigation_update;
 	$w->afterIdle(sub { $w->see($hist_entry->index) })
 	    if $hist_entry->index;
+    }
+}
+
+sub _history_navigation_update {
+    my $w = shift;
+    # XXX Be careful with the search pattern
+    # if I decide to I18N Tk::Pod one day...
+    my $m_history;
+    if ($w->parent and $m_history = $w->parent->Subwidget("menubar")) {
+	$m_history = $m_history->entrycget("History", "-menu");
+	my $inx = $w->privateData()->{history_index};
+	if ($inx == 0) {
+	    $m_history->entryconfigure("Back", -state => "disabled");
+	} else {
+	    $m_history->entryconfigure("Back", -state => "normal");
+	}
+	if ($inx == $#{$w->privateData()->{history}}) {
+	    $m_history->entryconfigure("Forward", -state => "disabled");
+	} else {
+	    $m_history->entryconfigure("Forward", -state => "normal");
+	}
     }
 }
 
@@ -977,6 +1000,7 @@ sub history_view {
     $t->deiconify;
     $t->raise;
     $w->history_view_update;
+    $w->history_view_select;
 }
 
 # Re-fill the history view with the current history array.
