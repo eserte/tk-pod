@@ -3,8 +3,9 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 2.5 $, 10) . "";
+$VERSION = substr(q$Revision: 2.6 $, 10) . "";
 
+use Tk qw(Ev);
 use Tk::Derived;
 use Tk::Frame;
 @ISA = qw(Tk::Derived Tk::Frame);
@@ -67,8 +68,14 @@ sub Populate {
     $t->bind('<Key-b>', [$cw, 'scroll', $t, -1, 'page']);
     $t->bind('<Prior>', [$cw, 'scroll', $t, -1, 'page']);
 
-    $t->bind('<Right>', sub { $t->xview('scroll',  1, 'units'); Tk->break });
-    $t->bind('<Left>',  sub { $t->xview('scroll', -1, 'units'); Tk->break });
+    $t->bind('<Right>', [sub {
+		 return if ($_[1] =~ /(Alt|Meta)-/);
+		 $t->xview('scroll',  1, 'units'); Tk->break;
+	     }, Ev('s')]);
+    $t->bind('<Left>',  [sub {
+		 return if ($_[1] =~ /(Alt|Meta)-/);
+		 $t->xview('scroll', -1, 'units'); Tk->break;
+	     }, Ev('s')]);
 
     $t->bind('<Return>', ['yview', 'scroll',  1, 'units']);
     $t->bind('<Key-d>',  [$cw, 'scroll', $t,  1, 'halfpage']);
