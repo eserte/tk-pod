@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.23 2003/03/28 20:55:37 eserte Exp $
+# $Id: Tree.pm,v 1.24 2003/08/01 10:55:25 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -312,7 +312,7 @@ if ($args{-cpan}) { $usecache = 0 }
 	$ExtraFindPods = Tk::Pod::FindPods->new unless $ExtraFindPods;
 	my $extra_pods = $ExtraFindPods->pod_find
 	    (-categorized => 0,
-	     -category => "local dir",
+	     -category => "local dirs",
 	     -directories => [keys %EXTRAPODDIR],
 	     -usecache => 0,
 	     -cpan => 0

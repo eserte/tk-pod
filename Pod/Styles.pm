@@ -3,6 +3,9 @@ require 5;
 use strict;
 package Tk::Pod::Styles;
 
+use vars qw($VERSION);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
+
 sub init_styles {
   my $w = shift;
   $w->set_base_font_size($w->standard_font_size);

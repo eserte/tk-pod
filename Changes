@@ -1,5 +1,10 @@
 History for Tk::Pod
 
+version 0.9920
+	o more information in About dialog
+	o Tk::Pod::Cache: workaround for a reload bug (seen on RedHat 8.0 only)
+	o no more interactive tests --- bow there's "make demo"
+
 version 0.9919
 	o search in Pod tree with history
 	o changed menu entry label "Set Pod" to "Open by Name"

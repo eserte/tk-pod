@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.21 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.23 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -40,10 +40,10 @@ sub INIT {
 
 use Tk;
 
-# Experimental mousewheel support. This should really be part of Tk.
+# Experimental mousewheel support. This is part of newer Tk versions.
 # XXX <MouseWheel> support for Windows is untested.
 BEGIN {
-    if ($Tk::VERSION < 804) {
+    if ($Tk::VERSION < 800.024012) {
 	local $^W = 0;
 	require Tk::Listbox;
 	my $orig_tk_listbox_classinit = \&Tk::Listbox::ClassInit;
@@ -207,7 +207,12 @@ if ($mw->children) {
 } else {
     $mw->destroy;
 }
-$mw->WidgetDump if $ENV{TKPODDEBUG} && $ENV{TKPODDEBUG} >= 10;
+if ($ENV{TKPODDEBUG} && $ENV{TKPODDEBUG} >= 10) {
+    eval {
+	$mw->WidgetDump;
+    };
+    warn $@ if $@;
+}
 MainLoop;
 unlink($portfile);
 exit(0);

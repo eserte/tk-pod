@@ -1,4 +1,22 @@
+# -*- perl -*-
+
 use ExtUtils::MakeMaker;
+
+$DIST_VERSION = "0.9920";
+if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
+    open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
+ SEARCH_FOR_DIST_VERSION: {
+	while(<P>) {
+	    if (/DIST_VERSION\s*=\s*\"(.*)\"/) {
+		if ($DIST_VERSION ne $1) {
+		    die "Please adjust DIST_VERSION in Makefile.PL";
+		}
+		last SEARCH_FOR_DIST_VERSION;
+	    }
+	}
+	die "Cannot find DIST_VERSION definition in Pod.pm";
+    }
+}
 
 WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk'             => 800.004,
@@ -9,7 +27,7 @@ WriteMakefile(
 			   },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
-	'VERSION'	=> '0.9919',
+	'VERSION'	=> $DIST_VERSION,
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
@@ -19,11 +37,19 @@ WriteMakefile(
 );
 
 sub MY::postamble {
-	if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
-		<<'EOF';
+    my $postamble = <<'EOF';
+demo :: pure_all
+	$(FULLPERL) -w -Mblib tkpod -tree -nodebug
+
+EOF
+
+    if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
+	$postamble .= <<'EOF';
 release :: $(DISTVNAME).tar$(SUFFIX)
 	cpan-upload $(DISTVNAME).tar$(SUFFIX)
 
 EOF
-	}
+    }
+
+    $postamble;
 }
