@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.18 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.19 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -87,7 +87,7 @@ sub Populate
    [
     # XXX restructure to not reference to tkpod
     [Button => '~Usage...',       -command => ['help', $w]],
-    [Button => '~Programming...', -command => sub { $w->parent->Pod(-file=>'Tk/Pod.pm') }],
+    [Button => '~Programming...', -command => sub { $w->parent->Pod(-file=>'Tk/Pod.pm', -exitbutton => $w->cget(-exitbutton)) }],
     [Button => '~About...', -command => ['about', $w]],
    ]
   ]
@@ -100,6 +100,7 @@ sub Populate
  $w->Delegates('Menubar' => $mbar);
  $w->ConfigSpecs(
     -tree => ['METHOD', 'tree', 'Tree', 0],
+    -exitbutton => ['PASSIVE', 'exitButton', 'ExitButton', $exitbutton],
     'DEFAULT' => [$p],
  );
 
@@ -143,30 +144,49 @@ sub openpod {
     my $t = $cw->Toplevel(-title => "Set POD");
     $t->transient($cw);
     $t->grab;
-    $t->Label(-text => "POD:")->pack(-side => "left");
-    my $pod;
-    my $e = $t->Entry(-textvariable => \$pod)->pack(-side => "left");
-    $e->focus;
-    my $go = 0;
-    $e->bind("<Return>" => sub { $go = 1 });
-    $e->bind("<Escape>" => sub { $go = -1 });
-    $t->Button(-text => "OK",
-	       -command => sub { $go = 1 })->pack(-side => "left");
-    $t->Button(-text => "Cancel",
-	       -command => sub { $go = -1 })->pack(-side => "left");
+    my($pod, $e, $go);
+    {
+	my $f = $t->Frame->pack(-fill => "x");
+	$f->Label(-text => "POD:")->pack(-side => "left");
+	$e = $f->Entry(-textvariable => \$pod)->pack(-side => "left", -fill => "x", -expand => 1);
+	$e->focus;
+	$go = 0;
+	$e->bind("<Return>" => sub { $go = 1 });
+	$e->bind("<Escape>" => sub { $go = -1 });
+    }
+
+    {
+	my $f = $t->Frame->pack;
+	$f->Button(-text => "OK",
+		   -command => sub { $go = 1 })->pack(-side => "left");
+	$f->Button(-text => "New window",
+		   -command => sub { $go = 2 })->pack(-side => "left");
+	$f->Button(-text => "Cancel",
+		   -command => sub { $go = -1 })->pack(-side => "left");
+    }
     $t->Popup(-popover => $cw);
     $t->OnDestroy(sub { $go = -1 unless $go });
     $t->waitVariable(\$go);
     $t->grabRelease;
     $t->destroy;
-    if ($go == 1 && $pod ne "") {
-	$cw->configure(-file => $pod);
+    if ($pod ne "") {
+	if ($go == 1) {
+	    $cw->configure(-file => $pod);
+	} elsif ($go == 2) {
+	    my $new_cw = $cw->MainWindow->Pod
+		('-tree' => $cw->cget(-tree),
+		 -exitbutton => $cw->cget(-exitbutton),
+		);
+	    $new_cw->configure('-file' => $pod);
+	}
     }
 }
 
 sub newwindow {
     my($cw) = @_;
-    $cw->MainWindow->Pod;
+    $cw->MainWindow->Pod('-tree' => $cw->cget(-tree),
+			 -exitbutton => $cw->cget(-exitbutton),
+			);
 }
 
 sub Dir {
@@ -180,7 +200,10 @@ sub Dir {
 sub quit { shift->destroy }
 
 sub help {
-    shift->parent->Pod(-file=>'Tk::Pod_usage.pod');
+    my $w = shift;
+    $w->parent->Pod(-file=>'Tk::Pod_usage.pod',
+		    -exitbutton => $w->cget(-exitbutton),
+		   );
 }
 
 sub about {
@@ -380,8 +403,10 @@ sub _configure_tree {
 	     my $e = $_[1];
 	     my $uri = $e->uri;
 	     if ($uri =~ /^file:(.*)/) {
-		 $w->MainWindow->Pod('-file' => $1,
-				     '-tree' => !!$tree);
+		 $w->MainWindow->Pod
+		     ('-file' => $1,
+		      -exitbutton => $w->cget(-exitbutton),
+		      '-tree' => !!$tree);
 	     } else {
 		 die "NYI";
 	     }
