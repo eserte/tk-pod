@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.5 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.6 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -675,6 +675,11 @@ sub process
  my @save = @ARGV;
  @ARGV = $file;
  $w->toplevel->Busy;
+
+ my $process_no;
+ $w->{ProcessNo}++;
+ $process_no = $w->{ProcessNo};
+
 # print STDERR "Parsing $file\n";
  my (@pod) = Simplify(Parse());
  my ($cmd,$arg);
@@ -696,6 +701,7 @@ sub process
    unless ($update--) {
      $w->update;
      $update = 2;
+     do { warn "ABORT!"; return } if $w->{ProcessNo} != $process_no;
    }
   }
  $w->parent->add_section_menu if $w->parent->can('add_section_menu');
