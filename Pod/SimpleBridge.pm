@@ -33,6 +33,7 @@ sub process { # main routine: non-handler
   $p->set_source($file);
 
   $w->toplevel->Busy;
+  $w->init_styles;
 
   my $process_no;
   $w->{ProcessNo}++;
