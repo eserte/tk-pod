@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 1.1 2001/06/13 08:05:25 eserte Exp $
+# $Id: FindPods.pm,v 1.2 2001/06/17 19:31:27 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -17,7 +17,7 @@ use strict;
 use vars qw($VERSION
 	    $init_done %pods %arch $arch_re %seen_dir $curr_dir %args);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
 
 use File::Find;
 
@@ -98,9 +98,9 @@ sub simplify_name {
 
 sub type {
     local $_ = shift;
-    if    (/^perl/)                            { return "perl" }
-    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook)/) { return "pragma" }
-    else                                       { return "mod" }
+    if    (/^perl/) { return "perl" }
+    elsif (/^[a-z]/ && !/^(mod_perl|lwpcook|cgi_to_mod_perl)/) { return "pragma" }
+    else            { return "mod" }
 }
 
 sub guess_architectures {
@@ -124,6 +124,16 @@ sub guess_architectures {
 	}
     }
     %arch;
+}
+
+sub is_site_module {
+    my $path = shift;
+    require Config;
+    $path =~ /^(
+                $Config::Config{'installsitelib'}
+               |
+		$Config::Config{'installsitearch'}
+	       )/x;
 }
 
 return 1 if caller;
