@@ -4,6 +4,9 @@ use strict;
 package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
+use vars qw($VERSION);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
+
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
   } elsif(($ENV{'TKPODDEBUG'} || '') =~ m/^(\d+)/) { # untaint
