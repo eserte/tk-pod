@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9924
+	o fix for a test error
+
 version 0.9923
 	o Zoom in/out was reversed (spotted by Martin Thurn)
 	o temporary print files now may get deleted on process end
