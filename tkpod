@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.20 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.21 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -153,6 +153,12 @@ if (@I) {
     push @extra_dirs, @I;
 }
 Tk::Pod->Dir(@extra_dirs) if @extra_dirs;
+if ($ENV{TKPODDIRS}) {
+    require Config;
+    for my $dir (split $Config::Config{'path_sep'}, $ENV{TKPODDIRS}) {
+	Tk::Pod->Dir($dir);
+    }
+}
 
 if (!@ARGV)
  {
@@ -325,6 +331,23 @@ mandatory.
 How to navigate with the Pod browser is described in L<Tk::Pod_usage>.
 It's also accessible via the menu 'Help' -> 'Usage...'.
 
+=head1 ENVIRONMENT
+
+=over
+
+=item TKPODPORT
+
+Force a port for tkpod's server mode.
+
+=item TKPODDIRS
+
+A list of directories (on Unix usually separated by C<:>, on Windows
+by C<;>) for additional Pod directories. These directories will appear
+in the "local dirs" section of the tree view.
+
+=back
+
+See L<Tk::Pod::Text/Environment> for more environment variables.
 
 =head1 KNOWN BUGS
 
