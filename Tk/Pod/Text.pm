@@ -7,7 +7,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr q$Revision: 1.6 $, 10;
+$VERSION = substr q$Revision: 1.9 $, 10;
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -52,6 +52,7 @@ sub file {
   my $w = shift;
   if (@_)
     {
+      #print "loading $_[0] ...\n";
       my $file = shift;
       $w->{'File'} = $file;
       my $path = $w->findpod($file);
@@ -111,24 +112,17 @@ sub Populate
 {
  my ($w,$args) = @_;
 
-   
-    my $has_More = 0;  # XXX Tk::More is not ready for public
-    eval {require Tk::More; };
-    if ($@) {
-        require Tk::ROText;
-    } else {
-        $has_More = 1;
-    }
+    require Tk::More;
 
     $w->SUPER::Populate($args);
 
     $w->privateData()->{history} = [];
      
-    my $p = $w->Scrolled(($has_More? 'More' : 'ROText'), -scrollbars => 'w');
+    my $p = $w->Scrolled('More', -scrollbars => 'w');
     $p->pack(-expand => 1, -fill => 'both');
-    # xxx: Subwidget stuff needed because Scrolled does not
-    #      delegate bind, bindtag to the scrolled widget. Tk402.* (and before?)
-    #	   (patch posted)
+    # XXX Subwidget stuff needed because Scrolled does not
+    #     delegate bind, bindtag to the scrolled widget. Tk402.* (and before?)
+    #	  (patch posted and included in Tk402.004)
     $p->Subwidget('scrolled')->bind('<Double-1>',      [$w, 'DoubleClick']);
     $p->Subwidget('scrolled')->bind('<Shift-Double-1>',[$w, 'ShiftDoubleClick']);
 
@@ -156,7 +150,7 @@ sub Populate
 		sub {
 		    $w->configure('-file' => $w->history_back)
 			 if $w->history_size;
-		    $w->history_back; # xxx: arrgh, logic!. Todo: Forward (cmp Tk/Web.pm)
+		    $w->history_back; # XXX arrgh, logic!. Todo: Forward (cmp Tk/Web.pm)
 		} );
     $m->command(-label => 'Reload', -command => sub{$w->reload} );
     $m->command(-label => 'Edit',   -command => sub{$w->edit} );
@@ -254,24 +248,43 @@ sub DoubleClick
 sub Link
 {
  my ($w,$how,$index,$link) = @_;
+
  my (@range) = $w->tag('nextrange',$link,$index);
+ # XXX wrong if mode is 'new'  
  if (@range == 2)
   {
+   #print "begin  man=($link)\n";
    $w->see($range[0]);
   }
  else
   {
    my $man = $link;
+   #   $man =~ s/^"/\/"/;  # L<"sec"> ==> L</"sec">
    my $sec;
    ($man,$sec) = split(m#/#,$link) if ($link =~ m#/#);
+   $man =~ s/::/\//g;
    if ($how eq 'reuse')
     {
-     $w->configure('-file' => $man);
+     #print "man=($man) file=",$w->cget('-file'),")\n";
+     $w->configure('-file' => $man) unless $w->cget('-file') =~ /$man\.\w+$/; 
     }
    else
     {
-     $w->MainWindow->Pod('-file' => $man);
+     #print "after  man=($man)\n";
+     $man = $w->cget('-file') if ($man eq "");
+     #print "before man=($man)\n";
+     $w = $w->MainWindow->Pod('-file' => $man);
     }
+   # XXX big docs like Tk::Text take too long until
+   #     they return
+   if (defined $sec)
+     {   
+        #print "end  man=($sec)\n";
+        # handle sections: head1, head2 and items
+        my $start = ($w->tag('nextrange',$sec, '1.0'))[0];
+        $w->BackTrace("Section '$sec' not found\n") unless (defined $start);
+        $w->yview($start);
+     }
   }
 }
 
@@ -304,10 +317,16 @@ sub _expand
      $what = $w->_expand($what);         
      if ($tag eq 'L')
       {
+       if ($what =~ s/^([^|\x7f]+)\|//) # L<showthis|man/sec>
+         {
+            my $show = $1;
+            # print "man/sec=($what) show=($show)\n";
+            $w->delete("$start +".length($show)."c", "end -1c");	
+         }
        $tag = '!'.$what;
-       # xxx: ButtonRelease is same as Button due to tag('nextrange'...)
+       # XXX: ButtonRelease is same as Button due to tag('nextrange'...)
        # so leaving link area with pressed button nevertheless selects
-       # a link when buttun is released
+       # a link when button is released
        $w->tag('bind',$tag, '<ButtonRelease-1>',
 		[$w,'Link', 'reuse',Tk::Ev('@%x,%y'),$what]);
        $w->tag('bind',$tag, '<Shift-ButtonRelease-1>',
@@ -316,7 +335,6 @@ sub _expand
 		[$w,'Link', 'new',  Tk::Ev('@%x,%y'),$what]);
        $w->tag('configure',$tag,
 		-underline  => 1,
-		-font       => $w->Font(family => 'times'), #,slant => 'i'),
 		-foreground => 'blue',
 		);
       }
@@ -384,24 +402,26 @@ sub head1
 {
  my ($w,$title) = @_;
  my $start = $w->index('end -1c');
+ my $tag = "\"$title\""; 
  $w->append($title);
  $num = 2 unless (defined $num);
- $w->tag('add',$title,$start,'end -1c');
- $w->tag('configure',$title,-font => $w->Font(family => 'times', 
+ $w->tag('add',$tag,$start,'end -1c');
+ $w->tag('configure',$tag,-font => $w->Font(family => 'times', 
          weight => 'bold',size => 180));
- $w->tag('raise',$title,'text');
+ $w->tag('raise',$tag,'text');
  $w->append("\n\n");
 }
 
 sub head2
 {
  my ($w,$title) = @_;
+ my $tag ="\"$title\""; 
  my $start = $w->index('end -1c');
  $w->append($title);
- $w->tag('add',$title,$start,'end -1c');
- $w->tag('configure',$title,
+ $w->tag('add',$tag,$start,'end -1c');
+ $w->tag('configure',$tag,
          -font => $w->Font(family => 'times', weight => 'bold'));
- $w->tag('raise',$title,'text');
+ $w->tag('raise',$tag,'text');
  $w->append("\n\n");
 }
 
@@ -475,6 +495,7 @@ sub over { }
 
 sub back { } 
 
+# XXX PodText.pm should not manipulate Toplevel
 sub filename
 {
  my ($w,$title) = @_;
@@ -554,8 +575,15 @@ Tk::Pod::Text - POD browser widget
     $pod = $parent->PodText(
 		-file		=> ?
 		-scrollbars	=> ?
-		-path		=> ?
 		);
+
+    $file = $pod->cget('-path');   # ?? the name path is confusing :-(
+
+=cut
+
+# also works with L<show|man/sec>. Therefore it stays undocumented :-)
+ 
+#    $pod->Link(manual/section)	# as L<manual/section> see perlpod 
 
 
 =head1 DESCRIPTION

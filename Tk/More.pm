@@ -3,18 +3,26 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr q$Revision: 1.3 $, 10;
+$VERSION = substr q$Revision: 1.5 $, 10;
 
+use Tk::Derived;
 use Tk::Frame;
-@ISA = qw(Tk::Frame);
+@ISA = qw(Tk::Derived Tk::Frame);
 
 Construct Tk::Widget 'More';
 
 #sub ClassInit {
-#    my ($mw, $class) = @_;
+#    my ($class, $mw) = @_;
 #
-#    $mw->SUPER::ClassInit($class);
+#    $class->SUPER::ClassInit($mw);
 #
+#    ## xxx: useless 'because it's bound to frame and not rotext :-(
+#    $mw->bind($class, '<Key-h>', [qw(xview scroll -1 units)]);
+#    $mw->bind($class, '<Key-l>', [qw(xview scroll  1 units)]);
+#    $mw->bind($class, '<Key-k>', [qw(yview scroll -1 units)]);
+#    $mw->bind($class, '<Key-j>', [qw(yview scroll  1 units)]);
+#
+#    return $class;
 #};
 
 sub Populate {
@@ -26,15 +34,15 @@ sub Populate {
     $cw->SUPER::Populate($args);
 
     my $search;
-
-    my $t = $cw->ROText()->pack(-fill => 'both' , -expand => 'yes');
-
     my $e = $cw->LabEntry(
 		-labelPack=>[-side =>'left'],
 		-textvariable => \$search,
 		-relief => 'flat',
 		-state => 'disabled',
-		)->pack(-fill => 'x', -expand=>'no');
+		)->pack(-side=>'bottom', -fill => 'x', -expand=>'no');
+
+    my $t = $cw->ROText()->pack(-fill => 'both' , -expand => 'yes');
+    $t->tagConfigure('search', -foreground => 'red');
 
     $t->bind('<Key-slash>',    [$cw, 'Search', $e, 'Next']);
 # xxx forw/backw search should be recoded :-(
@@ -43,14 +51,16 @@ sub Populate {
     $t->bind('<Key-N>',        [$cw, 'ShowMatch', $t, 'Prev']);
 
     $t->bind('<Key-G>', $t->bind(ref($t),'<Control-End>'));
-    $t->bind('<Key-j>', $t->bind(ref($t),'<Down>'));
-    $t->bind('<Key-k>', $t->bind(ref($t),'<Up>'));
+    $t->bind('<Key-j>', ['yview', 'scroll',  1, 'units']);
+    $t->bind('<Key-k>', ['yview', 'scroll', -1, 'units']);
     $t->bind('<Key-f>', $t->bind(ref($t),'<Next>'));
     $t->bind('<Key-b>', $t->bind(ref($t),'<Prior>'));
 
-    # Note documented (makes sense?)
-    $t->bind('<Key-h>', $t->bind(ref($t),'<Left>'));
-    $t->bind('<Key-l>', $t->bind(ref($t),'<Right>'));
+    # Not documented (makes sense?)
+    $t->bind('<Key-l>', ['xview', 'scroll',  1, 'units']);
+    $t->bind('<Key-h>', ['xview', 'scroll', -1, 'units']);
+#    $t->bind('<Key-h>', $t->bind(ref($t),'<Left>'));
+#    $t->bind('<Key-l>', $t->bind(ref($t),'<Right>'));
     $t->bind('<Return>', $t->bind(ref($t),'<Down>'));
     $t->bind('<space>', $t->bind(ref($t),'<Next>'));
     $t->bind('<Key-d>', $t->bind(ref($t),'<Next>'));  # xxx should be 1/2 screen
@@ -60,9 +70,15 @@ sub Populate {
 
     $cw->Delegates('DEFAULT' => $t);
 
-    $cw->ConfigSpecs('DEFAULT', [$t]);
+    $cw->ConfigSpecs(
+		-insertofftime => [$t, qw(insertOffTime OffTime         0)], # no blinking
+		-insertwidth   => [$t, qw(insertWidth   InsertWidth     0)], # invisible
+		-padx          => [$t, qw(padX          Pad            5p)],
+		-pady          => [$t, qw(padY          Pad            5p)],
+		'DEFAULT'      => [$t]
+		);
 
-    undef;
+    $cw;
 }
 
 sub Search {
@@ -79,7 +95,6 @@ sub SearchText {
 	$cw->bell;
     }
     $e->configure(-label=>'');
-    $t->tagConfigure('search', -foreground => 'red');
     $t->see( '@1,0' );
     # xxx better start at current pos as in more ???
     $t->markSet('insert' ,'@1,0');
@@ -256,7 +271,7 @@ Tk::ROText, more
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
 
-Copyright (c) 1997 Achim Bohnet. All rights reserved.  This program is
+Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program is
 free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt);
 
-$VERSION = substr q$Revision: 1.7 $, 10;
+$VERSION = substr q$Revision: 1.8 $, 10;
 
 BEGIN {
 	if (defined($ARGV[0]) and $ARGV[0] eq '-tk') {
@@ -20,7 +20,7 @@ EOT
 }
 
 use Tk;
-BEGIN { eval { require '../exgui/Tk/FcyEntry.pm'; } }; # FcyEntry not ready for public
+BEGIN { eval { require Tk::FcyEntry; }; };
 use Tk::Pod;
 
 require Tk::ErrorDialog;
@@ -102,7 +102,7 @@ tkpod - Perl/Tk POD browser
 =head1 DESCRIPTION
 
 B<tkpod> is a simple POD browser with hypertext capabilities.
-POD (Plain Old Document, see L<perlpod>) is a simple and readable
+POD (L<Plain Old Document|perlpod>) is a simple and readable
 markup language that could be mixed with L<perl> code.
 
 PODs are searched by default in C<@INC>.  Directories listed on
@@ -146,7 +146,7 @@ With <Button-2> the documentation is loaded into a new window
 A B<double click> tries to load the documentation for the selected
 word in the same window.
 
-If the c<Shift> key is simultanously pressed the new window is
+If the C<Shift> key is simultanously pressed the new window is
 opened.
 
 =item * Search in POD document

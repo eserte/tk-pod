@@ -1,5 +1,24 @@
-Scratch pad of bugs missing features and misbehavior I've
-found during the usage of tkpod:
+Scratch pad of bugs, missing features, and misbehaviors
+collected during I used tkpod.
+
+o L</sec> and <2>/<shift-1> do not open a new window :-(
+  
+o Make PodText/PodParser accept POD from a handle
+  so own can create & display POD on the fly.
+
+o FcyEntry stopped working with tkpod why ????????
+
+o Back does not remember the jumps in a document
+
+o Current section/item tag names should made save (no blank
+  + or -)
+
+o Tk8 font handling is much better for a new PodText
+
+o On startup Pod title is 'Pod' and the name
+
+o PodText should not manipulate toplevel title
+  in sub filename (called by Tk::parse)
 
 o replace Tk::Parse with Pod::Parser subclass
   Hmmm... lets wait for Pod::Base/Simplify
@@ -45,8 +64,7 @@ o Bug: works: perl Makefile.PL; make; make test
 o MM workaround: 'Writing Makefile for Tk::Pod' is not
   writen out two times. It's just a side effect of the setup
 
-o add 'more' like key bindings to Tk::More. Especially
-  'up' 'down' should scroll independent where the cursor is.
+o more 'more' like key bindings to Tk::More.
 
 o better history support:
 	o disable 'back' menu item on first hist entry
@@ -55,8 +73,6 @@ o better history support:
 o search policies: regexp, glob, incremental (as in xmore)
   and 'normalized' as in perlindex.  Should go into it's own
   Tk::Text::Util.pm module
-
-o add section jumps as for <manpage/section>
 
 o cleanup search interface to perlindex.  Maybe patch Ulrichs
   TPJ example code for nroff pages to allow both POD and MAN.

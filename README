@@ -7,17 +7,37 @@ Added features compared to the version in Tk402.003:
 
 	o Interface to perlindex full text POD search added
 	  (you need to install perlindex distribution).
-	o Added some POD to tkpod Tk::Pod and Tk::Pod::Text
+	o L<man/sec> and L<show|man/sec> supported	 
+	o Primitive Tk/More widget with '/', 'n', 'N', j, k
+	  bindings
 	o Added Open and Help menu item
 	o Don't open new Toplevel window for new selected POD
+	  so 'feel' is more like in WWW browsers
 	o Added Popup menu for 'Back' 'Reload' 'Edit' 'Search'
 	o CDE default font support
-	o Very Primitive Tk/More widget with '/', 'n', 'N'
-	  bindings
 	o better lookup of Tk docs with -tk switch
-	 
+	o Added some POD to tkpod Tk::Pod and Tk::Pod::Text
+
 The distribution includes a patch for Tk/Text.pm  (already in
 Tk402.004). When you get an error about 'tagPrevrange' apply it.
+
+Known problem with Tk800.000 and Tk800.0_01:
+
+        Bad option `Name' at ../tk8/blib/lib/Tk/Menu/Item.pm line 48.
+         at ../tk8/blib/lib/Tk/Widget.pm line 225
+
+    A quick fix/workaround is to patch Tk800.000 and 0_01 from
+    Slaven RetiSlaven Rezic <eserte@cs.tu-berlin.de>
+
+--- /home3/src/CPAN/build/Tk800.0_01/Tk/Menu/Item.pm    Tue Mar  3 23:17:32 1998
++++ Tk/Menu/Item.pm     Wed Mar  4 11:35:22 1998
+@@ -105,6 +107,7 @@
+  my $tearoff   = delete $minfo->{-tearoff};
+  my $items     = delete $minfo->{-menuitems};
+  my $widgetvar = delete $minfo->{-menuvar};
++delete $minfo->{Name};
+  my @args = ();
+
 
 If you find a bug please check the TODO file if it's not already
 known.  Please consider to send any nontrivial patch to the
@@ -39,6 +59,32 @@ Win95/NT Users:
 	of tkpod functionality should work.
 
 History:
+
+version 0.7
+
+	Tk/Pod/Text.pm
+		o Links don't change font size in =head and
+                  =item commands
+		o Support L<man/"head*"> and L<man/item>
+		  (/"head" and /item still don't work when
+		  new Pod widget should is opened (<2> or
+                  <Shift-1>)
+		o Support L<showthis|man/sec> (new in 5.004_05
+		  to be and > 5.005_56)
+
+	Tk/Pod.pm
+		o Don't pack menubuttons for Tk800.*. (Thanks
+		  to Slaven Rezic <eserte@cs.tu-berlin.de>)
+		o 'Help/Usage' works when installed (also Win*?)
+
+	Tk/More.pm
+		o better h,j,k,l bindings scroll regardless of
+		  'insert' position
+		o insertCursor is invisible (well zero width)
+		o insertCursor off time set to 0 sec to switch
+		  of blinking (see text.n doc)
+		o fixed packing so entry does not fanish for
+		  small More widgets
 
 version 0.6
 
