@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.2 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.3 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -18,8 +18,8 @@ BEGIN { @POD = (@INC, grep(-d, split($Config{path_sep},
 
 use Class::Struct;
 struct '_HistoryEntry' => [
-    file  => '$',
-    index => '$',
+    'file'  => '$',
+    'index' => '$',
 ];
 sub _HistoryEntry::create {
     my $o = shift->new;
@@ -86,6 +86,10 @@ sub file {
       }
       $w->configure('-path' => $path);
       $w->delete('1.0' => 'end');
+      my $tree_sw = $w->parent->Subwidget("tree");
+      if ($tree_sw) {
+	  $tree_sw->SeePath($path);
+      }
       #use Benchmark;
       # my $t = new Benchmark;
       $w->process($path);
@@ -112,7 +116,7 @@ sub reload
 
 sub edit
 {
- my ($w) = @_;
+ my ($w,$edit) = @_;
  my $path = $w->cget('-path');
  if ($^O eq 'MSWin32') # XXX what is right?
   {
@@ -120,10 +124,20 @@ sub edit
   }
  else
   {
-# XXX VISUAL and EDITOR are supposed to have a terminal, but tkpod can
-# be started without a terminal.
-#   my $edit = $ENV{XEDITOR} || $ENV{VISUAL} || $ENV{'EDITOR'} || 'vi';
-   my $edit = $ENV{XEDITOR} || 'ptked';
+   if (!defined $edit)
+    {
+     # VISUAL and EDITOR are supposed to have a terminal, but tkpod can
+     # be started without a terminal.
+     my $isatty;
+     if (eval { require POSIX; 1 })
+      {
+       $isatty = (POSIX::isatty(\*STDOUT) && POSIX::isatty(\*STDIN));
+      }
+     $edit = $ENV{XEDITOR} || ($isatty
+			       ? ($ENV{VISUAL} || $ENV{'EDITOR'} || 'vi')
+			       : 'ptked');
+    }
+
    if (defined $edit)
     {
      if (fork)
@@ -159,7 +173,11 @@ sub Populate
     $w->privateData()->{history} = [];
     $w->privateData()->{history_index} = -1;
 
-    my $p = $w->Scrolled('More', -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w');
+    my $p = $w->Scrolled('More',
+			 -helpcommand => sub {
+			     $w->parent->help if $w->parent->can('help');
+			 },
+			 -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w');
     my $p_scr = $p->Subwidget('more');
     $w->Advertise('more' => $p_scr);
     $p->pack(-expand => 1, -fill => 'both');
@@ -385,6 +403,7 @@ sub SelectToModule {
     my $cur = $w->index($index);
     my ($first,$last);
     $first = $w->search(qw/-backwards -regexp --/, '[^\w:]', $index, "$index linestart");
+    $first = $w->index("$first + 1c") if $first;
     $first = $w->index("$index linestart") unless $first;
     $last  = $w->search(qw/-regexp --/, '[^\w:]', $index, "$index lineend");
     $last  = $w->index("$index lineend") unless $last;
@@ -754,7 +773,7 @@ sub history_view {
     if (!$t || !Tk::Exists($t)) {
 	$t = $w->Toplevel(-title => 'History');
 	$w->privateData()->{'history_view_toplevel'} = $t;
-	my $lb = $t->Scrolled("Listbox", -scrollbars => 'oso'.$Tk::platform eq 'MSWin32'?'e':'w')->pack(-fill => "both", -expand => 1);
+	my $lb = $t->Scrolled("Listbox", -scrollbars => 'oso'.$Tk::platform eq 'MSWin32'?'e':'w')->pack(-fill => "both", '-expand' => 1);
 	$t->Advertise(Lb => $lb);
 	$lb->bind("<1>" => sub {
 		      my $lb = shift;
