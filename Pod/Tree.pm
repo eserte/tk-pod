@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.24 2003/08/01 10:55:25 eserte Exp $
+# $Id: Tree.pm,v 1.25 2003/10/15 21:34:54 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.25 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -236,46 +236,12 @@ sub Populate {
 		    die $err if $err;
 		});
     $m->command(-label => 'Search...', -command => [$w, 'search_dialog']);
-    $w->{Show_CPAN_CB} = 0;
-    $m->checkbutton(-label => 'Show modules at CPAN',
-		    -variable => \$w->{Show_CPAN_CB},
-		    -command => sub {
-			if ($w->{Show_CPAN_CB} && $w->messageBox
-			    (-title => "Warning",
-			     -message => "This function is experimental\nand may lock up tkpod.\nAlso, a fully configured CPAN.pm and a network connection is necessary.\nDo you want to continue?",
-			     -icon => "question",
-			     -type => "YesNo",
-			    ) =~ /yes/i) {
-			    $w->Busy(-recurse => 1);
-			    eval {
-				$w->configure(-cpan => $w->{Show_CPAN_CB});
-			    };
-			    my $err = $@;
-			    $w->Unbusy;
-			    if ($err) {
-				$w->{Show_CPAN_CB} = 0;
-				die $err;
-			    }
-			} else {
-			    $w->{Show_CPAN_CB} = 0;
-			}
-		    }),
 
     $w->ConfigSpecs(
 	-showcommand  => ['CALLBACK', undef, undef, undef],
 	-showcommand2 => ['CALLBACK', undef, undef, undef],
 	-usecache     => ['PASSIVE', undef, undef, 1],
-        -cpan         => ['METHOD',  undef, undef, 0],
     );
-}
-
-sub cpan {
-    my $w = shift;
-    if (@_) {
-	$w->{Show_CPAN} = $_[0];
-	$w->Fill(-cpan => $w->{Show_CPAN}) if $w->Filled; # refill
-    }
-    $w->{Show_CPAN};
 }
 
 =head1 WIDGET METHODS
@@ -299,14 +265,11 @@ sub Fill {
 
     my $usecache = ($w->cget('-usecache') && !$args{'-nocache'});
 
-#XXXX!!!
-if ($args{-cpan}) { $usecache = 0 }
-
     # fills %pods hash:
     $FindPods = Tk::Pod::FindPods->new unless $FindPods;
     my $pods = $FindPods->pod_find(-categorized => 1,
 				   -usecache => $usecache,
-				   -cpan => $args{-cpan});
+				  );
 
     if (keys %EXTRAPODDIR) {
 	$ExtraFindPods = Tk::Pod::FindPods->new unless $ExtraFindPods;
@@ -315,7 +278,6 @@ if ($args{-cpan}) { $usecache = 0 }
 	     -category => "local dirs",
 	     -directories => [keys %EXTRAPODDIR],
 	     -usecache => 0,
-	     -cpan => 0
 	    );
 	while(my($k,$v) = each %$extra_pods) {
 	    $pods->{$k} = $v;
@@ -373,8 +335,7 @@ if ($args{-cpan}) { $usecache = 0 }
 	}
     }
 
-    if ($w->cget('-usecache') && !$FindPods->has_cache && !$args{-cpan} # XXX
-       ) {
+    if ($w->cget('-usecache') && !$FindPods->has_cache) {
 	$FindPods->WriteCache;
     }
 
