@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.15 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.16 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -40,7 +40,7 @@ sub INIT {
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
-use Tk::Pod;
+use Tk::Pod 4.18;
 use Getopt::Long;
 #require Tk::ErrorDialog;
 
@@ -120,7 +120,8 @@ if (!@ARGV)
    }
   else
    {
-    my $tl = $mw->Pod(-tree => 1);
+    my $tl = $mw->Pod(-tree => 1,
+		      -exitbutton => 1);
    }
  }
 
@@ -133,7 +134,8 @@ foreach $file (@ARGV)
    }
   else
    {
-    my $tl = $mw->Pod(-tree => $tree);
+    my $tl = $mw->Pod(-tree => $tree,
+		      -exitbutton => 1);
     # -file => ... should be called after creating the Pod window,
     # because -title => ... is set implicitly by Pod's new
     $tl->configure(-file => $file);
@@ -196,7 +198,8 @@ sub PodRequest {
     while (<$client>) {
 	chomp($_);
 	print STDERR "'$_'\n";
-	my $pod = $mw->Pod(-tree => $tree);
+	my $pod = $mw->Pod(-tree => $tree,
+			   -exitbutton => 1);
 	$pod->configure(-file => $_);
     }
     warn "Odd $!" unless eof($client);
