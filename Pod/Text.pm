@@ -16,16 +16,18 @@ BEGIN {  # Make a DEBUG constant very first thing...
 
 use Carp;
 use Config;
+use Tk qw(catch);
 use Tk::Frame;
 use Tk::Pod;
 #XXX del: use Tk::Parse;
 use Tk::Pod::SimpleBridge;
+use Tk::Pod::Cache;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.18 $, 10) + 1 . "";
-@ISA = qw(Tk::Frame Tk::Pod::SimpleBridge);
+$VERSION = substr(q$Revision: 3.19 $, 10) + 1 . "";
+@ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
-BEGIN { DEBUG and print "Running ", __PACKAGE__, "\n" }
+BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
 
 Construct Tk::Widget 'PodText';
 
@@ -37,7 +39,7 @@ BEGIN {
     : ()
   );
   $IDX = undef;
-  DEBUG and print "POD: @POD\n";
+  DEBUG and warn "POD: @POD\n";
 };
 
 use Class::Struct;
@@ -114,7 +116,7 @@ sub findpod {
 	die;
     }
     if (eval { require File::Spec; File::Spec->can("rel2abs") }) {
-	DEBUG and print "Turn $absname into an absolute file name";
+	DEBUG and warn "Turn $absname into an absolute file name";
 	$absname = File::Spec->rel2abs($absname);
     }
     $absname;
@@ -143,7 +145,10 @@ sub file {   # main entry point
 	  require Benchmark;
 	  $t = Benchmark->new;
       }
-      $w->process($path);
+      if (!$w->get_from_cache) {
+	  $w->process($path);
+	  $w->add_to_cache; # XXX pass time for processing?
+      }
       if (defined $t) {
 	  print Benchmark::timediff(Benchmark->new, $t)->timestr,"\n";
       }
@@ -358,7 +363,7 @@ sub DoubleClick
  my ($w,$ww,$how) = @_;
  my $Ev = $ww->XEvent;
  $w->SelectToModule($Ev->xy);
- my $sel = $w->SelectionGet;
+ my $sel = catch { $w->SelectionGet };
  if (defined $sel)
   {
    my $file;
@@ -418,14 +423,14 @@ sub Link
   {
    # XXX the $start-setting logic doesn't seem to work right
 
-   DEBUG and print "Looking for section \"$sec\"...\n";
-   DEBUG and print "Trying a search across Sections entries...\n";
+   DEBUG and warn "Looking for section \"$sec\"...\n";
+   DEBUG and warn "Trying a search across Sections entries...\n";
 
    my $start;
 
    foreach my $s ( @{$w->{'sections'} || []} ) {
      if($s->[1] eq $sec) {
-       DEBUG and print " $sec is $$s[1] (at $$s[2])\n";
+       DEBUG and warn " $sec is $$s[1] (at $$s[2])\n";
        $start = $s->[2];
 
        my($line) = split(/\./, $start);
@@ -437,13 +442,13 @@ sub Link
        $w->after(500, [$w, qw/tag remove _section_mark 0.0 end/]);
        return;
      } else {
-       DEBUG > 2 and print " Nope, it's not $$s[1] (at $$s[2])\n";
+       DEBUG > 2 and warn " Nope, it's not $$s[1] (at $$s[2])\n";
      }
    }
 
 
    if( defined $start ) {
-     DEBUG and print " Found at $start\n";
+     DEBUG and warn " Found at $start\n";
    } else {
      $start = ($w->tag('nextrange',$sec, '1.0'))[0];
    }
@@ -451,14 +456,14 @@ sub Link
    my $link = ($man || '') . $sec;
 
    if( defined $start ) {
-     DEBUG and print " Found at $start\n";
+     DEBUG and warn " Found at $start\n";
    } else {
-     DEBUG and print " Not found so far.  Using a quoted nextrange search...\n";
+     DEBUG and warn " Not found so far.  Using a quoted nextrange search...\n";
      $start = ($w->tag('nextrange',"\"$link\"",'1.0'))[0];
    }
 
    if( defined $start ) {
-     DEBUG and print " Found at $start\n";
+     DEBUG and warn " Found at $start\n";
    } else {
      $start = $w->search(qw/-exact -nocase --/, $sec, '1.0');
    }
@@ -466,7 +471,7 @@ sub Link
 
    unless (defined $start)
     {
-     DEBUG and print " Not found! (\"sec\")\n";
+     DEBUG and warn " Not found! (\"sec\")\n";
 
      $w->messageBox(
        -title   => "Tk::Pod Error",
@@ -474,7 +479,7 @@ sub Link
      );
      die;
     }
-   DEBUG and print "link-zapping to $start linestart\n";
+   DEBUG and warn "link-zapping to $start linestart\n";
    $w->yview("$start linestart");
   }
 
@@ -540,7 +545,7 @@ sub Print {
 	} else {
 	    @cmd = ($ENV{'TKPODPRINT'}, $path);
 	}
-	DEBUG and print "Running @cmd\n";
+	DEBUG and warn "Running @cmd\n";
 	system @cmd;
 	return;
     } elsif ($^O =~ m/Win32/) {
@@ -585,7 +590,7 @@ sub Print_MSWin {
   my $temp = POSIX::tmpnam(); # XXX it never gets deleted
   $temp =~ tr{/}{\\};
   $temp =~ s/\.$//;
-  DEBUG and print "Using $temp as the temp file for hardcopying\n";
+  DEBUG and warn "Using $temp as the temp file for hardcopying\n";
 
   if($is_old) { # so we can't assume that write.exe can handle RTF
     require Pod::Simple::Text;
@@ -748,6 +753,12 @@ sub history_view {
 		      my $lb = shift;
 		      my $y = $lb->XEvent->y;
 		      $w->history_set($lb->nearest($y));
+		  });
+	$lb->bind("<Return>" => sub {
+		      my $lb = shift;
+		      my $sel = $lb->curselection;
+		      return if !defined $sel;
+		      $w->history_set($sel);
 		  });
     }
     $t->deiconify;

@@ -51,4 +51,13 @@ o after switching between case sensitive/insensitive highlightning
 o scrolling is not as exact as it shoule be (i.e. scroll forw, then
   scroll back will not get to the same position as before)
 
+Tk::Pod::Cache
+
+o use a LRU cache
+
+o maybe do not cache small documents at all
+
+o problem: change font size => back => cached document has still the
+  old font sizes
+
 __END__

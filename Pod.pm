@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.12 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.13 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -73,6 +73,8 @@ sub Populate
     [Button => '~Back',    '-accelerator' => 'Alt-Left',  '-command' => ['history_move', $p, -1]],
     [Button => '~Forward', '-accelerator' => 'Alt-Right', '-command' => ['history_move', $p, +1]],
     [Button => '~View',    '-command' => ['history_view', $p]],
+    '-',
+    [Button => 'Clear cache', '-command' => ['clear_cache', $p]],
    ]
   ],
 
@@ -96,8 +98,11 @@ sub Populate
     'DEFAULT' => [$p],
  );
 
- $w->bind('<Alt-Left>'  => [$p, 'history_move', -1]);
- $w->bind('<Alt-Right>' => [$p, 'history_move', +1]);
+ foreach my $mod (qw(Alt Meta))
+  {
+   $w->bind($w->toplevel->PathName, "<$mod-Left>"  => [$p, 'history_move', -1]);
+   $w->bind($w->toplevel->PathName, "<$mod-Right>" => [$p, 'history_move', +1]);
+  }
 
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
 }
