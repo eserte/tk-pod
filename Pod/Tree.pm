@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.26 2003/10/22 18:59:02 eserte Exp $
+# $Id: Tree.pm,v 1.27 2004/02/04 20:18:18 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -226,10 +226,22 @@ sub Populate {
     $w->SUPER::Populate($args);
 
     $w->{Style} = {};
-    $w->{Style}{'core'} = $w->ItemStyle('imagetext', -foreground => '#006000');
-    $w->{Style}{'site'} = $w->ItemStyle('imagetext', -foreground => '#702000');
-    $w->{Style}{'cpan'} = $w->ItemStyle('imagetext', -foreground => '#000080');
-    $w->{Style}{'folder'} = $w->ItemStyle('imagetext', -foreground => '#606060');
+    $w->{Style}{'core'} = $w->ItemStyle('imagetext',
+					-foreground => '#006000',
+					-selectforeground => '#006000',
+				       );
+    $w->{Style}{'site'} = $w->ItemStyle('imagetext',
+					-foreground => '#702000',
+					-selectforeground => '#702000',
+				       );
+    $w->{Style}{'cpan'} = $w->ItemStyle('imagetext',
+					-foreground => '#000080',
+					-selectforeground => '#000080',
+				       );
+    $w->{Style}{'folder'} = $w->ItemStyle('imagetext',
+					  -foreground => '#606060',
+					  -selectforeground => '#606060',
+					 );
 
     my $m = $w->Menu(-tearoff => $Tk::platform ne 'MSWin32');
     eval { $w->menu($m) }; warn $@ if $@;
