@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: podtree.t,v 1.2 2003/10/22 18:59:02 eserte Exp $
+# $Id: podtree.t,v 1.3 2003/11/09 21:14:33 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -44,7 +44,7 @@ ok(1);
 
 my $FindPods = Tk::Pod::FindPods->new;
 ok($FindPods->isa("Tk::Pod::FindPods"));
-my $pods = $FindPods->pod_find(-categorized => 0, -usecache => 1);
+my $pods = $FindPods->pod_find(-categorized => 1, -usecache => 1);
 ok(UNIVERSAL::isa($pods, "HASH"));
 my $path = $pods->{perl}{ (keys %{ $pods->{perl} })[0] };
 $pt->SeePath($path);
