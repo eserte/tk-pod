@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.13 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.14 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -147,6 +147,8 @@ sub openpod {
     $e->bind("<Escape>" => sub { $go = -1 });
     $t->Button(-text => "OK",
 	       -command => sub { $go = 1 })->pack(-side => "left");
+    $t->Button(-text => "Cancel",
+	       -command => sub { $go = -1 })->pack(-side => "left");
     $t->Popup(-popover => $cw);
     $t->OnDestroy(sub { $go = -1 unless $go });
     $t->waitVariable(\$go);
