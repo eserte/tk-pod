@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.8 2001/06/18 18:47:05 eserte Exp $
+# $Id: Tree.pm,v 1.9 2001/10/26 22:57:59 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -65,6 +65,22 @@ use Tk qw(Ev);
 Construct Tk::Widget 'PodTree';
 
 BEGIN { @POD = @INC }
+
+######################################################################
+use Class::Struct;
+struct '_PodEntry' => [
+    'uri'  => "\$",
+];
+sub _PodEntry::create {
+    my $e = shift->new;
+    $e->uri(shift);
+    $e;
+}
+sub _PodEntry::file {
+    my $uri = shift->uri;
+    ($uri =~ /^file:(.*)/)[0];
+}
+######################################################################
 
 sub Dir {
     my $class = shift;
@@ -111,9 +127,11 @@ sub Populate {
 
     $w->SUPER::Populate($args);
 
-    $w->{CoreIS}   = $w->ItemStyle('imagetext', -foreground => '#006000');
-    $w->{SiteIS}   = $w->ItemStyle('imagetext', -foreground => '#e08000');
-    $w->{FolderIS} = $w->ItemStyle('imagetext', -foreground => '#606060');
+    $w->{Style} = {};
+    $w->{Style}{'core'} = $w->ItemStyle('imagetext', -foreground => '#006000');
+    $w->{Style}{'site'} = $w->ItemStyle('imagetext', -foreground => '#702000');
+    $w->{Style}{'cpan'} = $w->ItemStyle('imagetext', -foreground => '#000080');
+    $w->{Style}{'folder'} = $w->ItemStyle('imagetext', -foreground => '#606060');
 
     my $m = $w->Menu(-tearoff => $Tk::platform ne 'MSWin32');
     $w->menu($m);
@@ -126,12 +144,35 @@ sub Populate {
 		    $w->Unbusy(-recurse => 1);
 		    die $err if $err;
 		});
+    $m->command(-label => 'Search...', -command => [$w, 'search_dialog']);
+    $w->{Show_CPAN_CB} = 0;
+    $m->checkbutton(-label => 'Show modules at CPAN',
+		    -variable => \$w->{Show_CPAN_CB},
+		    -command => sub {
+			$w->Busy(-recurse => 1);
+			eval {
+			    $w->configure(-cpan => $w->{Show_CPAN_CB});
+			};
+			my $err = $@;
+			$w->Unbusy;
+			die $err if $err;
+		    }),
 
     $w->ConfigSpecs(
 	-showcommand  => ['CALLBACK', undef, undef, undef],
 	-showcommand2 => ['CALLBACK', undef, undef, undef],
 	-usecache     => ['PASSIVE', undef, undef, 1],
+        -cpan         => ['METHOD',  undef, undef, 0],
     );
+}
+
+sub cpan {
+    my $w = shift;
+    if (@_) {
+	$w->{Show_CPAN} = $_[0];
+	$w->Fill(-cpan => $w->{Show_CPAN}) if $w->Filled; # refill
+    }
+    $w->{Show_CPAN};
 }
 
 =head1 WIDGET METHODS
@@ -151,13 +192,15 @@ configuration option of the widget is set to false.
 sub Fill {
     my $w = shift;
     my(%args) = @_;
-
     $w->delete("all");
 
     my $usecache = ($w->cget('-usecache') && !$args{'-nocache'});
 
+#XXXX!!!
+if ($args{-cpan}) { $usecache = 0 }
+
     # fills %pods hash:
-    pod_find(-categorized => 1, -usecache => $usecache);
+    pod_find(-categorized => 1, -usecache => $usecache, -cpan => $args{-cpan});
 
     my %category_seen;
 
@@ -177,14 +220,17 @@ sub Fill {
 
 	    my $treepath = "$category/$pod";
 	    (my $title = $pod) =~ s|/|::|g;
+#warn "$pod $hash->{$pod} $treepath\n";
 	    $w->_add_parents($treepath);
 
-	    my $is = Tk::Pod::FindPods::is_site_module($hash->{$pod})
-		     ? $w->{SiteIS}
-		     : $w->{CoreIS};
+#  	    my $is = Tk::Pod::FindPods::is_site_module($hash->{$pod})
+#  		     ? $w->{SiteIS}
+#  		     : $w->{CoreIS};
+	    my $loc = Tk::Pod::FindPods::module_location($hash->{$pod});
+	    my $is = $w->{Style}{$loc};
 	    my @entry_args = ($treepath,
 			      -text => $title,
-			      -data => {File => $hash->{$pod}},
+			      -data => _PodEntry->create($hash->{$pod}), #{File => $hash->{$pod}},
 			      ($is ? (-style => $is) : ()),
 			     );
 	    if ($w->info('exists', $treepath)) {
@@ -212,22 +258,28 @@ sub Fill {
 	}
     }
 
-    if ($w->cget('-usecache') && !$Tk::Pod::FindPods::has_cache) {
+    if ($w->cget('-usecache') && !$Tk::Pod::FindPods::has_cache
+	&& !$args{-cpan} # XXX
+       ) {
 	Tk::Pod::FindPods::WriteCache();
     }
 
+    $w->{Filled}++;
 }
+
+sub Filled { shift->{Filled} }
 
 sub _add_parents {
     my($w, $entry) = @_;
-    (my $parent = $entry) =~ s|/[^/]+$||;
+    (my $parent = $entry) =~ s|/[^/]*$||;
     return if $parent eq '';
+    do{warn "$entry XXX";return} if $parent eq $entry;
     return if $w->info('exists', $parent);
     my @parent = split '/', $parent;
     my $title = join "::", @parent[1..$#parent];
     $w->_add_parents($parent);
     $w->add($parent, -text => $title,
-	    ($w->{FolderIS} ? (-style => $w->{FolderIS}) : ()));
+	    ($w->{Style}{'folder'} ? (-style => $w->{Style}{'folder'}) : ()));
 }
 
 sub _open_parents {
@@ -263,6 +315,56 @@ sub SeePath {
 	}
     }
     0;
+}
+
+sub search_dialog {
+    my($w) = @_;
+    my $t = $w->Toplevel;
+    $t->Label(-text => "Search term:")->pack(-side => "left");
+    my $term;
+    my $e = $t->Entry(-textvariable => \$term)->pack(-side => "left");
+    $e->focus;
+    $e->bind("<Escape>" => sub { $t->destroy });
+    $e->bind("<Return>" => sub { $w->search($term) });
+}
+
+sub search {
+    my($w, $rx) = @_;
+    return if $rx eq '';
+    my($entry) = ($w->info('selection'))[0];
+    if (!defined $entry) {
+	$entry = ($w->info('children'))[0];
+	return if (!defined $entry);
+    }
+    my $wrapped = 0;
+    while(1) {
+	$entry = $w->info('next', $entry);
+	if (!defined $entry) {
+	    if ($wrapped) {
+		$w->bell;
+		return;
+	    }
+	    $wrapped++;
+	    $entry = ($w->info('children'))[0];
+	}
+	my $text = $w->entrycget($entry, '-text');
+	if ($text =~ /$rx/i) {
+	    my $p = $entry;
+	    while(1) {
+		$p = $w->info('parent', $p);
+		if (defined $p) {
+		    $w->open($p);
+		} else {
+		    last;
+		}
+	    }
+	    $w->selectionClear;
+	    $w->selectionSet($entry);
+	    $w->anchorSet($entry);
+	    $w->see($entry);
+	    return;
+	}
+    }
 }
 
 1;

@@ -7,8 +7,10 @@ o Tk8 font handling is much better for a new PodText
 o PodText should not manipulate toplevel title
   in sub filename (called by Tk::parse)
 
-o replace Tk::Parse with Pod::Parser subclass
+o replace Tk::Parse with Pod::Parser
   Hmmm... lets wait for Pod::Base/Simplify
+
+o Parse.pm: problems if parsing POD with DOS newlines on a Unix system
 
 o Stephen J. Lusol suggested:
 	... It would be nice if Tk::Pod had a

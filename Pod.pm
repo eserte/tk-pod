@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 2.3 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.4 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -15,29 +15,17 @@ sub Populate
  my ($w,$args) = @_;
 
  require Tk::Pod::Text;
+ require Tk::Pod::Tree;
 
  $w->SUPER::Populate($args);
 
- my $tree;
-
- if (delete $args->{-tree}) {
-     require Tk::Pod::Tree;
-     $tree = $w->Scrolled('PodTree', -scrollbars => 'oso'.($Tk::platform eq 'MSWin32'?'e':'w'))->packAdjust(-side => "left", -fill => 'y');
-     $w->Advertise(tree => $tree);
-     $tree->Fill;
- }
+ my $tree = $w->Scrolled('PodTree',
+			 -scrollbars => 'oso'.($Tk::platform eq 'MSWin32'?'e':'w')
+			);
+ $w->Advertise('tree' => $tree);
 
  my $searchcase = 0;
  my $p = $w->Component('PodText' => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
-
- if ($tree) {
-     $tree->configure
-	 (-showcommand  => sub { $p->configure(-file => $_[1]->{File}) },
-	  -showcommand2 => sub { $w->MainWindow->Pod('-file' => $_[1]->{File},
-						     '-tree' => !!$tree)
-			     },
-	 );
- }
 
  my $menuitems =
  [
@@ -52,6 +40,17 @@ sub Populate
     [Separator => ""],
     [Button => '~Close',     '-command' => ['quit',$w]],
     [Button => 'E~xit',      '-command' => sub { Tk::exit }],
+   ]
+  ],
+
+  [Cascade => '~View', -menuitems =>
+   [
+    [Checkbutton => '~POD Tree', -variable => \$w->{Tree_on},
+     '-command' => sub { $w->tree($w->{Tree_on}) }],
+#      '-',
+#      [Button => "Zoom ~in",  -command => 'zoom_in'],
+#      [Button => "~Normal",   -command => 'zoom_normal'],
+#      [Button => "Zoom ~out", -command => 'zoom_out'],
    ]
   ],
 
@@ -88,10 +87,13 @@ sub Populate
  $w->configure(-menu => $mbar);
  $w->Advertise(menubar => $mbar);
 
- $w->Delegates('Menubar' => $mbar, DEFAULT => $p);
- $w->Delegates(DEFAULT => $p);
+ $w->Delegates('Menubar' => $mbar);#, #, DEFAULT => $p);
+#  	       #$w->Delegates(
+#  	       'pack' => $w, # !!!
+#  	       'place' => $w,
+#  	       DEFAULT => $p);
  $w->ConfigSpecs(
-    -tree => ['PASSIVE', undef, undef, !!$tree], # XXX better solution
+    -tree => ['METHOD', 'tree', 'Tree', 0],
     'DEFAULT' => [$p],
  );
 
@@ -186,6 +188,168 @@ sub add_section_menu {
 	  );
     }
 }
+
+sub tree {
+    my $w = shift;
+    if (@_) {
+	my $val = shift;
+	$w->{Tree_on} = $val;
+	my $tree = $w->Subwidget('tree');
+	if ($val) {
+	    my $p = $w->Subwidget("pod");
+	    my @tree_pack = (-before => $p, -side => 'left', -fill => 'y');
+	    if (!$tree->Filled) {
+		$w->_configure_tree;
+		$tree->packAdjust(@tree_pack);
+		$w->Busy(-recurse => 1);
+		eval {
+		    $tree->Fill;
+		};
+		my $err = $@;
+		$w->Unbusy;
+		if ($err) {
+		    die $err;
+		}
+	    } elsif (!$tree->manager) {
+		$tree->packAdjust(@tree_pack);
+	    }
+	} else {
+	    if ($tree && $tree->manager) {
+		$tree->packForget;
+		eval {
+		    $w->Walk
+			(sub {
+			     my $w = shift;
+			     if ($w->isa('Tk::Adjuster') &&
+				 $w->cget(-widget) eq $tree) {
+				 $w->destroy;
+				 die;
+			     }
+			 });
+		};
+	    }
+	}
+    }
+    $w->{Tree_on};
+}
+
+sub _configure_tree {
+    my($w) = @_;
+    my $tree = $w->Subwidget("tree");
+    my $p    = $w->Subwidget("pod");
+    $tree->configure
+	(-showcommand  => sub {
+	     my $e = $_[1];
+	     my $uri = $e->uri;
+	     if ($uri =~ /^file:(.*)/) {
+		 $p->configure(-file => $1);
+	     } elsif ($uri =~ /^cpan:(.*)/) {
+		 my $modid = $1;
+		 # XXX nach ..../CPAN.pm auslagern
+
+		 my $asked = 0;
+		 my $ask = sub {
+		     $asked++;
+		     $w->messageBox
+			 (-message => "Look into CPAN module $modid?",
+			  -type => 'YesNo',
+			  -icon => 'question') =~ /yes/i
+		      };
+		 if ($w->{CPAN_Asked} || $ask->()) {
+		     $w->{CPAN_Asked}++;
+		     require CPAN;
+		     my(@mods) = CPAN::Shell->expand("Module", $modid);
+		     if (@mods != 1) {
+			 die "Found more/less than 1 module for $modid: @mods";
+		     }
+		     my $mod = shift @mods;
+		     my $dist = $CPAN::META->instance('CPAN::Distribution', $mod->cpan_file);
+
+		     require ExtUtils::MakeMaker;
+		     my($local_wanted) =
+			 MM->catfile(
+				     $CPAN::Config->{keep_source_where},
+				     "authors",
+				     "id",
+				     split("/",$dist->id)
+				    );
+		     if ($asked || -e $local_wanted || $ask->()) {
+			 my $dir  = $dist->dir or $dist->get;
+			 $dir = $dist->dir;
+			 eval { $mod->make }; # XXX Reihenfolge ist wichtig!!!
+			 if ($@) { warn $@ }
+			 (my $modpath = $modid) =~ s|::|/|g;
+			 my $blib_modpath = "$dir/blib/lib/$modpath";
+			 if (-r "$blib_modpath.pod") {
+			     $modpath = "$blib_modpath.pod";
+			 } elsif (-r "$blib_modpath.pm") {
+			     $modpath = "$blib_modpath.pm";
+			 } else {
+			     # try to find it...
+			     require File::Find;
+			     require File::Basename;
+			     my @hits;
+			 TRY: {
+				 foreach my $path ("$modpath.pod",
+						   "$modpath.pm",
+						   File::Basename::basename($modpath) . ".pod",
+						   File::Basename::basename($modpath) . ".pm") {
+				     File::Find::find
+					     (sub {
+						  rindex($File::Find::name, $path) == length($File::Find::name)-length($path)
+						      &&
+							  push @hits, $File::Find::name;
+					      }, $dir);
+				     if (@hits) {
+					 warn "More than 1 hit: @hits" if @hits > 1;
+					 $modpath = "$hits[0]"; #XXX is it really absolute?
+					 last TRY;
+				     }
+				 }
+				 die "Can't find $modpath";
+			     }
+			 }
+			 $p->configure(-file => $modpath);
+		     }
+		 }
+	     } else {
+		 die "Unrecognized uri $uri";
+	     }
+	 },
+	 -showcommand2 => sub {#XXX rewrite for CPAN...
+	     my $e = $_[1];
+	     my $uri = $e->uri;
+	     if ($uri =~ /^file:(.*)/) {
+		 $w->MainWindow->Pod('-file' => $1,
+				     '-tree' => !!$tree);
+	     } else {
+		 die "NYI";
+	     }
+	 },
+	);
+}
+
+#  sub zoom_normal {
+#      $t->fontConfigure($ff, -size => 10); # XXX don't hardcode
+#  }
+
+#  sub zoom_in {
+#      my $size = $t->fontActual($ff, '-size');
+#      return if ($size > 72);
+#      if    ($size > 24) { $size+=4 }
+#      elsif ($size > 12) { $size+=2 }
+#      else               { $size++ }
+#      $t->fontConfigure($ff, -size => $size);
+#  }
+
+#  sub zoom_out {
+#      my $size = $t->fontActual($ff, '-size');
+#      return if ($size < 4);
+#      if    ($size < 12) { $size-- }
+#      elsif ($size < 24) { $size-=2 }
+#      else               { $size-=4 }
+#      $t->fontConfigure($ff, -size => $size);
+#  }
 
 1;
 

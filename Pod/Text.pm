@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.4 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.7 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -128,11 +128,7 @@ sub edit
     {
      # VISUAL and EDITOR are supposed to have a terminal, but tkpod can
      # be started without a terminal.
-     my $isatty;
-     if (eval { require POSIX; 1 })
-      {
-       $isatty = (POSIX::isatty(\*STDOUT) && POSIX::isatty(\*STDIN));
-      }
+     my $isatty = is_interactive();
      $edit = $ENV{XEDITOR} || ($isatty
 			       ? ($ENV{VISUAL} || $ENV{'EDITOR'} || 'vi')
 			       : 'ptked');
@@ -205,13 +201,36 @@ sub Populate
     $w->{Length}  = 64;
     $w->{Indent}  = {}; # tags for various indents
 
-    my $m = $p->Menu(-tearoff => $Tk::platform ne 'MSWin32');
+    # Seems like a perl bug: ->can() does not work before actually calling
+    # the subroutines (perl5.6.0 isa bug?)
+    eval {
+	$p->EditMenuItems;
+	$p->SearchMenuItems;
+	$p->ViewMenuItems;
+    };
+
+    my $m = $p->Menu
+	(-tearoff => $Tk::platform ne 'MSWin32',
+	 -menuitems =>
+	 [
+	  [Button => 'Back',     -command => [$w, 'history_move', -1]],
+	  [Button => 'Forward',  -command => [$w, 'history_move', +1]],
+	  [Button => 'Reload',   -command => sub{$w->reload} ],
+	  [Button => 'Edit POD',       -command => sub{$w->edit} ],
+	  [Button => 'Search fulltext',-command => ['SearchFullText', $w]],
+	  [Separator => ""],
+	  [Cascade => 'Edit',
+	   ($Tk::VERSION > 800.015 && $p->can('EditMenuItems') ? (-menuitems => $p->EditMenuItems) : ()),
+	  ],
+	  [Cascade => 'Search',
+	   ($Tk::VERSION > 800.015 && $p->can('SearchMenuItems') ? (-menuitems => $p->SearchMenuItems) : ()),
+	  ],
+	  [Cascade => 'View',
+	   ($Tk::VERSION > 800.015 && $p->can('ViewMenuItems') ? (-menuitems => $p->ViewMenuItems) : ()),
+	  ]
+	 ]);
     $p->menu($m);
-    $m->command(-label => 'Back',    -command => [$w, 'history_move', -1]);
-    $m->command(-label => 'Forward', -command => [$w, 'history_move', +1]);
-    $m->command(-label => 'Reload', -command => sub{$w->reload} );
-    $m->command(-label => 'Edit',   -command => sub{$w->edit} );
-    $m->command(-label => 'Search...', -command => ['SearchFullText', $w]);
+
     $w->Delegates(DEFAULT => $p,
 		  'SearchFullText' => 'SELF',
 		 );
@@ -372,9 +391,17 @@ sub SearchFullText {
 	$IDX = $w->Toplevel(-title=>'Perl Library Full Text Search');
 	$IDX->PodSearch(
 			-command =>
-			sub{
-			    $w->configure('-file' => shift);
+			sub {
+			    my($pod, %args) = @_;
+			    $w->configure('-file' => $pod);
 			    $w->focus;
+			    my $more = $w->Subwidget('more');
+			    $more->SearchText
+				(-direction => 'Next',
+				 -quiet => 1,
+				 -searchterm => $args{-searchterm},
+				 -onlymatch => 1,
+				);
 			}
 		       )->pack(-fill=>'both',-expand=>'both');
     }
@@ -644,6 +671,11 @@ sub process
  my @save = @ARGV;
  @ARGV = $file;
  $w->toplevel->Busy;
+
+ my $process_no;
+ $w->{ProcessNo}++;
+ $process_no = $w->{ProcessNo};
+
 # print STDERR "Parsing $file\n";
  my (@pod) = Simplify(Parse());
  my ($cmd,$arg);
@@ -665,6 +697,7 @@ sub process
    unless ($update--) {
      $w->update;
      $update = 2;
+     do { warn "ABORT!"; return } if $w->{ProcessNo} != $process_no;
    }
   }
  $w->parent->add_section_menu if $w->parent->can('add_section_menu');
@@ -844,6 +877,23 @@ sub is_in_path {
     undef;
 }
 # REPO END
+
+sub is_interactive {
+    if ($^O eq 'MSWin32' || !eval { require POSIX; 1 }) {
+	# fallback
+	return -t STDIN && -t STDOUT;
+    }
+
+    # from perlfaq8
+    open(TTY, "/dev/tty") or die $!;
+    my $tpgrp = POSIX::tcgetpgrp(fileno(*TTY));
+    my $pgrp = getpgrp();
+    if ($tpgrp == $pgrp) {
+	1;
+    } else {
+	0;
+    }
+}
 
 1;
 

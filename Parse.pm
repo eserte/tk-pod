@@ -1,16 +1,16 @@
-# $Id: Parse.pm,v 1.3 2001/06/13 08:43:26 eserte Exp $
+# $Id: Parse.pm,v 2.2 2001/10/26 22:48:21 eserte Exp $
 
 package Tk::Parse;
 
 require Exporter;
 
 use vars qw($VERSION %Escapes);
-$VERSION = substr(q$Revision: 1.3 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 2.2 $, 10) + 1 . "";
 
 @ISA=qw(Exporter);
 @EXPORT=qw(Parse Simplify hide start_hide unhide Normalize Normalize2 Escapes
 	$VERBATIM $HEADING $ITEM $INDEX $TEXT $PRAGMA $INDENT );
-	
+
 # Different types of text:
 
 # 0. Name of file
@@ -66,9 +66,9 @@ like this:
   foo2
   foo3
   foo2!subfoo
-  
+
   Foo!
- 
+
 Will become:
 
   X<foo>X<foo2>X<foo3>X<foo2!subfoo>Foo!
@@ -84,14 +84,14 @@ Inside an =command, no special significance is to be placed on the first line
 of the argument. Thus the following two lines should be parsed identically:
 
  =item 1. ABC
- 
+
  =item 1.
  ABC
 
 Note that neither of these are identical to this:
 
  =item 1.
- 
+
  ABC
 
 which puts the "ABC" in a separate paragraph.
@@ -204,46 +204,46 @@ three types: enumeration, itemization, or description. To exemplify:
 An itemized list
 
   =over 4
-  
+
   =item *
-  
+
   A bulleted item
-  
+
   =item *
-  
+
   Another bulleted item
- 
+
   =back
-  
+
 An enumerated list
 
   =over 4
-  
+
   =item 1.
-  
+
   First item.
-  
+
   =item 2.
-  
+
   Second item.
-  
+
   =back
-  
+
 A described list
 
   =over 4
-  
+
   =item Item #1
-  
+
   First item
-  
+
   =item Item #2 (which isn't really like #1, but is the second).
-  
+
   Second item
-  
-  =back  
-  
-  
+
+  =back
+
+
 If you aren't consistent about the arguments to =item, Pod::Parse will
 complain.
 
@@ -315,7 +315,7 @@ End of same.
 
 =item [1,$line,$pos,0,$verbatim]
 
-This is produced for each paragraph of verbatim text. $verbatim is the text, 
+This is produced for each paragraph of verbatim text. $verbatim is the text,
 $line is the line offset of the paragraph within the file, and $pos is the
 byte offset. (In all of the following elements, $pos and $line have identical
 meanings, so I'll skip explaining them each time.)
@@ -370,7 +370,7 @@ designed to be easy (easier?) to parse in your pod formatting code.
 It is used very simply by saying something like:
 
  @Pod = Simplify(Parse());
- 
+
  while($cmd = shift @Pod) { $arg = shift @Pod;
  	#...
  }
@@ -484,7 +484,7 @@ for your benefit. Consider the following example:
  listend 2
  back 0
  listtype 0
- 
+
 =head2 Normalize
 
 This command is normally invoked by Parse, so you shouldn't need to deal
@@ -527,7 +527,7 @@ $PRAGMA = 7;
 $INDENT = 8;
 $CUT = 9;
 
-	   
+
 
 
 
@@ -538,19 +538,19 @@ sub hide {
     $thing_to_hide =~ tr/\000-\177/\200-\377/;
     return $thing_to_hide;
 }
-            
+
 sub start_hide {
     if ( /[\200-\377]/ ) {
         warn "hit bit char in input stream";
     }
 }
-                            
+
 sub unhide {
     local($tmp) = shift;
     $tmp =~ tr/\200-\377/\000-\177/;
     return $tmp;
 }
-                                        
+
 
 # Turn formatted text into a more normalized version. All '<' and '>' will
 # belong to a command, the rest will have turned into E<lt> and E<gt>. '&'
@@ -562,7 +562,7 @@ sub Normalize {
 	start_hide;
         s/(E<[^<>]*>)/hide($1)/ge;
         s/([A-Z]<[^<>]*>)/hide($1)/ge;
-        
+
         s/</hide("E<lt>")/ge;
         s/>/hide("E<gt>")/ge;
         s/&/hide("E<amp>")/ge;
@@ -572,26 +572,26 @@ sub Normalize {
         #	{
         #	warn "``$1'' should be a [LCI]<$1> ref near line $line of $ARGV\n";
         #}
-        
+
         while (/(-[a-zA-Z])\b/g && $` !~ /[\w\-]$/) {
 		warn  "``$1'' should be [CB]<$1> ref near line $line of $ARGV\n";
 	}
-        
+
 	# put back pod quotes so we get the inside of <> processed;
         $_ = unhide($_);
-        
+
 }
 
 # Apply heuristics to a formatted string.
 sub Normalize2 {
-	local($_) = @_;        
-        
+	local($_) = @_;
+
 	# func() is a reference to a perl function
        	s{\b([:\w]+\(\))}{I<$1>}g;
-       	
+       
         # func(n) is a reference to a man page
         s{(\w+)(\([^\s,\051]+\))}{I<$1>$2}g;
-        
+
         # convert simple variable references
         s/(\s+)([\$\@%][\w:]+)/${1}C<$2>/g;
         #       s/([\$\@%][\w:]+)/C<$1>/g;
@@ -601,7 +601,7 @@ sub Normalize2 {
 
 # Take output from the following Parse routine, and turns it into a much
 # more straightforward, non-recursive, data structure. It returns an
-# array consisting of pairs of elements, the first of each pair being a 
+# array consisting of pairs of elements, the first of each pair being a
 # command, and the second it's argument. Hopefully this should prove
 # simple to parse. Note that it is intended that your formatter only "listens"
 # for the commands it is interested in, and simply discards the rest.
@@ -656,8 +656,8 @@ sub Simplify2 {
 sub Parse {
 	local(@ARGV)=@ARGV;
 	if(@_) { @ARGV = @_ }
-	
-	local($/);
+
+	local($/) = "";
 
 	$type=0;
 	$typecount=0;
@@ -665,8 +665,6 @@ sub Parse {
 	$bof=1;
 	$saveindex="";
 
-	$/="";
-	
 	$cutting=1;
 
 	$recurse=0;
@@ -676,10 +674,10 @@ sub Parse {
 	$loc=0;
 
 	$newloc=0; $newline=0;
-	
+
 	$infile = undef;
 
-	
+
 	&Parse2();
 
 }
@@ -702,12 +700,12 @@ sub Parse2 {
 		$line=$newline;
 		$newloc = $loc + length($_);
 		$newline= $line + (tr/\n/\n/);
-		
+
 		#Should I?
 		#s/[ \t]+$//gm;
-		
+
 		#print STDERR "Read $_\n";
-		
+
 		if($saw_begin) {
 			if (/^=end/) {
 				$saw_begin=0;
@@ -721,19 +719,19 @@ sub Parse2 {
 		}
 		$cutting=0;
 		chomp;
-		
+
 		if(/^=cut/) {
 			$cutting=1;
 			push(@result,[9,$line,$loc,0,0]);
 			next;
 		}
-	
+
 		if(/^=begin/) {
 			$cutting=1;
 			$saw_begin=1;
 			next;
 		}
-	
+
 		if(/^\s/) {
 			push(@result,[1,$line,$loc,0,$_]);
 		} elsif( /^=head(\d+)\s*/ ) {
@@ -764,7 +762,7 @@ sub Parse2 {
 					warn "Inconsistently numbered =item near line $line of $ARGV\n";
 					$typecount = $1;
 				}
-				
+
 			} else {
 				if( $type == 0 || $type == 3) {
 					$type = 3;
@@ -773,7 +771,7 @@ sub Parse2 {
 				}
 			}
 			push(@result,[3,$line,$loc,0,Normalize($data)]);
-			
+
 		} elsif( /^=over(?:\s+(\d+))?/ ) {
 			my($indent,$l1,$l2)=($1,$line,$loc);
 			$indent ||= 5; # good?
@@ -789,7 +787,7 @@ sub Parse2 {
 		} elsif( /^=back/ ) {
 			if(!$recurse) {
 				die "Unmatched =back near line $line of $ARGV\n";
-			} 
+			}
 			return @result;
 		} elsif( /^=pragma\s*/) {
 			push(@result,[7,$line,$loc,0,$']);
@@ -814,7 +812,7 @@ sub Parse2 {
 			}
 			push(@result,[6,$line,$loc,0,Normalize($_)]);
 		}
-		
+
 	}
 	$eof=1;
 	if($recurse) {
