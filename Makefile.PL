@@ -1,7 +1,7 @@
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-	'PREREQ_PM'	=> { 'Tk'             => 800,
+	'PREREQ_PM'	=> { 'Tk'             => 800.004,
 	                     'Text::English'  => 0,
 			     'Pod::Simple'    => 0,
 			   },
