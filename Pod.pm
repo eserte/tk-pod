@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.4 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.1 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -15,14 +15,13 @@ sub Populate
  my ($w,$args) = @_;
 
  require Tk::Pod::Text;
- require Tk::Pod::Tree;
- require Tk::Menubar;
 
  $w->SUPER::Populate($args);
 
  my $tree;
 
  if (delete $args->{-tree}) {
+     require Tk::Pod::Tree;
      $tree= $w->Scrolled('PodTree', -scrollbars => 'oso'.$Tk::platform eq 'MSWin32'?'e':'w')->packAdjust(-side => "left", -fill => 'y');
      $w->Advertise(tree => $tree);
      $tree->Fill;
@@ -31,51 +30,66 @@ sub Populate
  my $searchcase = 0;
  my $p = $w->Component('PodText' => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
 
- $tree->configure(-showcommand => sub { $p->configure(-file => $_[1]->{File}) }) if $tree;
+ if ($tree) {
+     $tree->configure
+	 (-showcommand  => sub { $p->configure(-file => $_[1]->{File}) },
+	  -showcommand2 => sub { $w->MainWindow->Pod('-file' => $_[1]->{File},
+						     '-tree' => !!$tree)
+			     },
+	 );
+ }
 
- my $mbar = $w->Component('Menubar' => 'menubar');
- my $file = $mbar->Component('Menubutton' => 'file', '-text' => 'File', '-underline' => 0);
- $file->command('-label'=>'Open...', '-underline'=>0, '-command' => ['openfile',$w]);
- $file->command('-label'=>'Re-Read', '-underline'=>0, '-command' => ['reload',$p] );
- $file->command('-label'=>'Edit',    '-underline'=>0, '-command' => ['edit',$p] );
- $file->command('-label'=>'Print',   '-underline'=>0, '-command' => ['Print',$p] );
- $file->separator;
- $file->command('-label'=>'Close',    '-underline'=>0, '-command' => ['quit',$w] );
- $file->command('-label'=>'Exit',     '-underline'=>1, '-command' => sub { Tk::exit } );
+ my $menuitems =
+ [
 
- my $search = $mbar->Component('Menubutton' => 'search', '-text' => 'Search', '-underline' => 0);
- $search->command('-label'=>'Search', '-underline'=>0, '-accelerator' => '/', '-command' => ['Search', $p, 'Next']);
- $search->command('-label'=>'Search backwards', '-underline'=>7, '-command' => ['Search', $p, 'Prev']);
- $search->command('-label'=>'Repeat search', '-underline'=>0, '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next']);
- $search->command('-label'=>'Repeat backwards', '-underline'=>1, '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev']);
- $search->checkbutton('-label'=>'Case sensitive', '-underline'=>0, -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) });
- $search->separator;
- $search->command('-label'=>'Search full text', '-underline'=>7, '-command' => ['SearchFullText', $p, 'Prev']);
+  [Cascade => '~File', -menuitems =>
+   [
+    [Button => '~Open...',   '-command' => ['openfile',$w]],
+    [Button => '~Reload...', '-command' => ['reload',$p]],
+    [Button => '~Edit',      '-command' => ['edit',$p]],
+    [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
+    [Button => '~Print...',  '-command' => ['Print',$p]],
+    [Separator => ""],
+    [Button => '~Close',     '-command' => ['quit',$w]],
+    [Button => 'E~xit',      '-command' => sub { Tk::exit }],
+   ]
+  ],
 
- my $history = $mbar->Component('Menubutton' => 'History', '-text' => 'History', '-underline' => 1);
- $history->command('-label'=>'Back', '-underline'=>0, '-accelerator' => 'Alt-Left', '-command' => ['history_move', $p, -1]);
- $history->command('-label'=>'Forward', '-underline'=>0,  '-accelerator' => 'Alt-Right', '-command' => ['history_move', $p, +1]);
- $history->command('-label'=>'View', '-underline'=>0,  '-command' => ['history_view', $p]);
+  [Cascade => '~Search', -menuitems =>
+   [
+    [Button => '~Search',           '-accelerator' => '/', '-command' => ['Search', $p, 'Next']],
+    [Button => 'Search ~backwards', '-accelerator' => '?', '-command' => ['Search', $p, 'Prev']],
+    [Button => '~Repeat search',    '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next']],
+    [Button => 'R~epeat backwards', '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev']],
+    [Checkbutton => '~Case sensitive', -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) }],
+    [Separator => ""],
+    [Button => 'Search ~full text', '-command' => ['SearchFullText', $p, 'Prev']],
+   ]
+  ],
 
- my $help = $mbar->Component('Menubutton' => 'help', -side=>'right', '-text' => 'Help', '-underline' => 0);
- # xxx restructure to not reference to tkpod
- $help->command('-label' => 'Usage...', -command => sub{
-		$w->parent->Pod(-file=>'Tk::Pod_usage.pod')
-		});
- $help->command('-label' => 'Programming...', 
-		-command => sub{$w->parent->Pod(-file=>'Tk/Pod.pm')} );
+  [Cascade => 'H~istory', -menuitems =>
+   [
+    [Button => '~Back',    '-accelerator' => 'Alt-Left',  '-command' => ['history_move', $p, -1]],
+    [Button => '~Forward', '-accelerator' => 'Alt-Right', '-command' => ['history_move', $p, +1]],
+    [Button => '~View',    '-command' => ['history_view', $p]],
+   ]
+  ],
 
-  {
-     my $tkversion = $Tk::VERSION;
-     $tkversion =~ s/_//g;	# so 800.0_01 < 800.002
-     if ($tkversion lt '800.000')
-       {
-          $help->pack('-side'=>'right','-anchor'=>'e');
-          $file->pack('-side'=>'left','-anchor'=>'w');
-          $mbar->pack('-side'=>'top', '-fill'=>'x', '-before'=>($w->packSlaves)[0]);
-       }
-  }
- $w->Delegates('Menubutton' => $mbar, DEFAULT => $p);
+  [Cascade => '~Help', -menuitems =>
+   [
+    # XXX restructure to not reference to tkpod
+    [Button => '~Usage...',       -command => ['help', $w]],
+    [Button => '~Programming...', -command => sub { $w->parent->Pod(-file=>'Tk/Pod.pm') }],
+   ]
+  ]
+ ];
+
+ my $mbar = $w->Menu(-menuitems => $menuitems);
+ $w->configure(-menu => $mbar);
+ $w->Advertise(menubar => $mbar);
+
+ $w->Delegates('Menubar' => $mbar, DEFAULT => $p);
+ $w->Delegates(DEFAULT => $p);
  $w->ConfigSpecs(
     -tree => ['PASSIVE', undef, undef, !!$tree], # XXX better solution
     'DEFAULT' => [$p],
@@ -104,7 +118,7 @@ sub openfile {
 	unless (defined $fsbox && $fsbox->IsWidget) {
 	    require Tk::FileSelect;
 	    $fsbox = $cw->FileSelect();
-	} 
+	}
 	$file = $fsbox->Show();
     }
     $cw->configure(-file => $file) if defined $file && -r $file;
@@ -119,6 +133,10 @@ sub Dir {
 
 
 sub quit { shift->destroy }
+
+sub help {
+    shift->parent->Pod(-file=>'Tk::Pod_usage.pod');
+}
 
 sub add_section_menu {
     my($pod) = @_;
