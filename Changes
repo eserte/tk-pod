@@ -1,5 +1,10 @@
 History for Tk::Pod
 
+version 0.99_12
+	o new module Tk::Pod::Cache --- memory cached documents are
+          rendered about three times faster than non-cached documents
+	o DEBUG now uses warn instead of print
+
 version 0.99_11
 	o new zoom_normal/in/out menu entries
 	o default OS font size is honored now
