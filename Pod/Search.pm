@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 1.3 $, 10 . "";
+$VERSION = substr q$Revision: 2.1 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -53,7 +53,9 @@ sub Populate {
 		'DEFAULT' =>	[ $cw ],
 		);
 
-    $cw->Subwidget('listbox')->bind('<Double-1>', [\&_load_pod, $cw]);
+    foreach (qw/Return space Double-1/) {
+	$cw->Subwidget('listbox')->bind("<$_>", [\&_load_pod, $cw]);
+    }
     $cw->Subwidget('entry')->bind('<Return>',[\&_search,$cw,$l]);
 
     undef;
@@ -100,7 +102,7 @@ sub _search {
     require Tk::Pod::Search_db;
 
     #xxx: always open/close DBM files???
-    my $idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});	
+    my $idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});
     my @hits = $idx->searchWords($find);
     if (@hits) {
 	$l->delete(0,'end');
@@ -123,7 +125,7 @@ sub _search {
 # when perlindex gives more infos.
 
 sub path2pretty {
-    my @path = split '/', shift, -1; 
+    my @path = split '/', shift, -1;
 #    shift @path if $path[0] eq "";	# due to leading /
     my $pretty = pop(@path);
     while (@path) {
