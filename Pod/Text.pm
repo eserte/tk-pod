@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -113,7 +113,7 @@ sub findpod {
 	if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
 	    $w->messageBox(
 	      -title => "Tk::Pod Error",
-	      -message => "Invalid path/file/module name: '$name'\n");
+	      -message => "Invalid path/file/module name '$name'\n");
 	    die;
 	}
 	$absname = Find($name);
@@ -121,7 +121,7 @@ sub findpod {
     if (!defined $absname) {
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
-	  -message => "Can't find Pod. Invalid file/module name: '$name'\n"
+	  -message => "Can't find Pod '$name'\n"
 	);
 	die;
     }
@@ -259,16 +259,23 @@ sub edit
    close $fh;
    $path = $fname;
   }
- if ($^O eq 'MSWin32') # XXX what is right?
+ if (!defined $edit)
   {
-   system("ptked $path &");
+   $edit = $ENV{TKPODEDITOR};
+  }
+ if ($^O eq 'MSWin32')
+  {
+   if (defined $edit && $edit ne "")
+    {
+     system(1, $edit, $path);
+    }
+   else
+    {
+     system(1, "ptked", $path);
+    }
   }
  else
   {
-   if (!defined $edit)
-    {
-     $edit = $ENV{TKPODEDITOR};
-    }
    if (!defined $edit || $edit eq "")
     {
      # VISUAL and EDITOR are supposed to have a terminal, but tkpod can
@@ -435,11 +442,25 @@ sub Populate
 	    # -font ignored because it does not change the other fonts
 	    #'-font'	  => [ 'PASSIVE', undef, undef, undef],
             '-scrollbars' => [ $p, qw(scrollbars Scrollbars), $Tk::platform eq 'MSWin32' ? 'e' : 'w' ],
+	    '-basefontsize' => ['METHOD'], # XXX may change
 
             'DEFAULT'     => [ $p ],
             );
 
     $args->{-width} = $w->{Length};
+}
+
+sub basefontsize
+{
+ my($w, $val) = @_;
+ if ($val)
+  {
+   $w->set_base_font_size($val);
+  } 
+ else
+  {
+   $w->base_font_size;
+  }
 }
 
 sub Font
@@ -671,17 +692,28 @@ sub Link_man {
 
 sub InternalManViewer {
     my($w, $mansec, $man) = @_;
-    return 0 if (!is_in_path("man"));
+    my $man_exe = "man";
+    if (!is_in_path($man_exe)) {
+	if ($^O eq 'MSWin32') {
+	    $man_exe = "c:/cygwin/bin/man.exe";
+	    if (!-e $man_exe) {
+		return 0;
+	    }
+	} else {
+	    return 0;
+	}
+    }
     my $t = $w->Toplevel(-title => "Manpage $man($mansec)");
+    my $font_size = $w->base_font_size;
     my $more = $t->Scrolled("More",
-			    -font => "Courier 10", # XXX do not hardcode
+			    -font => "Courier $font_size",
 			    -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w',
 			   )->pack(-fill => "both", -expand => 1);
-    $more->tagConfigure("bold", -font => "Courier 10 bold"); # XXX do not hardcode
+    $more->tagConfigure("bold", -font => "Courier $font_size bold");
     my $menu = $more->menu;
     $t->configure(-menu => $menu);
     local $SIG{PIPE} = "IGNORE";
-    open(MAN, "man" . (defined $mansec ? " $mansec" : "") . " $man |")
+    open(MAN, $man_exe . (defined $mansec ? " $mansec" : "") . " $man |")
 	or die $!;
     if (eof MAN) {
 	$more->insert("end", "No entry for for $man" . (defined $mansec ? " in section $mansec of" : "") . " the manual");
