@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: more.t,v 1.1 2004/02/06 10:39:39 eserte Exp $
+# $Id: more.t,v 1.1 2004/06/05 11:33:29 eserte Exp $
 # Author: Slaven Rezic
 #
 

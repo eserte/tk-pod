@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.24 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.26 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -90,6 +90,9 @@ my $mw = MainWindow->new();
 eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
 $mw->withdraw;
 
+my $function;
+my $question;
+
 $tree = 0;
 #XXX Getopt::Long::Configure ("bundling");
 if (!GetOptions("tk" => \$tk_opt,
@@ -99,10 +102,12 @@ if (!GetOptions("tk" => \$tk_opt,
 		"Mblib" => \$Mblib,
 		"I=s@" => \@I,
 		"d|debug!" => \$debug,
+		"f=s" => \$function,
+		"q=s" => \$question,
 	       )) {
     die <<EOT;
 Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-I dir] [-d|debug] [-s|server]
-            [directory|name [...]]
+            [-f function | -q FAQRegex | directory | name [...]]
 
 EOT
 }
@@ -119,6 +124,16 @@ if ($tk_opt) {
 
 if ($debug) {
     $ENV{'TKPODDEBUG'} = $debug;
+}
+
+my $use_reloader = 0;
+if ($ENV{'TKPODDEBUG'}) {
+    if (eval { require Tk::App::Reloader; 1 }) {
+	warn "Loaded Tk::App::Reloader ...\n";
+	$Tk::App::Reloader::VERBOSE = $Tk::App::Reloader::VERBOSE = 1;
+	Tk::App::Reloader::shortcut();
+	$use_reloader = 1;
+    }
 }
 
 start_server() if $server;
@@ -178,6 +193,22 @@ foreach $file (@ARGV)
     $opened++;
    }
  }
+
+if (defined $function)
+ {
+    my $tl = $mw->Pod(-tree => $tree,
+		      -exitbutton => 1);
+    $tl->configure($tl->getpodargs(-f => $function));
+    $opened++;
+ }
+if (defined $question)
+ {
+    my $tl = $mw->Pod(-tree => $tree,
+		      -exitbutton => 1);
+    $tl->configure($tl->getpodargs(-q => $question));
+    $opened++;
+ }
+
 if (!$opened) # This may happen if all arguments are directories
  {
   if ($tree)
@@ -208,6 +239,7 @@ if ($mw->children) {
 } else {
     $mw->destroy;
 }
+Tk::App::Reloader::check_loop() if $use_reloader;
 MainLoop;
 unlink($portfile);
 exit(0);
@@ -265,7 +297,7 @@ tkpod - Perl/Tk Pod browser
 =head1 SYNOPSIS
 
     tkpod  [-tk] [[-no]tree] [-Mblib] [-I dir] [-d|debug] [-s|server]
-            [directory|name [...]]
+            [-f function | -q FAQRegex | directory | name [...]]
 
 
 =head1 DESCRIPTION
@@ -322,6 +354,14 @@ search path.
 
 Add another directory to the Pod search path. Note that the space is
 mandatory.
+
+=item B<-f> I<function>
+
+Show documentation for I<function>.
+
+=item B<-q> I<FAQRegex>
+
+Show the FAQ entry matching I<FAQRegex>.
 
 =back
 

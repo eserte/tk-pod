@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 2.9 $, 10 . "";
+$VERSION = substr q$Revision: 2.11 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -26,25 +26,42 @@ sub Populate {
 	$Entry = "BrowseEntry";
     }
 
-    my $l = $cw->Scrolled('Listbox',-scrollbars=>$Tk::platform eq 'MSWin32'?'e':'w');
+    my $l = $cw->Scrolled('Listbox',-width=>40,-scrollbars=>$Tk::platform eq 'MSWin32'?'e':'w');
     #xxx BrowseEntry V1.3 does not honour -label at creation time :-(
     #my $e = $cw->BrowseEntry(-labelPack=>[-side=>'left'],-label=>'foo',
 	#-listcmd=> ['_logit', 'list'],
 	#-browsecmd=> ['_logit', 'browse'],
 	#);
-    my $e = $cw->$Entry();
+    my $f = $cw->Frame;
+    my $e = $f->$Entry();
     if ($e->can('history') && $searchfull_history) {
 	$e->history($searchfull_history);
     }
-    my $s = $cw->Label();
+    my $s = $f->Label();
 
     $l->pack(-fill=>'both', -side=>'top',  -expand=>1);
+    $f->pack(-fill => "x", -expand => 1, -side => "top");
     $s->pack(-anchor => 'e', -side=>'left');
     $e->pack(-fill=>'x', -side=>'left', -expand=>1);
+
+    my $current_path = delete $args->{-currentpath};
+    $cw->{RestrictPod} = undef;
+    my $cb;
+    if (defined $current_path) {
+	$cb = $cw->Checkbutton(-variable => \$cw->{RestrictPod},
+			       -text => "Restrict to $current_path",
+			       -anchor => "w",
+			       -onvalue => $current_path,
+			       -offvalue => undef,
+			      )->pack(-fill => "x",
+				      -side => "top",
+				     );
+    }
 
     $cw->Advertise( 'entry'	=> $e->Subwidget('entry')   );
     $cw->Advertise( 'listbox'	=> $l->Subwidget('listbox') );
     $cw->Advertise( 'browse'	=> $e);
+    $cw->Advertise( 'restrict'  => $cb) if $cb;
 
     $cw->Delegates(
 		'focus' => $cw->Subwidget('entry'),
@@ -112,6 +129,11 @@ sub _search {
     my $find = $e->get;
     $w->addHistory($find) if $find ne '';
 
+    my %args;
+    if ($w->{RestrictPod}) {
+	$args{-restrictpod} = $w->{RestrictPod};
+    }
+
     #xxx: always open/close DBM files???
     my $idx;
     eval {
@@ -128,7 +150,7 @@ perlindex -index?
 EOF
 	die $@;
     }
-    my @hits = $idx->searchWords($find);
+    my @hits = $idx->searchWords($find, %args);
     if (@hits) {
 	$l->delete(0,'end');
         while (@hits) {
@@ -138,6 +160,8 @@ EOF
         }
 	$l->see(0);
 	$l->activate(0);
+	$l->selectionSet(0);
+	$l->focus;
     } else {
 	my $msg = "No Pod documentation in Library matches: '$find'";
 	$e->messageBox(-icon => "error",

@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9927";
+$DIST_VERSION = "0.9928";
 if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
  SEARCH_FOR_DIST_VERSION: {

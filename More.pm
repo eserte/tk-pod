@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 2.8 $, 10) . "";
+$VERSION = substr(q$Revision: 2.9 $, 10) . "";
 
 use Tk qw(Ev);
 use Tk::Derived;

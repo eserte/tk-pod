@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 2.11 2003/11/09 22:17:59 eserte Exp eserte $
+# $Id: FindPods.pm,v 2.13 2004/09/04 01:13:19 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 2.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 2.13 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -175,7 +175,7 @@ sub pod_find {
 		my($ext1) = $hash->{$name}    =~ /\.(.*)$/;
 		my($ext2) = $File::Find::name =~ /\.(.*)$/;
 		if ($ext1 eq $ext2) {
-		    warn "Conflict: $hash->{$name} <=> $File::Find::name";
+		    warn "Pod with same name (" . basename($hash->{$name}) . ") at different locations found: $hash->{$name} and $File::Find::name.\n";
 		    return;
 		}
 	    }
@@ -226,7 +226,11 @@ sub pod_find {
 	}
     };
 
-    my %opts = (follow => 1, follow_skip => 2);
+    my %opts;
+    if ($^O ne "MSWin32") {
+	$opts{follow}      = 1;
+	$opts{follow_skip} = 2;
+    }
 
     foreach my $inc (@dirs) {
 	$curr_dir = $inc;
@@ -294,7 +298,7 @@ sub guess_architectures {
     # Scan the Config.pm file to see if it's really a perl Config.pm
     # file.
     foreach my $config (@configs) {
-	my($arch) = $config =~ m|/([^/]+)/Config.pm|;
+	my($arch) = $config =~ m|[\\/]([^/\\]+)[\\/]Config.pm|;
 	if (open(CFG, $config)) {
 	    while(<CFG>) {
 		/archname.*$arch/ && do {

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 1.27 2004/02/04 20:18:18 eserte Exp $
+# $Id: Tree.pm,v 1.29 2004/09/07 20:52:25 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -438,6 +438,17 @@ sub SeePath {
     }
     DEBUG and warn "SeePath: cannot find $path in tree\n";
     0;
+}
+
+sub GetCurrentPodPath {
+    my $w = shift;
+    my $sel_entry = ($w->selectionGet)[0];
+    if (defined $sel_entry) {
+	my @c = split m{/}, $sel_entry;
+	shift @c;
+	my $pod = join "::", @c;
+	return $pod;
+    }
 }
 
 sub search_dialog {

@@ -11,6 +11,10 @@ while using tkpod.
 
 =item *
 
+Ctrl-O Exporter does not work?!
+
+=item *
+
 What about the reported error on Suse Linux (see Tk-Pod entry on
 rt.cpan.org)? I can't reproduce this bug...
 
@@ -96,6 +100,25 @@ Highlight matches in link text.
 =head3 Tk::Pod
 
 =over
+
+=item *
+
+Marek Rouchal writes:
+
+Subject: tkpod - other font
+
+Fine, there is a central
+place where I can do adaptations easily - but how can
+I easily override? The only solution I can imagine
+right now is to place a Tk::Pod::Styles in some
+$PERL5LIB directory and shadow the installation's
+Tk::Pod::Styles; there could be e.g. a 
+  -usestyle Tk::Pod::Styles::Mine
+option, where I can provide my own package, which inherits
+from Tk::Pod::Styles and overrides one or more subs.
+
+But I would appreciate a general solution with either a
+~/.tkpodrc or the X resources, as already mentioned.
 
 =item *
 
