@@ -14,7 +14,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 2.2 $, 10) . "";
+$VERSION = substr(q$Revision: 2.3 $, 10) . "";
 
 use Carp;
 use Fcntl;
@@ -23,7 +23,7 @@ use Config;
 
 (my $PREFIX = $Config::Config{prefix}) =~ y|\\|/|d;
 (my $IDXDIR = $Config::Config{man1dir}) =~ s|/[^/]+$||;
-
+$IDXDIR ||= $PREFIX; # use perl directory if no manual directory exists
 
 sub new {
     my $class = shift;
