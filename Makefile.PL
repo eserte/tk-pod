@@ -14,7 +14,7 @@ EOT
   }
 
 WriteMakefile(
-	'PREREQ_PM'	=> { 'Tk' => 402.000, 'Text::English' => 0 },
+	'PREREQ_PM'	=> { 'Tk' => 800, 'Text::English' => 0 },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
 	'VERSION'	=> '0.12',
