@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = substr(q$Revision: 1.21 $ , 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.22 $ , 10) + 1 . "";
 
 use IO::Socket;
 
@@ -207,7 +207,12 @@ if ($mw->children) {
 } else {
     $mw->destroy;
 }
-$mw->WidgetDump if $ENV{TKPODDEBUG} && $ENV{TKPODDEBUG} >= 10;
+if ($ENV{TKPODDEBUG} && $ENV{TKPODDEBUG} >= 10) {
+    eval {
+	$mw->WidgetDump;
+    };
+    warn $@ if $@;
+}
 MainLoop;
 unlink($portfile);
 exit(0);
