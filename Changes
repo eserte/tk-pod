@@ -1,5 +1,11 @@
 History for Tk::Pod
 
+version 0.99_04
+	o switch to show PODs of not installed CPAN modules
+	o new View menu
+	o POD tree is now switchable on and off from the menu
+	o some fixes
+
 version 0.99_03
 
 	o some Text menu bindings in PodText
