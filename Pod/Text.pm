@@ -25,7 +25,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids);
-$VERSION = substr(q$Revision: 3.35 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.36 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
 BEGIN { DEBUG and warn "Running ", __PACKAGE__, "\n" }
@@ -245,7 +245,18 @@ sub reload
 sub edit
 {
  my ($w,$edit) = @_;
- my $path = $w->cget('-path');
+ my($text, $path);
+ $path = $w->cget('-path');
+ if (!defined $path)
+  {
+   $text = $w->cget("-text");
+   $w->_need_File_Temp;
+   my($fh,$fname) = File::Temp::tempfile(UNLINK => 1,
+					 SUFFIX => ".pod");
+   print $fh $text;
+   close $fh;
+   $path = $fname;
+  }
  if ($^O eq 'MSWin32') # XXX what is right?
   {
    system("ptked $path");
@@ -665,18 +676,19 @@ sub SearchFullText {
     (($IDX->children)[0])->focus;
 }
 
-sub Print {
+sub _need_File_Temp {
     my $w = shift;
-
-    my $need_File_Temp = sub {
-	if (!eval { require File::Temp; 1 }) {
-	    $w->messageBox(
+    if (!eval { require File::Temp; 1 }) {
+	$w->messageBox(
 		-title   => "Tk::Pod Error",
 		-message => "The perl module 'File::Temp' is missing"
-	    );
-	    die;
-	}
-    };
+	);
+	die;
+    }
+}
+
+sub Print {
+    my $w = shift;
 
     my($text, $path);
     $path = $w->cget(-path);
@@ -690,7 +702,7 @@ sub Print {
 	}
     } else {
 	$text = $w->cget("-text");
-	$need_File_Temp->();
+	$w->_need_File_Temp;
 	my($fh,$fname) = File::Temp::tempfile(UNLINK => 1,
 					      SUFFIX => ".pod");
 	print $fh $text;
@@ -715,7 +727,7 @@ sub Print {
 	      || is_in_path("ggv")         # newer versions seem to work
 	      || is_in_path("kghostview");
 	if ($gv) {
-	    $need_File_Temp->();
+	    $w->_need_File_Temp;
 
 	    my($fh,$fname) = File::Temp::tempfile(SUFFIX => ".ps");
 	    system("pod2man $path | groff -man -Tps > $fname");
