@@ -8,7 +8,7 @@ use Tk::Pod;
 use Tk::Parse;
 
 use vars qw($VERSION @ISA @POD $IDX);
-$VERSION = substr(q$Revision: 3.10 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 3.11 $, 10) + 1 . "";
 @ISA = qw(Tk::Frame);
 
 Construct Tk::Widget 'PodText';
@@ -319,13 +319,13 @@ sub Link
    my $l = Pod::Hyperlink->new($link);
    if ($l->type eq 'hyperlink')
     {
-     if (eval { push @INC, "/home/e/eserte/lib/perl" if -d "/home/e/eserte/lib/perl"; require WWWBrowser; 1 }) # XXX bundle WWWBrowser with Tk::Pod
+     if (eval { push @INC, "/home/e/eserte/lib/perl" if -d "/home/e/eserte/lib/perl"; require WWWBrowser; 1 }) # XXX bundle WWWBrowser with Tk::Pod or put it as WWW::Browser to CPAN
       {
        WWWBrowser::start_browser($l->node);
       }
      else
       {
-       $w->messageBox(-message => 'Hyperlinks are not supported (yet)');
+       $w->messageBox(-message => 'WWW hyperlinks are not supported (yet)');
        die;
       }
      return;
@@ -570,7 +570,8 @@ sub head1
  my ($w,$title) = @_;
  my $start = $w->index('end -1c');
 # my $tag = "\"$title\"";  # XXX needed?
- my $tag = "title";
+# my $tag = "title";
+ my $tag = $title;
  $w->append($title);
  $num = 2 unless (defined $num);
  $w->tag('add',$tag,$start,'end -1c');
