@@ -3,27 +3,13 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = substr(q$Revision: 1.9 $, 10) . "";
+$VERSION = substr(q$Revision: 2.2 $, 10) . "";
 
 use Tk::Derived;
 use Tk::Frame;
 @ISA = qw(Tk::Derived Tk::Frame);
 
 Construct Tk::Widget 'More';
-
-#sub ClassInit {
-#    my ($class, $mw) = @_;
-#
-#    $class->SUPER::ClassInit($mw);
-#
-#    ## xxx: useless 'because it's bound to frame and not rotext :-(
-#    $mw->bind($class, '<Key-h>', [qw(xview scroll -1 units)]);
-#    $mw->bind($class, '<Key-l>', [qw(xview scroll  1 units)]);
-#    $mw->bind($class, '<Key-k>', [qw(yview scroll -1 units)]);
-#    $mw->bind($class, '<Key-j>', [qw(yview scroll  1 units)]);
-#
-#    return $class;
-#};
 
 sub Populate {
     my ($cw, $args) = @_;
@@ -33,9 +19,21 @@ sub Populate {
 
     $cw->SUPER::Populate($args);
 
+    my $Entry = 'LabEntry';
+    my @Entry_args;
+    if (eval { die "Not yet";
+	       require Tk::HistEntry;
+	       Tk::HistEntry->VERSION(0.37);
+	       1;
+	   }) {
+	$Entry = 'HistEntry';
+    } else {
+	@Entry_args = (-labelPack=>[-side =>'left']);
+    }
+
     my $search;
-    my $e = $cw->LabEntry(
-		-labelPack=>[-side =>'left'],
+    my $e = $cw->$Entry(
+		@Entry_args,
 		-textvariable => \$search,
 		-relief => 'flat',
 		-state => 'disabled',
@@ -46,33 +44,37 @@ sub Populate {
     $cw->Advertise('text' => $t);
     $t->tagConfigure('search', -foreground => 'red');
 
+    # reorder bindings: private widget bindings first
+    $t->bindtags([$t, grep { $_ ne $t->PathName } $t->bindtags]);
+
     $t->bind('<Key-slash>',    [$cw, 'Search', 'Next']);
-# xxx forw/backw search should be recoded :-(
-#    $t->bind('<Key-question>', [$cw, 'Search', 'Prev']);
+    $t->bind('<Key-question>', [$cw, 'Search', 'Prev']);
     $t->bind('<Key-n>',        [$cw, 'ShowMatch', 'Next']);
     $t->bind('<Key-N>',        [$cw, 'ShowMatch', 'Prev']);
 
+    $t->bind('<Key-g>', $t->bind(ref($t),'<Control-Home>'));
     $t->bind('<Key-G>', $t->bind(ref($t),'<Control-End>'));
-    $t->bind('<Key-j>', ['yview', 'scroll',  1, 'units']);
-    $t->bind('<Key-k>', ['yview', 'scroll', -1, 'units']);
-    $t->bind('<Down>',  sub { $_[0]->yview('scroll',  1, 'units');
-			      Tk->break;
-			  });
-    $t->bind('<Up>',    sub { $_[0]->yview('scroll', -1, 'units');
-			      Tk->break;
-			  });
-    $t->bind('<Key-f>', $t->bind(ref($t),'<Next>'));
-    $t->bind('<Key-b>', $t->bind(ref($t),'<Prior>'));
+    $t->bind('<Home>',  $t->bind('<Key-g>'));
+    $t->bind('<End>',   $t->bind('<Key-G>'));
 
-    # Not documented (makes sense?)
-    $t->bind('<Key-l>', ['xview', 'scroll',  1, 'units']);
-    $t->bind('<Key-h>', ['xview', 'scroll', -1, 'units']);
-#    $t->bind('<Key-h>', $t->bind(ref($t),'<Left>'));
-#    $t->bind('<Key-l>', $t->bind(ref($t),'<Right>'));
-    $t->bind('<Return>', $t->bind(ref($t),'<Down>'));
-    $t->bind('<space>', $t->bind(ref($t),'<Next>'));
-    $t->bind('<Key-d>', $t->bind(ref($t),'<Next>'));  # xxx should be 1/2 screen
-    $t->bind('<Key-u>', $t->bind(ref($t),'<Prior>')); # xxx should be 1/2 screen
+    $t->bind('<Key-j>', [$cw, 'scroll', $t,  1, 'line']);
+    $t->bind('<Down>',  [$cw, 'scroll', $t,  1, 'line']);
+    $t->bind('<Key-k>', [$cw, 'scroll', $t, -1, 'line']);
+    $t->bind('<Up>',    [$cw, 'scroll', $t, -1, 'line']);
+
+    $t->bind('<Key-f>', [$cw, 'scroll', $t,  1, 'page']);
+    $t->bind('<Next>',  [$cw, 'scroll', $t,  1, 'page']);
+    $t->bind('<Key-b>', [$cw, 'scroll', $t, -1, 'page']);
+    $t->bind('<Prior>', [$cw, 'scroll', $t, -1, 'page']);
+
+#    # XXX Not documented (makes sense? --- not yet, but with the std. Text menu)
+#    $t->bind('<Key-l>', ['xview', 'scroll',  1, 'units']);
+#    $t->bind('<Key-h>', ['xview', 'scroll', -1, 'units']);
+    $t->bind('<Return>', ['yview', 'scroll',  1, 'units']);
+    $t->bind('<Key-d>',  [$cw, 'scroll', $t,  1, 'halfpage']);
+    $t->bind('<Key-u>',  [$cw, 'scroll', $t, -1, 'halfpage']);
+
+    $t->bind('<Key-h>', sub { $cw->Callback(-helpcommand => $t) });
 
     $e->bind('<Return>',[$cw, 'SearchText']);
 
@@ -87,6 +89,7 @@ sub Populate {
 		-padx          => [$t, qw(padX          Pad            5p)],
 		-pady          => [$t, qw(padY          Pad            5p)],
 		-searchcase    => ['PASSIVE', 'searchCase', 'SearchCase', 1],
+		-helpcommand   => ['CALLBACK', undef, undef, undef],
 		'DEFAULT'      => [$t]
 		);
 
@@ -100,35 +103,36 @@ sub Search {
     my $e = $cw->Subwidget('searchentry');
     $e->configure(-label => 'Search ' . ($direction eq 'Next'?'forward:':'backward:') );
     $e->configure(-relief=>'sunken',-state=>'normal');
+    $e->selectionRange(0, "end");
     $e->focus;
 }
 
 sub SearchText {
     my ($cw) = @_;
     my($t, $e) = ($cw->Subwidget('text'), $cw->Subwidget('searchentry'));
+    $e->historyAdd if ($e->can('historyAdd'));
     unless ($cw->search_text($t, $e->get, 'search') ) {
 	$cw->bell;
     }
     $e->configure(-label=>'');
-    $t->see( '@1,0' );
-    # xxx better start at current pos as in more ???
-    $t->markSet('insert' ,'@1,0');
-    $cw->ShowMatch($cw->{DIRECTION});
+    $t->see('@0,0');
+    $cw->ShowMatch($cw->{DIRECTION}, 'firsttime');
     $t->focus;
     $e->configure(-relief=>'flat', -state=>'disabled');
 }
 
-# xxx when search changes from forward to backward (or vice versa)
-#     'insert' jumps from end to start of match (start to end)
-#     instead of the next (prev) match
 sub ShowMatch {
-    my ($cw, $method) = @_;
+    my ($cw, $method, $firsttime) = @_;
+
     my $t = $cw->Subwidget('text');
     if ($cw->{DIRECTION} ne 'Next') {
-	$method = 'Next' if $method eq 'Prev';	
-	$method = 'Prev' if $method eq 'Next';	
+	$method = 'Next' if $method eq 'Prev';
+	$method = 'Prev' if $method eq 'Next';
     }
-    my $cur = $t->index('insert');
+    my $cur = (($method eq 'Prev' && !$firsttime) ||
+	       ($method eq 'Next' &&  $firsttime)
+	       ? $t->index('@0,0')
+	       : $t->index('@0,'.$t->height));
     $method = "tag". $method . "range"; # $method: Next or Prev
     my @ins = $t->$method('search',$cur);
     unless (@ins) {
@@ -136,12 +140,9 @@ sub ShowMatch {
 	return;
     }
     @ins = reverse @ins unless $method eq 'tagNextrange';
-    $t->markSet('insert' ,$ins[1]);
-#XXX    my(@beforeVisible) = $t->yview;
     $t->see($ins[0]);
-#    my($currVisible)
     $ins[0];
-} 
+}
 
 # Load copied from TextUndo (xxx yy marks changes)
 sub Load
@@ -163,7 +164,8 @@ sub Load
   }
  else
   {
-   $text->BackTrace("Cannot open $file:$!");
+   $text->messageBox(-message => "Cannot open $file: $!\n");
+   die;
   }
 }
 
@@ -200,6 +202,30 @@ sub search_text {
     $found;
 } # end search_text
 
+sub scroll {
+    my($w,$t,$no,$unit) = @_;
+    if ($unit =~ /^line/) {
+	$t->yview('scroll', $no, 'units');
+    } else {
+	my($y1,$y2) = $t->yview;
+	my $amount;
+	if ($unit =~ /^halfpage/) {
+	    $amount = ($y2-$y1)/2;
+	} elsif ($unit =~ /^page/) {
+	    $amount = ($y2-$y1);
+	} else {
+	    die "Unknown unit $unit";
+	}
+	$y1 += ($no * $amount);
+	if ($no > 0) {
+	    $y1 = 1.0 if ($y1 > 1.0);
+	} else {
+	    $y1 = 0.0 if ($y1 < 0.0);
+	}
+	$t->yviewMoveto($y1);
+    }
+    Tk->break;
+}
 
 
 #package Tk::More::Status;
@@ -225,12 +251,16 @@ Tk::More - a 'more' or 'less' like text widget
 =head1 DESCRIPTION
 
 B<Tk::More> is a readonly text widget with additional key bindings as
-found in UNI* command line tool C<more>.  As in C<more> an additional
-status/command line is added at the bottom.
+found in UNI* command line tools C<more> or C<less>. As in C<more> an
+additional status/command line is added at the bottom.
 
 =head1 ADDITIONAL BINDINGS
 
 =over 4
+
+=item Key-g
+
+goto beginning of file
 
 =item Key-G
 
@@ -238,23 +268,27 @@ goto end of file
 
 =item Key-f
 
-like next key
+forward screen
 
 =item Key-b
 
-like prior key
+backward screen
 
 =item Key-k
 
-like up key
+up one line
 
 =item Key-j
 
-like down key
+down one line
 
 =item Key-/
 
 search forward
+
+=item Key-?
+
+search backward
 
 =item Key-n
 
@@ -264,14 +298,20 @@ find next match
 
 find previous match
 
+=item Key-u
+
+up half screen
+
+=item Key-d
+
+down half screen
+
 =back
 
 =head1 BUGS
 
 Besides that most of more bindings are not implemented. This bugs
 me most (high to low priority):
-
-* Reverse search missing
 
 * better status line implementation
 
@@ -280,18 +320,15 @@ me most (high to low priority):
 
 * add History, Load, Search (also as popup menu)
 
-* Key-u and Key-d should move 1/2 screen and not 90% of a screen
-
-* bad history impl.
-
 =head1 SEE ALSO
 
-L<Tk::ROText|Tk::ROText>
-more(1)
+L<Tk::ROText|Tk::ROText>, more(1), less(1)
 
 =head1 AUTHOR
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
+
+Currently maintained by Slaven Rezic <F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program is
 free software; you can redistribute it and/or modify it under the same

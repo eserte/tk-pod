@@ -1,5 +1,6 @@
 BEGIN { $^W = 1; };
+use Tk;
 print "1..1\n";
 @ARGV = 'tkpod';
-do 'blib/script/tkpod';
 print "ok 1\n";
+do 'blib/script/tkpod';

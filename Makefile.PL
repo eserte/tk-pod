@@ -14,14 +14,14 @@ EOT
   }
 
 WriteMakefile(
-	'PREREQ_PM'	=> { 'Tk' => 402.000, 'Text::English' => 0 },
+	'PREREQ_PM'	=> { 'Tk' => 800, 'Text::English' => 0 },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
-	'VERSION'	=> '0.11',
+	'VERSION'	=> '0.99_01',
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
 	'EXE_FILES'	=> [ 'tkpod' ],
 
-        'dist'		=> {'COMPRESS'=>'gzip -9f', 'SUFFIX'=>'.gz'}, 
+        'dist'		=> {'COMPRESS'=>'gzip -9', 'SUFFIX'=>'.gz'}, 
 );

@@ -2,24 +2,7 @@ Scratch pad of bugs, missing features, and misbehaviors
 collected during I used tkpod.
 
 
-o Use own Dialog instead of BackTrace for custom error messages
-
-============
-
-
-o L</sec> and <2>/<shift-1> do not open a new window :-(
-  
-o Make PodText/PodParser accept POD from a handle
-  so own can create & display POD on the fly.
-
-o Back does not remember the jumps in a document
-
-o Current section/item tag names should made save (no blank
-  + or -)
-
 o Tk8 font handling is much better for a new PodText
-
-o On startup Pod title is 'Pod' and the name
 
 o PodText should not manipulate toplevel title
   in sub filename (called by Tk::parse)
@@ -40,19 +23,15 @@ o Stephen J. Lusol suggested:
   (maybe use Tk-getopt and set useful defaults for missing cmd
   line params?)
 
+  Version 1.0: Now there is a Print menu entry, but the configuration
+  questions are still open.
+
 o perlfunc.pod complains 3 times that -X should be i[BC]<-X>
   Maybe add silent and 'lint' mode (but output to another
   text widget)
 
 o after =back missing horizontal white space, see 'sz'
   in Tk::Pod::Text.pm POD
-
-o add all ISO-Latin1 char names to Tk/Pod/Text $translate
-  see HTML::Entities
-
-o Set title to name of pod instead of Pod. (But on reload
-  title is file).  Some time // prefix, sometimes /./ slips
-  in. (Tk403.002 Toplevel patch posted so 'Pod' as title is fixed)
 
 o Tk/More status bar:  filename  %   line x
 
@@ -62,17 +41,9 @@ o Bug: C<> in (e.g.) MakeMakers DESCRIPTION section is in bold
 
 o Bug: S<> e.g., in SYNOPSIS of perl manpage ignored
 
-o Bug: works: perl Makefile.PL; make; make test
-       but this does not: perl Makefile.PL; make test
-
-o MM workaround: 'Writing Makefile for Tk::Pod' is not
-  writen out two times. It's just a side effect of the setup
-
 o more 'more' like key bindings to Tk::More.
 
-o better history support:
-	o disable 'back' menu item on first hist entry
-	o add forward
+o More.pm: search should scroll per page
 
 o search policies: regexp, glob, incremental (as in xmore)
   and 'normalized' as in perlindex.  Should go into it's own
@@ -81,13 +52,15 @@ o search policies: regexp, glob, incremental (as in xmore)
 o cleanup search interface to perlindex.  Maybe patch Ulrichs
   TPJ example code for nroff pages to allow both POD and MAN.
 
-o tkpod: Split 'Quit' menu in 'Close' and 'Exit'
-
 o add 'daemon' mode to Tk::Pod so Pod stuff run only once
   per user (send/receive => -T clean)
 
 o add meaningful regression tests
 
 o create 'AsToplevel' similar to 'Scrolled'
+
+o Tree: re-read tree, invalidate cache
+
+o PodText: interrupt process() if another file is loaded...
 
 __END__

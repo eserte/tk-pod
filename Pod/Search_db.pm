@@ -14,7 +14,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = substr(q$Revision: 1.4 $, 10) . "";
+$VERSION = substr(q$Revision: 1.2 $, 10) . "";
 
 use Carp;
 use Fcntl;
@@ -147,7 +147,7 @@ Tk::Pod::Search_db - dirty OO wrapper for C<perlindex>'s search functionality
 =head1 DESCRIPTION
 
 Module to search POD documentation.  Before you can use
-the module one should create the indices with C<perlindex -index).
+the module one should create the indices with C<perlindex -index>.
 
 =head1 MISSING
 
@@ -195,6 +195,8 @@ Achim Bohnet  <F<ach@mpe.mpg.de>>
 
 Most of the code here is borrowed from L<perlindex> written by
 Ulrich Pfeifer <F<Ulrich.Pfeifer@de.uu.net>>.
+
+Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program is
 free software; you can redistribute it and/or modify it under the same

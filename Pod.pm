@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION @ISA);
-$VERSION = substr(q$Revision: 1.15 $, 10) + 2 . "";
+$VERSION = substr(q$Revision: 2.2 $, 10) + 2 . "";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -15,49 +15,88 @@ sub Populate
  my ($w,$args) = @_;
 
  require Tk::Pod::Text;
- require Tk::Menubar;
 
  $w->SUPER::Populate($args);
+
+ my $tree;
+
+ if (delete $args->{-tree}) {
+     require Tk::Pod::Tree;
+     $tree = $w->Scrolled('PodTree', -scrollbars => 'oso'.($Tk::platform eq 'MSWin32'?'e':'w'))->packAdjust(-side => "left", -fill => 'y');
+     $w->Advertise(tree => $tree);
+     $tree->Fill;
+ }
+
  my $searchcase = 0;
  my $p = $w->Component('PodText' => 'pod', -searchcase => $searchcase)->pack(-expand => 1, -fill => 'both');
 
- my $mbar = $w->Component('Menubar' => 'menubar');
- my $file = $mbar->Component('Menubutton' => 'file', '-text' => 'File', '-underline' => 0);
- $file->command('-label'=>'Open...', '-underline'=>0, '-command' => ['openfile',$w]);
- $file->command('-label'=>'Re-Read', '-underline'=>0, '-command' => ['reload',$p] );
- $file->command('-label'=>'Edit',    '-underline'=>0, '-command' => ['edit',$p] );
- $file->separator;
- $file->command('-label'=>'Close',    '-underline'=>0, '-command' => ['quit',$w] );
+ if ($tree) {
+     $tree->configure
+	 (-showcommand  => sub { $p->configure(-file => $_[1]->{File}) },
+	  -showcommand2 => sub { $w->MainWindow->Pod('-file' => $_[1]->{File},
+						     '-tree' => !!$tree)
+			     },
+	 );
+ }
 
- my $search = $mbar->Component('Menubutton' => 'search', '-text' => 'Search', '-underline' => 0);
- $search->command('-label'=>'Search', '-underline'=>0, '-accelerator' => '/', '-command' => ['Search', $p, 'Next']);
- $search->command('-label'=>'Search backwards', '-underline'=>7, '-command' => ['Search', $p, 'Prev']);
- $search->command('-label'=>'Repeat search', '-underline'=>0, '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next']);
- $search->command('-label'=>'Repeat backwards', '-underline'=>1, '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev']);
- $search->checkbutton('-label'=>'Case sensitive', '-underline'=>0, -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) });
- $search->separator;
- $search->command('-label'=>'Search full text', '-underline'=>7, '-command' => ['SearchFullText', $p, 'Prev']);
+ my $menuitems =
+ [
 
- my $help = $mbar->Component('Menubutton' => 'help', -side=>'right', '-text' => 'Help', '-underline' => 0);
- # xxx restructure to not reference to tkpod
- $help->command('-label' => 'Usage...', -command => sub{
-		$w->parent->Pod(-file=>'Tk::Pod_usage.pod')
-		});
- $help->command('-label' => 'Programming...', 
-		-command => sub{$w->parent->Pod(-file=>'Tk/Pod.pm')} );
+  [Cascade => '~File', -menuitems =>
+   [
+    [Button => '~Open...',   '-command' => ['openfile',$w]],
+    [Button => '~Reload',    '-command' => ['reload',$p]],
+    [Button => '~Edit',      '-command' => ['edit',$p]],
+    [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked']],
+    [Button => '~Print...',  '-command' => ['Print',$p]],
+    [Separator => ""],
+    [Button => '~Close',     '-command' => ['quit',$w]],
+    [Button => 'E~xit',      '-command' => sub { Tk::exit }],
+   ]
+  ],
 
-  {
-     my $tkversion = $Tk::VERSION;
-     $tkversion =~ s/_//g;	# so 800.0_01 < 800.002
-     if ($tkversion lt '800.000')
-       {
-          $help->pack('-side'=>'right','-anchor'=>'e');
-          $file->pack('-side'=>'left','-anchor'=>'w');
-          $mbar->pack('-side'=>'top', '-fill'=>'x', '-before'=>($w->packSlaves)[0]);
-       }
-  }
- $w->Delegates('Menubutton' => $mbar, DEFAULT => $p);
- $w->ConfigSpecs('DEFAULT' => [$p]);
+  [Cascade => '~Search', -menuitems =>
+   [
+    [Button => '~Search',           '-accelerator' => '/', '-command' => ['Search', $p, 'Next']],
+    [Button => 'Search ~backwards', '-accelerator' => '?', '-command' => ['Search', $p, 'Prev']],
+    [Button => '~Repeat search',    '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next']],
+    [Button => 'R~epeat backwards', '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev']],
+    [Checkbutton => '~Case sensitive', -variable => \$searchcase, '-command' => sub { $p->configure(-searchcase => $searchcase) }],
+    [Separator => ""],
+    [Button => 'Search ~full text', '-command' => ['SearchFullText', $p, 'Prev']],
+   ]
+  ],
+
+  [Cascade => 'H~istory', -menuitems =>
+   [
+    [Button => '~Back',    '-accelerator' => 'Alt-Left',  '-command' => ['history_move', $p, -1]],
+    [Button => '~Forward', '-accelerator' => 'Alt-Right', '-command' => ['history_move', $p, +1]],
+    [Button => '~View',    '-command' => ['history_view', $p]],
+   ]
+  ],
+
+  [Cascade => '~Help', -menuitems =>
+   [
+    # XXX restructure to not reference to tkpod
+    [Button => '~Usage...',       -command => ['help', $w]],
+    [Button => '~Programming...', -command => sub { $w->parent->Pod(-file=>'Tk/Pod.pm') }],
+   ]
+  ]
+ ];
+
+ my $mbar = $w->Menu(-menuitems => $menuitems);
+ $w->configure(-menu => $mbar);
+ $w->Advertise(menubar => $mbar);
+
+ $w->Delegates('Menubar' => $mbar, DEFAULT => $p);
+ $w->Delegates(DEFAULT => $p);
+ $w->ConfigSpecs(
+    -tree => ['PASSIVE', undef, undef, !!$tree], # XXX better solution
+    'DEFAULT' => [$p],
+ );
+
+ $w->bind('<Alt-Left>'  => [$p, 'history_move', -1]);
+ $w->bind('<Alt-Right>' => [$p, 'history_move', +1]);
 
  # $w->process($path);
  $w->protocol('WM_DELETE_WINDOW',['quit',$w]);
@@ -67,21 +106,43 @@ my $fsbox;
 
 sub openfile {
     my ($cw,$p) = @_;
-    unless (defined $fsbox && $fsbox->IsWidget) {
-	require Tk::FileSelect;
-	$fsbox = $cw->FileSelect();
-    } 
-    my $file = $fsbox->Show();
+    my $file;
+    if ($cw->can("getOpenFile")) {
+	$file = $cw->getOpenFile(-title => "Choose POD file",
+				 -defaultextension => 'pod',
+				 -filetypes => [['POD files', '*.pod'],
+						['Perl scripts', '*.pl'],
+						['Perl modules', '*.pm'],
+						['All files', '*']]);
+    } else {
+	unless (defined $fsbox && $fsbox->IsWidget) {
+	    require Tk::FileSelect;
+	    $fsbox = $cw->FileSelect();
+	}
+	$file = $fsbox->Show();
+    }
     $cw->configure(-file => $file) if defined $file && -r $file;
 }
-	
-sub Dir { require Tk::Pod::Text; Tk::Pod::Text::Dir(@_) } 
+
+sub Dir {
+    require Tk::Pod::Text;
+    require Tk::Pod::Tree;
+    Tk::Pod::Text::Dir(@_);
+    Tk::Pod::Tree::Dir(@_);
+}
 
 
 sub quit { shift->destroy }
 
+sub help {
+    shift->parent->Pod(-file=>'Tk::Pod_usage.pod');
+}
+
 sub add_section_menu {
     my($pod) = @_;
+
+    my $screenheight = $pod->screenheight;
+
     my $mbar = $pod->Subwidget('menubar');
     my $section = $mbar->Subwidget('section');
     if (defined $section) {
@@ -91,6 +152,7 @@ sub add_section_menu {
                                     '-text' => 'Section',
                                     -underline => 1);
     }
+    my $sectionmenu = $section->menu;
     my $podtext = $pod->Subwidget('pod');
     my $text    = $podtext->Subwidget('more')->Subwidget('text');
 
@@ -102,6 +164,14 @@ sub add_section_menu {
     my $sdef;
     foreach $sdef (@{$podtext->{'sections'}}) {
         my($head, $subject, $pos) = @$sdef;
+
+	# XXX is this necessary on Windows?
+	my @args;
+	if ($sectionmenu &&
+	    $sectionmenu->yposition("last") > $screenheight-40) {
+	    push @args, -columnbreak => 1;
+	}
+
         $section->command
 	  (-label => ("  " x ($head-1)) . $subject,
 	   -command => sub {
@@ -113,6 +183,7 @@ sub add_section_menu {
 	       $text->yview("_section_mark.first");
 	       $text->after(500, [$text, qw/tag remove _section_mark 0.0 end/]);
 	   },
+	   @args,
 	  );
     }
 }
@@ -133,7 +204,8 @@ Tk::Pod - POD browser toplevel widget
     Tk::Pod->Dir(@dirs)			# add dirs to search path for POD
 
     $pod = $parent->Pod(
-		-file = > $name		# search and display POD for name
+		-file = > $name,	# search and display POD for name
+		-tree = > $bool		# display pod file tree
 		);
 
 
@@ -153,8 +225,7 @@ L<perlpod|perlpod>
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Code currently maintained by Achim Bohnet <F<ach@mpe.mpg.de>>.
-Please send bug reports to <F<ptk@lists.stanford.edu>>.
+Code currently maintained by Slaven Rezic <F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1997-1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

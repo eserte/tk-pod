@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = substr q$Revision: 1.3 $, 10 . "";
+$VERSION = substr q$Revision: 2.1 $, 10 . "";
 
 use Carp;
 use Tk::Frame;
@@ -24,7 +24,7 @@ sub Populate {
     require Tk::Label;
     require Tk::BrowseEntry;
 
-    my $l = $cw->Scrolled('Listbox',-scrollbars=>'w');
+    my $l = $cw->Scrolled('Listbox',-scrollbars=>$Tk::platform eq 'MSWin32'?'e':'w');
     #xxx BrowseEntry V1.3 does not honour -label at creation time :-(
     #my $e = $cw->BrowseEntry(-labelPack=>[-side=>'left'],-label=>'foo',
 	#-listcmd=> ['_logit', 'list'],
@@ -53,7 +53,9 @@ sub Populate {
 		'DEFAULT' =>	[ $cw ],
 		);
 
-    $cw->Subwidget('listbox')->bind('<Double-1>', [\&_load_pod, $cw]);
+    foreach (qw/Return space Double-1/) {
+	$cw->Subwidget('listbox')->bind("<$_>", [\&_load_pod, $cw]);
+    }
     $cw->Subwidget('entry')->bind('<Return>',[\&_search,$cw,$l]);
 
     undef;
@@ -100,7 +102,7 @@ sub _search {
     require Tk::Pod::Search_db;
 
     #xxx: always open/close DBM files???
-    my $idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});	
+    my $idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});
     my @hits = $idx->searchWords($find);
     if (@hits) {
 	$l->delete(0,'end');
@@ -123,7 +125,7 @@ sub _search {
 # when perlindex gives more infos.
 
 sub path2pretty {
-    my @path = split '/', shift, -1; 
+    my @path = split '/', shift, -1;
 #    shift @path if $path[0] eq "";	# due to leading /
     my $pretty = pop(@path);
     while (@path) {
@@ -212,6 +214,8 @@ widget, tk, pod, search, full text
 =head1 AUTHOR
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
+
+Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

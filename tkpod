@@ -1,29 +1,29 @@
 #!/usr/local/bin/perl -w
 
 use strict;
-use vars qw($VERSION $tk_opt);
+use vars qw($VERSION $tk_opt $tree);
 
-$VERSION = substr(q$Revision: 1.12 $ , 10) + 1 . "";
-
-BEGIN {
-	if (defined($ARGV[0]) and $ARGV[0] eq '-tk') {
-            $tk_opt = 1;
-	    shift @ARGV;
-	} else {
-	    $tk_opt = 0;
-	}
-	print STDERR <<EOT unless @ARGV;
-
-Usage:	$0  [-tk] [directory]|name [...]
-
-EOT
-}
+$VERSION = substr(q$Revision: 1.5 $ , 10) + 1 . "";
 
 use Tk;
 BEGIN { eval { require Tk::FcyEntry; }; };
 use Tk::Pod;
+use Getopt::Long;
+#require Tk::ErrorDialog;
 
-require Tk::ErrorDialog;
+$tree = 1;
+if (!GetOptions("tk" => \$tk_opt,
+		"tree!" => \$tree,
+	       )) {
+    print STDERR <<EOT unless @ARGV;
+Usage:	$0  [-tk] [[-no]tree] [directory]|name [...]
+
+EOT
+}
+
+if (!@ARGV) {
+    push @ARGV, "perl";
+}
 
 # Add 'Tk' subdirectories to search path so, e.g.,
 # 'Scrolled' will find doc in 'Tk/Scrolled'
@@ -32,10 +32,11 @@ if ($tk_opt) {
    foreach (reverse @INC) {
 	$tkdir = "$_/Tk";
 	unshift @ARGV, $tkdir if -d $tkdir;
-   } 
+   }
 }
 
 my $mw = MainWindow->new();
+eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
 $mw->withdraw;
 
 # CDE use Font Settings if available
@@ -48,7 +49,7 @@ if (defined($ufont) and defined($sfont)) {
     $mw->optionAdd('*Text.Font',  $ufont);
 }
 
-$mw->optionAdd('*Menu.tearOff', 0);
+$mw->optionAdd('*Menu.tearOff', $Tk::platform ne 'MSWin32');
 
 my $file;
 foreach $file (@ARGV)
@@ -59,7 +60,7 @@ foreach $file (@ARGV)
    }
   else
    {
-    my $tl = $mw->Pod(-file => $file);
+    my $tl = $mw->Pod(-file => $file, -tree => $tree);
     $tl->focus;
    }
  }
@@ -90,7 +91,7 @@ tkpod - Perl/Tk POD browser
 
 =head1 SYNOPSIS
 
-    tkpod  [-tk]  [directory]|name [...]
+    tkpod  [-tk] [[-no]tree]  [directory]|name [...]
 
 
 =head1 DESCRIPTION
@@ -100,7 +101,7 @@ POD (L<Plain Old Document|perlpod>) is a simple and readable
 markup language that could be mixed with L<perl> code.
 
 PODs are searched by default in C<@INC>.  Directories listed on
-the command line are added to the default search path.  
+the command line are added to the default search path.
 
 For each C<name> listed on the command line B<tkpod> tries to
 to find POD in C<name, name.pod> and C<name.pm> in the search
@@ -110,6 +111,12 @@ path.  For each C<name> a new POD browser window is opened.
 =head1 OPTIONS
 
 =over 4
+
+=item B<-tree>
+
+By default, tkpod will show a tree window with all available PODs.
+However, this is slow on startup. With the option B<-notree> only the
+given POD will be shown and no tree view will be available.
 
 =item B<-tk>
 
@@ -144,8 +151,9 @@ L<Tk::Pod::Text|Tk::Pod::Text>
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Code currently maintained by Achim Bohnet <F<ach@mpe.mpg.de>>.
-Please send bug reports to <F<ptk@lists.stanford.edu>>.
+Former maintainer: Achim Bohnet <F<ach@mpe.mpg.de>>.
+
+Code currently maintained by Slaven Rezic F<slaven.rezic@berlin.de>>.
 
 Copyright (c) 1997-1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

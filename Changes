@@ -1,0 +1,156 @@
+History for Tk::Pod
+
+version 0.99
+
+	o various bug fixes
+	o colored entries in pod tree
+	o no more Tk40x.xxx support
+	o new/better More.pm bindings
+	o break long menus (on X11)
+
+version 0.12 (not released)
+
+	o new Tk::Pod::Tree module and a tree view for POD files
+	o better history support: forward/backward/view history
+          (with new menu) 
+	o new popup menu entry Forward
+	o Alt-Left/Right bindings
+	o usign getOpenFile instead of FileSelect
+	o using messageBox instead of BackTrace
+	o standard editor is ptked
+	o using Tk::Parse::Escapes instead of private translate hash
+	o change cursor image over links
+	o scrollbars are now on the right side (only Windows)
+	o bugfix: remove X<...> from section menu entries
+	o bugfix: internal links and middle button work now
+	o new maintainer
+
+version 0.11
+
+        o fixed VERSION problem: 1.14+2 < 3.14
+        o Added 'standard perl' COPYRIGHT notices to modules
+
+version 0.10
+
+	o New Search menu, Up/down bindigs and
+	  PATH scanned after @INC for PODs
+	  Thanks to Slaven Rezic <eserte@cs.tu-berlin.de>
+	o Pod/Text.pm
+		added support simple =head3 support
+		(treated like =head2)
+	o Parse.pm
+		added =begin/=end support (but not nesting or
+		check/match of word after =begin/=end).
+		Better impl. has to wait until Pod::Parser is
+		used 
+	o 'Reload' jumps to same line after document is reloaded
+	o =pod doesn't generate a warning anymore
+	o t/basic.t:  basic widget test ala Tk800 t/create.t
+
+version 0.09
+
+	o Tk::Pod & Tk::Pod::Text: fixed version (1.9 > 1.10 problem)
+	o Added section menu (Thanks Slaven)
+	o Use Busy/UnBusy during load of POD
+	o 'Help'->'Usage..' used Pod_usage.pod
+	o L</"This heading"> works a bit better (still broken
+	  if loaded to new POD window)
+
+version 0.08
+
+	o E<> support also 'space' 'tab'
+	o I<> is now in weight 'medium' and not 'bold'
+	o -font option removed so it's really 'courier'
+	o Fixed version number of Tk::Pod and Tk::Pod::Text
+	  so it increasing again (1.9 > 1.11 problem)
+
+version 0.07
+
+	Tk/Pod/Text.pm
+		o Links don't change font size in =head and
+                  =item commands
+		o Support L<man/"head*"> and L<man/item>
+		  (/"head" and /item still don't work when
+		  new Pod widget should is opened (<2> or
+                  <Shift-1>)
+		o Support L<showthis|man/sec> (new in 5.004_05
+		  to be and > 5.005_56)
+
+	Tk/Pod.pm
+		o Don't pack menubuttons for Tk800.*. (Thanks
+		  to Slaven Rezic <eserte@cs.tu-berlin.de>)
+		o 'Help/Usage' works when installed (also Win*?)
+
+	Tk/More.pm
+		o better h,j,k,l bindings scroll regardless of
+		  'insert' position
+		o insertCursor is invisible (well zero width)
+		o insertCursor off time set to 0 sec to switch
+		  of blinking (see text.n doc)
+		o fixed packing so entry does not fanish for
+		  small More widgets
+
+version 0.06
+
+	o fixed 'Quit' error
+	o Pod widgets created from another Pod widget have now
+	  same parent as Pod widget that created them
+
+version 0.05
+
+	o tkpod: added -tk switch so, Pod will be found
+	  even if Tk:: or Tk/ prefix is omitted.
+
+	o Fixed wrong $VERSION of Tk::Pod
+
+version 0.0401
+
+	o For 2 button mouse owners:
+		<Shift-ButtonRelease-1> does same
+		as <ButtonRelease-2>: load doc into
+		new window.
+
+	o Fixed Tk::Pod version to be higher than in
+	  Tk402.003 so CPAN.pm gets the right distribution
+
+	o more TODO entries :-)
+
+version 0.04
+
+	o applied Tk/Parse.pm patch of Slaven Rezic
+	  <eserte@cs.tu-berlin.de> to fix problem
+	  triggered by perlfaq4.pod
+	o Allow upcase chars in E<> as: Auml, Ouml,...
+	o Shift-Button-1 was used to open new window
+	  on L<>.  Now it's Button-2
+	o added 'szlig' to E<>
+	o Added more example POD markup to Tk/Pod/Text for
+	  verification
+
+version 0.03
+
+	o fixed warn on =for.  Perl Data Language has lots
+	  of them
+	o use alpha FcyEntry widget if available
+	o Tk/More status line: flat<->sunken, disabled<->normal
+	
+version 0.02
+
+	o use CDE default fonts if available
+	o first go on Tk::More widget
+	o use perlindex full text index if available
+
+version 0.01
+
+	o derived from Tk402.003 tkpod Tk/Pod.pm
+	o Extracted Tk::Pod::Text  from Tk::Pod  and use ROText
+	o 'better than nothing POD' for tkpod, Tk::Pod, Tk::Pod::Text.pm
+	o Added tkpod Help menu
+	o L<> in blue
+	o Button-* load POD in same window (with shift in separate
+	  window)
+	o tkpod now exits when last Pod widget is closed
+	o quick and dirty 'back' history.
+	o Added Popup menu: back, reload, edit
+	o removed Autoloader and sub old_process
+	o some other little fixes I can't remember right now

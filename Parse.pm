@@ -1,11 +1,11 @@
-# $Id: Parse.pm 1.8 Tue, 03 Nov 1998 13:15:34 +0100 ach $
+# $Id: Parse.pm,v 1.3 2001/06/13 08:43:26 eserte Exp $
 
 package Tk::Parse;
 
 require Exporter;
 
 use vars qw($VERSION %Escapes);
-$VERSION = substr(q$Revision: 1.8 $, 10) + 1 . "";
+$VERSION = substr(q$Revision: 1.3 $, 10) + 1 . "";
 
 @ISA=qw(Exporter);
 @EXPORT=qw(Parse Simplify hide start_hide unhide Normalize Normalize2 Escapes
@@ -507,8 +507,8 @@ as a basis for an %HTML_Escapes array in your own formatter.
 
 Brad Appleton <F<bradapp@enteract.com>>
 
-Code currently maintained (but deprecated) by Achim Bohnet <F<ach@mpe.mpg.de>>.
-Use L<Pod::Parser> instead.  Send bug reports to <F<ptk@lists.stanford.edu>>.
+Code currently maintained (but deprecated) by Slaven Rezic
+<F<slaven.rezic@berlin.de>>. Use L<Pod::Parser> instead.
 
 Copyright (c) 1997-1998 Brad Appleton.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
@@ -834,6 +834,13 @@ sub Parse2 {
 # Common escapes with ASCII translations. You should copy this into you're
 # own local escapes hash and override the ones you need to change.
 
+if (eval { require Pod::Text &&
+	   Pod::Text->VERSION(2) &&
+           defined %Pod::Text::ESCAPES
+    }) {
+    %Escapes = %Pod::Text::ESCAPES;
+} else {
+    # fallback...
 %Escapes = (
     'amp'	=>	'&',	#   ampersand
     'lt'	=>	'<',	#   left chevron, less-than
@@ -903,6 +910,6 @@ sub Parse2 {
     "yacute"	=>	"y",	#   small y, acute accent
     "yuml"	=>	'y',	#   small y, dieresis or umlaut mark
 );
-
+}
 
 1;

@@ -23,6 +23,11 @@ word in the same window.
 If the C<Shift> key is simultaneously pressed a new browser window
 is opened.
 
+=head2 Key bindings
+
+The L<Tk::Pod::Text> widget is based on the L<Tk::More> widget
+inheriting its key bindings.
+
 =head2 Search
 
 Pressing <Key-/> lets you search in the displayed documentation.
@@ -45,6 +50,10 @@ that allows:
 
 in history of displayed documentation
 
+=item o Forward
+
+in history of displayed documentation
+
 =item o Reload
 
 the documentation
@@ -53,9 +62,11 @@ the documentation
 
 start editor with source of the displayed document.
 
-The used editor is selected by the first definition of
+=for comment The used editor is selected by the first definition of
 the environment variables C<XEDITOR>, C<VISUAL>, C<EDITOR>
 or as default F</usr/bin/vi>.
+
+The L<ptked|ptked> editor (bundled with Perl/Tk) will be used.
 
 =item o Search ...
 
@@ -66,13 +77,14 @@ Full text search of the POD in the perl library directories.
 
 =head1 SEE ALSO
 
-L<tkpod>
-L<perlpod>
-L<pod2man>
-L<pod2text>
-L<pod2html>
-L<Tk::Pod>
-L<Tk::Pod::Text>
+L<tkpod>,
+L<perlpod>,
+L<pod2man>,
+L<pod2text>,
+L<pod2html>,
+L<Tk::Pod>,
+L<Tk::Pod::Text>,
+L<Tk::More>.
 
 =head1 KEYWORDS
 
@@ -81,6 +93,8 @@ pod, browser, tk, hypertext
 =head1 AUTHOR
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
+
+Current maintainer is Slaven Rezic <F<slaven.rezic@berlin.de>>
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This
 documentation is free software; you can redistribute it and/or modify
