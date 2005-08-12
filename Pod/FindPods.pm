@@ -1,12 +1,12 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.1 2004/09/08 21:08:44 eserte Exp $
+# $Id: FindPods.pm,v 5.3 2005/08/12 21:31:02 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2003,2004 Slaven Rezic. All rights reserved.
-# This package is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
+# Copyright (C) 2001,2003,2004,2005 Slaven Rezic. All rights reserved.
+# This package is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
 #
 # Mail: slaven@rezic.de
 # WWW:  http://www.rezic.de/eserte/
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -130,7 +130,7 @@ sub pod_find {
 	@dirs = @{ $args{-directories} };
 	@script_dirs = ();
     } else {
-	@dirs = grep { $_ ne '.' } @INC; # ignore current directory
+	@dirs = sort { length($b) <=> length($a) } grep { $_ ne '.' } @INC; # ignore current directory
 	@script_dirs = ($Config{'scriptdir'});
     }
 
@@ -233,6 +233,7 @@ sub pod_find {
     }
 
     foreach my $inc (@dirs) {
+	next unless -d $inc;
 	$curr_dir = $inc;
 	find({ %opts, wanted => $wanted }, $inc);
     }
@@ -277,6 +278,7 @@ sub guess_architectures {
     my %arch;
     my @configs;
     foreach my $inc (@INC) {
+	next unless -d $inc;
 	if (!opendir(DIR, $inc)) {
 	    warn "Can't opendir $inc: $!";
 	    next;
@@ -343,11 +345,17 @@ sub _cache_file {
     (my $os  = $Config{'archname'}) =~ s/[^a-z0-9]/_/gi;
     my $uid  = $<;
 
-    if (File::Spec->can('tmpdir')) {
-        File::Spec->catfile(File::Spec->tmpdir, join('_', 'pods',$ver,$os,$uid));
-      } else {
-        File::Spec->catfile(($ENV{TMPDIR}||"/tmp"), join('_', 'pods',$ver,$os,$uid));
-      }
+    my $cache_file_pattern = $ENV{TKPODCACHE};
+    if (!defined $cache_file_pattern) {
+	$cache_file_pattern = File::Spec->catfile
+	    (File::Spec->can('tmpdir') ? File::Spec->tmpdir : $ENV{TMPDIR}||"/tmp",
+	     join('_', 'pods',"%v","%o","%u")
+	    );
+    }
+    $cache_file_pattern =~ s/%v/$ver/g;
+    $cache_file_pattern =~ s/%o/$os/g;
+    $cache_file_pattern =~ s/%u/$uid/g;
+    $cache_file_pattern;
 }
 
 sub pods      { shift->{pods} }
@@ -459,6 +467,46 @@ print Data::Dumper->Dumpxs([{Tk::Pod::FindPods::pod_find(-categorized => 0, -use
 
 __END__
 
+=head1 ENVIRONMENT
+
+=over
+
+=item TKPODCACHE
+
+Path for the cache file. By default, the cache file is written to the
+temporary directory (F</tmp> or the OS equivalent). The following
+placeholders are recognized:
+
+=over
+
+=item %v
+
+The perl version.
+
+=item %o
+
+The OS (technically correct: the archname, which can include tokens
+like "64int" or "thread").
+
+=item %u
+
+The user id.
+
+=back
+
+Example for using F</var/tmp> instead of F</tmp> for the cache file
+location (on many systems F</var/tmp> is persistent, unlike F</tmp>):
+
+	setenv TKPODCACHE /var/tmp/pods_%v_%o_%u
+
+or
+
+	TKPODCACHE=/var/tmp/pods_%v_%o_%u; export TKPODCACHE
+
+depending on your shell.
+
+=back
+
 =head1 SEE ALSO
 
 Tk::Tree(3).
@@ -467,8 +515,8 @@ Tk::Tree(3).
 
 Slaven Rezic <F<slaven@rezic.de>>
 
-Copyright (c) 2001,2003,2004 Slaven Rezic.  All rights reserved.  This program
-is free software; you can redistribute it and/or modify it under the same
-terms as Perl itself.
+Copyright (c) 2001,2003,2004,2005 Slaven Rezic. All rights reserved.
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =cut

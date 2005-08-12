@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 use IO::Socket;
 
@@ -88,6 +88,7 @@ use Getopt::Long;
 
 my $mw = MainWindow->new();
 eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
+my $orig_state = $mw->state; # may be iconic
 $mw->withdraw;
 
 my $function;
@@ -175,6 +176,7 @@ if ($ENV{TKPODDIRS}) {
     }
 }
 
+my $tl;
 my $file;
 my $opened = 0;
 foreach $file (@ARGV)
@@ -185,7 +187,7 @@ foreach $file (@ARGV)
    }
   else
    {
-    my $tl = $mw->Pod(-tree => $tree,
+    $tl = $mw->Pod(-tree => $tree,
 		      -exitbutton => 1);
     # -file => ... should be called after creating the Pod window,
     # because -title => ... is set implicitly by Pod's new
@@ -196,14 +198,14 @@ foreach $file (@ARGV)
 
 if (defined $function)
  {
-    my $tl = $mw->Pod(-tree => $tree,
+    $tl = $mw->Pod(-tree => $tree,
 		      -exitbutton => 1);
     $tl->configure($tl->getpodargs(-f => $function));
     $opened++;
  }
 if (defined $question)
  {
-    my $tl = $mw->Pod(-tree => $tree,
+    $tl = $mw->Pod(-tree => $tree,
 		      -exitbutton => 1);
     $tl->configure($tl->getpodargs(-q => $question));
     $opened++;
@@ -213,14 +215,18 @@ if (!$opened) # This may happen if all arguments are directories
  {
   if ($tree)
    {
-    $mw->Pod(-tree => 1, -exitbutton => 1);
+    $tl = $mw->Pod(-tree => 1, -exitbutton => 1);
    }
   else
    {
-    my $tl = $mw->Pod(-tree => $tree, -exitbutton => 1);
+    $tl = $mw->Pod(-tree => $tree, -exitbutton => 1);
     $tl->configure(-file => "perl");
    }
  }
+
+if (Tk::Exists($tl) && $orig_state eq 'iconic') {
+    $tl->iconify;
+}
 
 # xxx dirty but it works. A simple $mw->destroy if $mw->children
 # does not work because Tk::ErrorDialogs could be created.
@@ -387,7 +393,8 @@ in the "local dirs" section of the tree view.
 
 =back
 
-See L<Tk::Pod::Text/Environment> for more environment variables.
+See L<Tk::Pod::Text/Environment> and L<Tk::Pod::FindPods/Environment>
+for more environment variables.
 
 =head1 KNOWN BUGS
 

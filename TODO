@@ -95,11 +95,48 @@ Highlight matches in link text.
 
 =back
 
+=head3 tkpod
+
+=over
+
+=item *
+
+In server mode, no commandline options are accepted.
+
+=item *
+
+Get rid of the numerous warnings in server/client mode.
+
+=back
+
 =head2 WISHLIST
 
 =head3 Tk::Pod
 
 =over
+
+=item *
+
+History: prefer short pod names over filenames. Do not record
+temporary file names (as in perldoc -f / -q) in history view.
+
+=item *
+
+If "perlindex -index" is not run yet: ask user to run it? Problematic
+on Unix, because perlindex should be run as superuser.
+
+=item *
+
+On Windows: show printer selection dialog first, maybe also on
+KDE/GNOME, if available.
+
+=item *
+
+Optionally save settings on exit, e.g. current base font size.
+
+=item *
+
+New menu item: View Pod source (like Edit Pod, but using tkmore or Tk::More)
 
 =item *
 
@@ -251,6 +288,11 @@ changed
 =head3 Tk::Pod::Tree
 
 =over
+
+=item *
+
+Some zoom functionality, maybe depending on the zoom factor of the
+main window, and/or an additional menu entry.
 
 =item *
 

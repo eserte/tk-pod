@@ -4,11 +4,13 @@ use strict;
 package Tk::Pod::Styles;
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 sub init_styles {
   my $w = shift;
-  $w->set_base_font_size($w->standard_font_size);
+  if (!defined $w->{'style'}{'base_font_size'}) {
+    $w->set_base_font_size($w->standard_font_size);
+  }
 }
 
 sub standard_font_size {
@@ -32,10 +34,16 @@ sub adjust_font_size {
   $w->set_base_font_size($new_size);
 
   for my $tag ($w->tagNames) {
+    my $fontsize = $w->{'style_fontsize'}{$tag};
     my $f = $w->tagCget($tag, '-font');
     if ($f) {
       my %f = $w->fontActual($f);
-      $f{-size} += $delta;
+      if (!defined $fontsize) {
+	$fontsize = $f{-size};
+      }
+      $fontsize += $delta;
+      $w->{'style_fontsize'}{$tag} = $fontsize;
+      $f{-size} = $fontsize;
       my $new_f = $w->fontCreate(%f);
       $w->tagConfigure($tag, -font => $new_f);
     }
@@ -130,3 +138,7 @@ sub style_F {
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 1;
 __END__
+
+### Local Variables:
+### cperl-indent-level: 2
+### End:

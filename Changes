@@ -1,5 +1,13 @@
 History for Tk::Pod
 
+version 0.9930
+	o fixing zoom function problems on some X11 servers
+	o changed About dialog
+	o tkmore: Pod, new options
+	o new environment variable TKPODCACHE
+	o fixed for installations with vendor_perl in @INC (thanks to
+	  Alexey Tourbin)
+
 version 0.9929
 	o no functional changes, just repair version damage
 
