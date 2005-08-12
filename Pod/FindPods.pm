@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.2 2005/01/22 12:39:40 eserte Exp $
+# $Id: FindPods.pm,v 5.3 2005/08/12 21:31:02 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003,2004,2005 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -130,7 +130,7 @@ sub pod_find {
 	@dirs = @{ $args{-directories} };
 	@script_dirs = ();
     } else {
-	@dirs = grep { $_ ne '.' } @INC; # ignore current directory
+	@dirs = sort { length($b) <=> length($a) } grep { $_ ne '.' } @INC; # ignore current directory
 	@script_dirs = ($Config{'scriptdir'});
     }
 
@@ -233,6 +233,7 @@ sub pod_find {
     }
 
     foreach my $inc (@dirs) {
+	next unless -d $inc;
 	$curr_dir = $inc;
 	find({ %opts, wanted => $wanted }, $inc);
     }
@@ -277,6 +278,7 @@ sub guess_architectures {
     my %arch;
     my @configs;
     foreach my $inc (@INC) {
+	next unless -d $inc;
 	if (!opendir(DIR, $inc)) {
 	    warn "Can't opendir $inc: $!";
 	    next;
