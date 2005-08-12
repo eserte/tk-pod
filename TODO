@@ -95,6 +95,20 @@ Highlight matches in link text.
 
 =back
 
+=head3 tkpod
+
+=over
+
+=item *
+
+In server mode, no commandline options are accepted.
+
+=item *
+
+Get rid of the numerous warnings in server/client mode.
+
+=back
+
 =head2 WISHLIST
 
 =head3 Tk::Pod
