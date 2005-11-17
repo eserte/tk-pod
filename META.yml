@@ -1,7 +1,6 @@
 # http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Tk-Pod
-version:      0.9928
+version:      0.9931
 version_from: 
 installdirs:  site
 requires:
@@ -11,6 +10,6 @@ requires:
 recommends:
     Text::English:                 0
     Tk::HistEntry:                 0.4
-
+    Tk::ToolBar:                   0
+license: perl
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.21_01
