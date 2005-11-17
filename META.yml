@@ -1,16 +1,15 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Tk-Pod
-version:      0.9928
+version:      0.9931
 version_from: 
 installdirs:  site
 requires:
     File::Temp:                    0
-    Pod::Simple:                   0
-    Tk:                            800.004
-recommends:
+    Pod::Simple:                   2.05
     Text::English:                 0
+    Tk:                            800.004
     Tk::HistEntry:                 0.4
 
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.21_01
+generated_by: ExtUtils::MakeMaker version 6.30

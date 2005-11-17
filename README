@@ -24,6 +24,10 @@ Features include:
 	  bindings
 	o Tree view of available Pods
 
+If Tk::ToolBar is installed, then tkpod may use the Tk::ToolBar icons
+for the menus. This works both in Tk804 with native compounds and in
+Tk800 using Tk::Compound.
+
 The original Tk::Pod module was written by Nick Ing-Simmons
 <nik@tiuk.ti.com>. Former maintainer was Achim Bohnet. Current
 maintainer is Slaven Rezic <slaven@rezic.de>. Pod::Simple support is

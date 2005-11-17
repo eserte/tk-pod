@@ -2,8 +2,9 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9930";
-if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
+$DIST_VERSION = "0.9931";
+$is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
+if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
  SEARCH_FOR_DIST_VERSION: {
 	while(<P>) {
@@ -15,6 +16,12 @@ if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
 	    }
 	}
 	die "Cannot find DIST_VERSION definition in Pod.pm";
+    }
+
+    require YAML;
+    my $meta = YAML::LoadFile("META.yml");
+    if ($meta->{version} ne $DIST_VERSION) {
+	die "Please fix version in META.yml!\n";
     }
 }
 
@@ -44,7 +51,7 @@ demo :: pure_all
 
 EOF
 
-    if (defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk") {
+    if ($is_devel_host) {
 	$postamble .= <<'EOF';
 
 .include "../../perl.release.mk"
