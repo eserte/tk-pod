@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
-$DIST_VERSION = "0.9930";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = "0.9931";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -51,21 +51,58 @@ sub Populate
  # XXX Maybe there should be a way to turn this off, as the extra
  # icons might be memory consuming...
  my $compound = sub { () };
- if ($Tk::VERSION >= 804 && eval { require Tk::ToolBar; 1 }) {
-     $w->ToolBar->destroy;
+ if ($Tk::VERSION >= 800 && eval { require Tk::ToolBar; 1 }) {
+     $w->ToolBar->destroy; # hack to load images
      if (!$Tk::Pod::empty_image_16) { # XXX multiple MainWindows?
 	 $Tk::Pod::empty_image_16 = $w->MainWindow->Photo(-data => <<EOF);
 R0lGODlhEAAQAIAAAP///////yH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh+QQBCgABACwA
 AAAAEAAQAAACDoyPqcvtD6OctNqLsz4FADs=
 EOF
      }
-     $compound = sub {
-	 if (@_) {
-	     (-image => $_[0] . "16", -compound => "left");
-	 } else {
-	     (-image => $Tk::Pod::empty_image_16, -compound => "left");
+     if ($Tk::VERSION >= 804) {
+	 # Tk804 has native menu item compounds
+	 $compound = sub {
+	     my($text, $image) = @_;
+	     if ($image) {
+		 ($text, -image => $image . "16", -compound => "left");
+	     } else {
+		 ($text, -image => $Tk::Pod::empty_image_16, -compound => "left");
+	     }
+	 };
+     } elsif (eval { require Tk::Compound; 1 }) {
+	 # For Tk800 we have to create our own compounds using Tk::Compund
+	 # get the default font (taken from bbbike):
+	 my $std_font = $w->optionGet('font', 'Font');
+	 if (!defined $std_font || $std_font eq '') {
+	     my $l = $w->Label;
+	     $std_font = $l->cget(-font);
+	     $l->destroy;
 	 }
-     };
+	 my %std_font = $w->fontActual($std_font);
+	 # create an underlined font which matches the default font
+	 my $underline_font = join(" ", map { "{" . $std_font{$_} . "}" } qw(-family -size -weight -slant));
+	 $underline_font .= " overstrike" if $std_font{-overstrike};
+	 $underline_font .= " underline";
+	 $compound = sub {
+	     my($text, $image) = @_;
+	     my $c = $w->MainWindow->Compound; # XXX multiple MainWindows?
+	     if ($image) {
+		 $c->Image(-image => $image."16");
+	     } else {
+		 $c->Image(-image => $Tk::Pod::empty_image_16);
+	     }
+	     $c->Space(-width => 4);
+	     my($text_before, $underlined_text, $text_after) = $text =~ /^(.*)~(.)(.*)/;
+	     if (defined $underlined_text) {
+		 $c->Text(-text => $text_before) if $text_before ne "";
+		 $c->Text(-text => $underlined_text, -font => $underline_font);
+		 $c->Text(-text => $text_after) if $text_after ne "";
+	     } else {
+		 $c->Text(-text => $text);
+	     }
+	     ($text, -image => $c);
+	 };
+     }
  }
 
  my $menuitems =
@@ -73,41 +110,41 @@ EOF
 
   [Cascade => '~File', -menuitems =>
    [
-    [Button => '~Open File...', '-accelerator' => 'F3',
+    [Button => $compound->('~Open File...', "fileopen"),
+     '-accelerator' => 'F3',
      '-command' => ['openfile',$w],
-     $compound->("fileopen"),
     ],
-    [Button => 'Open ~by Name...', '-accelerator' => 'Ctrl+O',
+    [Button => $compound->('Open ~by Name...'),
+     '-accelerator' => 'Ctrl+O',
      '-command' => ['openpod',$w,$p],
-     $compound->(),
     ],
-    [Button => '~New Window...', '-accelerator' => 'Ctrl+N',
+    [Button => $compound->('~New Window...'),
+     '-accelerator' => 'Ctrl+N',
      '-command' => ['newwindow',$w,$p],
-     $compound->(),
     ],
-    [Button => '~Reload',    '-accelerator' => 'Ctrl+R',
+    [Button => $compound->('~Reload', "actreload"),
+     '-accelerator' => 'Ctrl+R',
      '-command' => ['reload',$p],
-     $compound->("actreload"),
     ],
-    [Button => '~Edit',      '-command' => ['edit',$p],
-     $compound->("edit"),
+    [Button => $compound->('~Edit', "edit"),
+     '-command' => ['edit',$p],
     ],
-    [Button => 'Edit with p~tked', '-command' => ['edit',$p,'ptked'],
-     $compound->(),
+    [Button => $compound->('Edit with p~tked'),
+     '-command' => ['edit',$p,'ptked'],
     ],
-    [Button => '~Print'. ($p->PrintHasDialog ? '...' : ''),
-     '-accelerator' => 'Ctrl+P', '-command' => ['Print',$p],
-     $compound->("fileprint"),
+    [Button => $compound->('~Print'. ($p->PrintHasDialog ? '...' : ''), "fileprint"),
+     '-accelerator' => 'Ctrl+P',
+     '-command' => ['Print',$p],
     ],
     [Separator => ""],
-    [Button => '~Close',     '-accelerator' => 'Ctrl+W',
+    [Button => $compound->('~Close', "fileclose"),
+     '-accelerator' => 'Ctrl+W',
      '-command' => ['quit',$w],
-     $compound->("fileclose"),
     ],
     ($exitbutton
-     ? [Button => 'E~xit',   '-accelerator' => 'Ctrl+Q',
+     ? [Button => $compound->('E~xit', "actexit"),
+	'-accelerator' => 'Ctrl+Q',
 	'-command' => sub { $p->MainWindow->destroy },
-	$compound->("actexit"),
        ]
      : ()
     ),
@@ -116,73 +153,73 @@ EOF
 
   [Cascade => '~View', -menuitems =>
    [
-    [Checkbutton => '~Pod Tree', -variable => \$w->{Tree_on},
+    [Checkbutton => $compound->('~Pod Tree'),
+     '-variable' => \$w->{Tree_on},
      '-command' => sub { $w->tree($w->{Tree_on}) },
-     $compound->(),
     ],
     '-',
-    [Button => "Zoom ~in",  '-accelerator' => 'Ctrl++',
-     -command => [$w, 'zoom_in'],
-     $compound->("viewmag+"),
+    [Button => $compound->("Zoom ~in", "viewmag+"),
+     '-accelerator' => 'Ctrl++',
+     '-command' => [$w, 'zoom_in'],
     ],
-    [Button => "~Normal",   -command => [$w, 'zoom_normal'],
-     $compound->(),
+    [Button => $compound->("~Normal"),
+     '-command' => [$w, 'zoom_normal'],
     ],
-    [Button => "Zoom ~out", '-accelerator' => 'Ctrl+-',
-     -command => [$w, 'zoom_out'],
-     $compound->("viewmag-"),
+    [Button => $compound->("Zoom ~out", "viewmag-"),
+     '-accelerator' => 'Ctrl+-',
+     '-command' => [$w, 'zoom_out'],
     ],
    ]
   ],
 
   [Cascade => '~Search', -menuitems =>
    [
-    [Button => '~Search',
-     '-accelerator' => '/', '-command' => ['Search', $p, 'Next'],
-     $compound->("viewmag"),
+    [Button => $compound->('~Search', "viewmag"),
+     '-accelerator' => '/',
+     '-command' => ['Search', $p, 'Next'],
     ],
-    [Button => 'Search ~backwards',
-     '-accelerator' => '?', '-command' => ['Search', $p, 'Prev'],
-     $compound->(),
+    [Button => $compound->('Search ~backwards'),
+     '-accelerator' => '?',
+     '-command' => ['Search', $p, 'Prev'],
     ],
-    [Button => '~Repeat search',
-     '-accelerator' => 'n', '-command' => ['ShowMatch', $p, 'Next'],
-     $compound->(),
+    [Button => $compound->('~Repeat search'),
+     '-accelerator' => 'n',
+     '-command' => ['ShowMatch', $p, 'Next'],
     ],
-    [Button => 'R~epeat backwards',
-     '-accelerator' => 'N', '-command' => ['ShowMatch', $p, 'Prev'],
-     $compound->(),
+    [Button => $compound->('R~epeat backwards'),
+     '-accelerator' => 'N',
+     '-command' => ['ShowMatch', $p, 'Prev'],
     ],
-    [Checkbutton => '~Case sensitive', -variable => \$searchcase,
+    [Checkbutton => $compound->('~Case sensitive'),
+     '-variable' => \$searchcase,
      '-command' => sub { $p->configure(-searchcase => $searchcase) },
-     $compound->(),
     ],
     [Separator => ""],
-    [Button => 'Search ~full text', '-command' => ['SearchFullText', $p],
-     $compound->("filefind"),
+    [Button => $compound->('Search ~full text', "filefind"),
+     '-command' => ['SearchFullText', $p],
     ],
-    [Button => 'Search FA~Q', '-command' => ['SearchFAQ', $w, $p],
-     $compound->(),
+    [Button => $compound->('Search FA~Q'),
+     '-command' => ['SearchFAQ', $w, $p],
     ],
    ]
   ],
 
   [Cascade => 'H~istory', -menuitems =>
    [
-    [Button => '~Back',    '-accelerator' => 'Alt-Left',
+    [Button => $compound->('~Back', "navback"),
+     '-accelerator' => 'Alt-Left',
      '-command' => ['history_move', $p, -1],
-     $compound->("navback"),
     ],
-    [Button => '~Forward', '-accelerator' => 'Alt-Right',
+    [Button => $compound->('~Forward', "navforward"),
+     '-accelerator' => 'Alt-Right',
      '-command' => ['history_move', $p, +1],
-     $compound->("navforward"),
     ],
-    [Button => '~View',    '-command' => ['history_view', $p],
-     $compound->(),
+    [Button => $compound->('~View'),
+     '-command' => ['history_view', $p],
     ],
     '-',
-    [Button => 'Clear cache', '-command' => ['clear_cache', $p],
-     $compound->(),
+    [Button => $compound->('Clear cache'),
+     '-command' => ['clear_cache', $p],
     ],
    ]
   ],
