@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9931
+	o Tk::ToolBar menu icon support also for Tk800
+	  (very experimental!)
+
 version 0.9930
 	o fixing zoom function problems on some X11 servers
 	o changed About dialog
