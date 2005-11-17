@@ -24,4 +24,4 @@ t/subclass.t
 t/more.t
 tkmore
 tkpod
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml
