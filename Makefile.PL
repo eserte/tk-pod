@@ -51,7 +51,7 @@ demo :: pure_all
 
 EOF
 
-    if ($devel_host) {
+    if ($is_devel_host) {
 	$postamble .= <<'EOF';
 
 .include "../../perl.release.mk"
