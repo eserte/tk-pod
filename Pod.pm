@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9931";
 
 @ISA = qw(Tk::Toplevel);
@@ -50,7 +50,7 @@ sub Populate
  # Experimental menu compound images:
  # XXX Maybe there should be a way to turn this off, as the extra
  # icons might be memory consuming...
- my $compound = sub { () };
+ my $compound = sub { ($_[0]) };
  if ($Tk::VERSION >= 800 && eval { require Tk::ToolBar; 1 }) {
      $w->ToolBar->destroy; # hack to load images
      if (!$Tk::Pod::empty_image_16) { # XXX multiple MainWindows?
