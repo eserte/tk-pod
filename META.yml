@@ -1,6 +1,6 @@
 # http://module-build.sourceforge.net/META-spec.html
 name:         Tk-Pod
-version:      0.9931
+version:      0.9932
 version_from: 
 installdirs:  site
 requires:
@@ -13,3 +13,6 @@ recommends:
     Tk::ToolBar:                   0
 license: perl
 distribution_type: module
+resources:
+    bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tk-Pod
+    license: http://dev.perl.org/licenses/
