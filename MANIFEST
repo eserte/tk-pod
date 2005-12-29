@@ -22,6 +22,7 @@ t/cmdline.t
 t/pods.t
 t/subclass.t
 t/more.t
+t/optionalmods.t
 tkmore
 tkpod
 META.yml

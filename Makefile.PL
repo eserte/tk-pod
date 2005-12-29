@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9931";
+$DIST_VERSION = "0.9932";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -18,10 +18,13 @@ if ($is_devel_host) {
 	die "Cannot find DIST_VERSION definition in Pod.pm";
     }
 
-    require YAML;
-    my $meta = YAML::LoadFile("META.yml");
-    if ($meta->{version} ne $DIST_VERSION) {
-	die "Please fix version in META.yml!\n";
+    if (!eval { require YAML; 1 }) {
+	warn "Please install YAML, otherwise no META.yml check could be done!";
+    } else {
+	my $meta = YAML::LoadFile("META.yml");
+	if ($meta->{version} ne $DIST_VERSION) {
+	    die "Please fix version in META.yml!\n";
+	}
     }
 }
 
@@ -36,6 +39,7 @@ WriteMakefile(
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
 	'VERSION'	=> $DIST_VERSION,
+	'NO_META'	=> 1,
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
