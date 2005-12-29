@@ -1,5 +1,10 @@
 History for Tk::Pod
 
+version 0.9932
+	o bugfix - Tk::Pod did not work with Tk804 and without
+	  Tk::ToolBar installed (thanks to Craig Thayer for spotting
+	  the problem)
+
 version 0.9931
 	o Tk::ToolBar menu icon support also for Tk800
 	  (very experimental!)
