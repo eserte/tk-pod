@@ -5,14 +5,16 @@ documentation.
 
 To install, type:
 
-	perl Makefile.PL
+	perl Makefile.PL	(resolve all dependencies)
 	make
 	make test
-	make demo
+	make demo		(optional)
 	make install
 
 Windows users should replace "make" with "nmake" unless using a
 cygwin-compiled or MinGW-compiled perl.
+
+At least perl 5.005 and Tk 800.004 is required.
 
 Features include:
 	o A standalone Tk pod viewer: tkpod
