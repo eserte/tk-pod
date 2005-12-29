@@ -36,6 +36,7 @@ WriteMakefile(
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
 	'VERSION'	=> $DIST_VERSION,
+	'NO_META'	=> 1,
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
