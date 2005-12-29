@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9932";
 
 @ISA = qw(Tk::Toplevel);
@@ -680,7 +680,7 @@ sub SearchFAQ {
 sub zoom {
     my($w, $method) = @_;
     my $p = $w->Subwidget("pod");
-    $p->$method;
+    $p->$method();
     $w->set_base_font_size($p->base_font_size);
 }
 
