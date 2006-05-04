@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -1201,6 +1201,9 @@ Set the wrap mode. Default is C<word>.
 The position of the scrollbars, see also L<Tk::Scrolled>. By default,
 the vertical scrollbar is on the right on Windows systems and on the
 left on X11 systems.
+
+Note that it is not necessary and usually will do the wrong thing if
+you put a C<Tk::Pod::Text> widget into a C<Scrolled> component.
 
 =back
 
