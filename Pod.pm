@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.11 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9932";
 
 @ISA = qw(Tk::Toplevel);
@@ -168,6 +168,20 @@ EOF
     [Button => $compound->("Zoom ~out", "viewmag-"),
      '-accelerator' => 'Ctrl+-',
      '-command' => [$w, 'zoom_out'],
+    ],
+    '-',
+    [Button => $compound->('Pod on search.cpan.org'),
+     '-command' => sub {
+	 require Tk::Pod::Util;
+	 warn $p->{pod_title};
+	 Tk::Pod::Util::start_browser("http://search.cpan.org/search?mode=module&query=" . $p->{pod_title});
+     },
+    ],
+    [Button => $compound->('Pod on annocpan.org'),
+     '-command' => sub {
+	 require Tk::Pod::Util;
+	 Tk::Pod::Util::start_browser("http://www.annocpan.org/?mode=search&field=Module&name=" . $p->{pod_title});
+     },
     ],
    ]
   ],
