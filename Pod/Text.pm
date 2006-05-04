@@ -21,12 +21,12 @@ use Tk::Frame;
 use Tk::Pod;
 use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
-use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
+use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_browser);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -629,20 +629,8 @@ sub Link
 
 sub Link_url {
     my ($w,$how,$index,$man,$sec) = @_;
-    if (!defined &WWWBrowser::start_browser && !eval { require WWWBrowser }) {
-	*WWWBrowser::start_browser = sub {
-	    my $url = shift;
-	    if ($^O eq 'MSWin32') {
-		system("start explorer $url");
-	    } elsif ($^O eq 'cygwin') {
-		system("explorer $url &");
-	    } else {
-		system("mozilla $url &");
-	    }
-	};
-    }
     DEBUG and warn "Start browser with $man\n";
-    WWWBrowser::start_browser($man);
+    start_browser($man);
 }
 
 sub Link_man {
