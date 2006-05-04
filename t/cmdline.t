@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.2 2003/02/05 14:46:29 eserte Exp $
+# $Id: cmdline.t,v 1.3 2006/05/04 18:59:56 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -11,11 +11,11 @@ use File::Spec;
 
 BEGIN {
     if (!eval q{
-	use Test;
+	use Test::More;
 	use POSIX ":sys_wait_h";
 	1;
     }) {
-	print "1..0 # skip: no Test module\n";
+	print "1..0 # skip: no Test::More module\n";
 	exit;
     }
     if ($ENV{BATCH} || $^O eq 'MSWin32') {
@@ -24,8 +24,7 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 6 }
-
+my $DEBUG = 0;
 my $script = 'blib/script/tkpod';
 
 my @opt = (['-tk'],
@@ -35,13 +34,21 @@ my @opt = (['-tk'],
 	   #['-Iblib/lib'],
 	   ['-d'],
 	   ['-server'],
+	   ['-xrm', '*font: {nimbus sans l} 24',
+	    '-xrm', '*serifFont: {nimbus roman no9 l}',
+	    '-xrm', '*sansSerifFont: {nimbus sans l}',
+	    '-xrm', '*monospaceFont: {nimbus mono l}',
+	   ],
 	  );
+
+plan tests => scalar @opt;
+
 OPT:
 for my $opt (@opt) {
     my $pid = fork;
     if ($pid == 0) {
 	my @cmd = ($^X, "-Mblib", $script, @$opt);
-	#warn "@cmd\n";
+	warn "@cmd\n" if $DEBUG;
 	open(STDERR, ">" . File::Spec->devnull);
 	exec @cmd;
 	die $!;
@@ -50,7 +57,7 @@ for my $opt (@opt) {
 	select(undef,undef,undef,0.1);
 	my $kid = waitpid($pid, WNOHANG);
 	if ($kid) {
-	    ok($?, 0);
+	    is($?, 0, "Trying tkpod with @$opt");
 	    next OPT;
 	}
     }
@@ -58,12 +65,12 @@ for my $opt (@opt) {
     for (1..10) {
 	select(undef,undef,undef,0.1);
 	if (!kill 0 => $pid) {
-	    ok(1);
+	    pass("Trying tkpod with @$opt");
 	    next OPT;
 	}
     }
     kill KILL => $pid;
-    ok(1);
+    pass("Trying tkpod with @$opt");
 }
 
 __END__
