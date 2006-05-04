@@ -4,7 +4,7 @@ use strict;
 package Tk::Pod::Styles;
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 
 sub init_styles {
   my $w = shift;
@@ -54,6 +54,21 @@ sub set_base_font_size { $_[0]{'style'}{'base_font_size'} = $_[1] }
 
 sub base_font_size { return $_[0]{'style'}{'base_font_size'} ||= 10 }
 
+sub font_sans_serif {
+  my $w = shift;
+  $w->optionGet("sansSerifFont", "SansSerifFont") || "helvetica";
+}
+
+sub font_serif {
+  my $w = shift;
+  $w->optionGet("serifFont", "SerifFont") || "times";
+}
+
+sub font_monospace {
+  my $w = shift;
+  $w->optionGet("monospaceFont", "MonospaceFont") || "courier";
+}
+
 sub style_over_bullet {
   $_[0]->{'style'}{'over_bullet'} ||=
     [ 'indent' => $_[1]->attr('indent') || 4, @{ $_[0]->style_Para } ]
@@ -82,12 +97,14 @@ sub style_item_number   {
 
 sub style_Para {
   $_[0]->{'style'}{'Para'} ||=
-    [ 'family' => 'times', 'size' => $_[0]->base_font_size ]
+    [ 'family' => $_[0]->font_serif,
+      'size' => $_[0]->base_font_size,
+    ]
 }
 
 sub style_Verbatim {
   $_[0]->{'style'}{'Verbatim'} ||=
-    [ 'family' => 'courier',
+    [ 'family' => $_[0]->font_monospace,
       'size' => $_[0]->base_font_size,
       'wrap' => 'none',
     ]
@@ -95,25 +112,29 @@ sub style_Verbatim {
 
 sub style_head1 {
   $_[0]->{'style'}{'head1'} ||=
-    [ 'family' => 'helvetica', 'size' => int(1 + 1.75 * $_[0]->base_font_size),
+    [ 'family' => $_[0]->font_sans_serif,
+      'size' => int(1 + 1.75 * $_[0]->base_font_size),
       'underline' => 'true',
     ]
 }
 sub style_head2 {
   $_[0]->{'style'}{'head2'} ||=
-    [ 'family' => 'helvetica', 'size' => int(1 + 1.50 * $_[0]->base_font_size),
+    [ 'family' => $_[0]->font_sans_serif,
+      'size' => int(1 + 1.50 * $_[0]->base_font_size),
       'underline' => 'true',
     ]
 }
 sub style_head3 {
   $_[0]->{'style'}{'head3'} ||=
-    [ 'family' => 'helvetica', 'size' => int(1 + 1.25 * $_[0]->base_font_size),
+    [ 'family' => $_[0]->font_sans_serif,
+      'size' => int(1 + 1.25 * $_[0]->base_font_size),
       'underline' => 'true',
     ]
 }
 sub style_head4 {
   $_[0]->{'style'}{'head4'} ||=
-    [ 'family' => 'helvetica', 'size' => int(1 + 1.10 * $_[0]->base_font_size),
+    [ 'family' => $_[0]->font_sans_serif,
+      'size' => int(1 + 1.10 * $_[0]->base_font_size),
       'underline' => 'true',
     ]
 }
@@ -121,7 +142,7 @@ sub style_head4 {
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 sub style_C {
-  $_[0]->{'style'}{'C'} ||=  [ 'family' => 'courier',  ]  }
+  $_[0]->{'style'}{'C'} ||=  [ 'family' => $_[0]->font_monospace,  ]  }
 
 sub style_B {
   $_[0]->{'style'}{'B'} ||=  [ 'weight' => 'bold',     ]  }
