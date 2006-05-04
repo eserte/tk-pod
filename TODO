@@ -157,6 +157,10 @@ from Tk::Pod::Styles and overrides one or more subs.
 But I would appreciate a general solution with either a
 ~/.tkpodrc or the X resources, as already mentioned.
 
+-> There's now a solution with X resources, which are also settable
+with -xrm. But maybe a .tkpodrc solution would also be nice, especially
+for non-X11 people.
+
 =item *
 
 cleanup search interface to perlindex. Maybe patch Ulrichs TPJ example
