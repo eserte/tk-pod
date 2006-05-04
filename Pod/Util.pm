@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Util.pm,v 5.1 2004/09/08 21:06:56 eserte Exp $
+# $Id: Util.pm,v 5.2 2006/05/04 18:59:37 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2003,2004 Slaven Rezic. All rights reserved.
@@ -15,10 +15,10 @@
 package Tk::Pod::Util;
 use strict;
 use vars qw($VERSION @EXPORT_OK);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 use base qw(Exporter);
-@EXPORT_OK = qw(is_in_path is_interactive detect_window_manager);
+@EXPORT_OK = qw(is_in_path is_interactive detect_window_manager start_browser);
 
 # REPO BEGIN
 # REPO NAME is_in_path /home/e/eserte/src/repository
@@ -50,8 +50,8 @@ sub is_interactive {
 	return -t STDIN && -t STDOUT;
     }
 
-    # from perlfaq8
-    open(TTY, "/dev/tty") or die $!;
+    # from perlfaq8 (with glitches)
+    open(TTY, "/dev/tty") or return 0;
     my $tpgrp = POSIX::tcgetpgrp(fileno(*TTY));
     my $pgrp = getpgrp();
     if ($tpgrp == $pgrp) {
@@ -85,6 +85,29 @@ sub get_property {
 	shift @ret; # get rid of property name
     }
     @ret;
+}
+
+sub start_browser {
+    my($url) = @_;
+
+    if (!defined &WWWBrowser::start_browser && !eval { require WWWBrowser }) {
+	*WWWBrowser::start_browser = sub {
+	    my $url = shift;
+	    if ($^O eq 'MSWin32') {
+		system(qq{start explorer "$url"});
+	    } elsif ($^O eq 'cygwin') {
+		system(qq{explorer "$url" &});
+	    } elsif (is_in_path("mozilla")) {
+		system(qq{mozilla "$url" &});
+	    } elsif (is_in_path("firefox")) {
+		system(qq{firefox "$url" &});
+	    } else { # last fallback
+		system(qq{mozilla "$url" &});
+	    }
+	};
+    }
+
+    WWWBrowser::start_browser($url);
 }
 
 1;
