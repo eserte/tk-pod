@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.3 2006/05/04 18:59:56 eserte Exp $
+# $Id: cmdline.t,v 1.4 2006/09/01 20:10:06 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -47,7 +47,7 @@ OPT:
 for my $opt (@opt) {
     my $pid = fork;
     if ($pid == 0) {
-	my @cmd = ($^X, "-Mblib", $script, @$opt);
+	my @cmd = ($^X, "-Mblib", $script, "-geometry", "+10+10", @$opt);
 	warn "@cmd\n" if $DEBUG;
 	open(STDERR, ">" . File::Spec->devnull);
 	exec @cmd;
