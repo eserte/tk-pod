@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9932";
 
 @ISA = qw(Tk::Toplevel);
@@ -286,6 +286,7 @@ EOF
   $w->bind($path, "<Control-n>" => [$w,'newwindow',$p]);
   $w->bind($path, "<Control-r>" => [$p, 'reload']);
   $w->bind($path, "<Control-p>" => [$p, 'Print']);
+  $w->bind($path, "<Print>"     => [$p, 'Print']);
   $w->bind($path, "<Control-w>" => [$w, 'quit']);
   $w->bind($path, "<Control-q>" => sub { $p->MainWindow->destroy })
       if $exitbutton;
@@ -788,10 +789,8 @@ C<-file>. So it is better to configure C<-file> separately:
 
 =head1 SEE ALSO
 
-L<Tk::Pod_usage|Tk::Pod_usage>
-L<Tk::Pod::Text|Tk::Pod::Text>
-L<tkpod|tkpod>
-L<perlpod|perlpod>
+L<Tk::Pod_usage>, L<Tk::Pod::Text>, L<tkpod>, L<perlpod>,
+L<Gtk2::Ex::PodViewer>, L<Prima::PodView>.
 
 =head1 AUTHOR
 
