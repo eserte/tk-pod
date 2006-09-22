@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.13 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9932";
 
 @ISA = qw(Tk::Toplevel);
@@ -173,14 +173,25 @@ EOF
     [Button => $compound->('Pod on search.cpan.org'),
      '-command' => sub {
 	 require Tk::Pod::Util;
-	 warn $p->{pod_title};
-	 Tk::Pod::Util::start_browser("http://search.cpan.org/search?mode=module&query=" . $p->{pod_title});
+	 my $url = $p->{pod_title};
+	 eval {
+	     require URI::Escape;
+	     $url = URI::Escape::uri_escape($url);
+	 };
+	 Tk::Pod::Util::start_browser("http://search.cpan.org/perldoc?" . $url);
      },
     ],
     [Button => $compound->('Pod on annocpan.org'),
      '-command' => sub {
 	 require Tk::Pod::Util;
-	 Tk::Pod::Util::start_browser("http://www.annocpan.org/?mode=search&field=Module&name=" . $p->{pod_title});
+	 my $url = $p->{pod_title};
+	 eval {
+	     require URI::Escape;
+	     $url = URI::Escape::uri_escape($url);
+	 };
+	 ## It seems that the search works better than the direct link on annocpan.org...
+	 Tk::Pod::Util::start_browser("http://www.annocpan.org/?mode=search&field=Module&name=$url");
+	 #Tk::Pod::Util::start_browser("http://www.annocpan.org/perldoc?" . $url);
      },
     ],
    ]
