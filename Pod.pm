@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.13 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.14 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9932";
 
 @ISA = qw(Tk::Toplevel);
@@ -258,6 +258,10 @@ EOF
     ($ENV{'TKPODDEBUG'}
      ? ('-',
 	[Button => 'WidgetDump', -command => sub { $w->WidgetDump }],
+	[Button => 'Ptksh', -command => sub {
+	     require Config;
+	     require $Config::Config{'scriptdir'} . "/ptksh";
+	 }],
 	(defined &Tk::App::Reloader::reload_new_modules
 	 ? [Button => 'Reloader', -command => sub { Tk::App::Reloader::reload_new_modules() }]
 	 : ()
