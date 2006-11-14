@@ -83,6 +83,10 @@ be necessary.
 
 Make tree busy while building first time.
 
+=item *
+
+Show a progress bar or an indicator when refreshing the pod index.
+
 =back
 
 =head3 Tk::More
