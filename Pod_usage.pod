@@ -111,7 +111,7 @@ L<Tk::Pod>,
 L<Tk::Pod::Text>,
 L<Tk::Pod::Tree>,
 L<Tk::More>,
-L<Tk::Pod::English>,
+L<Text::English>.
 
 =head1 KEYWORDS
 
