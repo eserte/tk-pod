@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.4 2006/09/01 20:10:06 eserte Exp $
+# $Id: cmdline.t,v 1.5 2006/12/12 20:36:05 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -15,7 +15,7 @@ BEGIN {
 	use POSIX ":sys_wait_h";
 	1;
     }) {
-	print "1..0 # skip: no Test::More module\n";
+	print "1..0 # skip: no Test::More and/or POSIX module\n";
 	exit;
     }
     if ($ENV{BATCH} || $^O eq 'MSWin32') {
