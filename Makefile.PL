@@ -51,7 +51,7 @@ WriteMakefile(
 sub MY::postamble {
     my $postamble = <<'EOF';
 demo :: pure_all
-	$(FULLPERL) -w -Mblib tkpod -tree -nodebug
+	$(FULLPERL) -w -Mblib $(INST_SCRIPT)$(DFSEP)tkpod -tree -nodebug
 
 EOF
 
