@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 use IO::Socket;
 
@@ -187,14 +187,14 @@ my $file;
 my $opened = 0;
 foreach $file (@ARGV)
  {
-  if (-d $file)
+  if (-d $file && !Tk::Pod::Text->findpod($file, -quiet => 1))
    {
     Tk::Pod->Dir($file);
    }
   else
    {
     $tl = $mw->Pod(-tree => $tree,
-		      -exitbutton => 1);
+		   -exitbutton => 1);
     # -file => ... should be called after creating the Pod window,
     # because -title => ... is set implicitly by Pod's new
     $tl->configure(-file => $file);
@@ -205,7 +205,7 @@ foreach $file (@ARGV)
 if (defined $function)
  {
     $tl = $mw->Pod(-tree => $tree,
-		      -exitbutton => 1);
+		   -exitbutton => 1);
     $tl->configure($tl->getpodargs(-f => $function));
     $opened++;
  }
