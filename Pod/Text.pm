@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -97,8 +97,12 @@ sub Find
 }
 
 sub findpod {
-    my ($w,$name) = @_;
+    my ($w,$name,%opts) = @_;
+    my $quiet = delete $opts{-quiet};
+    warn "Unhandled extra options: ". join " ", %opts
+	if %opts;
     unless (defined $name and length $name) {
+	return if $quiet;
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
           -message => "Empty Pod file/name",
@@ -111,6 +115,7 @@ sub findpod {
 	$absname = $name;
     } else {
 	if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
+	    return if $quiet;
 	    $w->messageBox(
 	      -title => "Tk::Pod Error",
 	      -message => "Invalid path/file/module name '$name'\n");
@@ -119,6 +124,7 @@ sub findpod {
 	$absname = Find($name);
     }
     if (!defined $absname) {
+	return if $quiet;
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
 	  -message => "Can't find Pod '$name'\n"
