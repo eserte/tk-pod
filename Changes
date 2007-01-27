@@ -4,6 +4,8 @@ version 0.9933
 	o new menu items with search.cpan.org and annocpan.org links
 	o Print keybinding
 	o Ptksh menu entry in debug mode
+	o tkpod: pod names now have priority over directories (problem
+	  spotted by Andreas Koenig)
 
 version 0.9932
 	o bugfix - Tk::Pod did not work with Tk804 and without
