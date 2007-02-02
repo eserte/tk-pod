@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: optionalmods.t,v 1.2 2005/12/29 22:34:33 eserte Exp $
+# $Id: optionalmods.t,v 1.3 2007/02/02 07:41:31 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -12,9 +12,11 @@ BEGIN {
     if (!eval q{
 	use Test::More;
 	require Test::Without::Module;
+	die "Problems with Test::Without::Module 0.09"
+	    if $Test::Without::Module::VERSION eq '0.09';
 	1;
     }) {
-	print "1..0 # skip: no Test::More and/or Test::Without::Module modules\n";
+	print "1..0 # skip: no Test::More and/or Test::Without::Module (!= 0.09) modules\n";
 	exit;
     }
 }
