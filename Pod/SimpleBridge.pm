@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -53,13 +53,17 @@ sub process { # main routine: non-handler
 
   my($token, $tagname, $style);
   my $last_update = Tk::timeofday();
+  my $current_line;
   while($token = $p->get_token) {
 
     DEBUG > 7 and warn " t:", $token->dump, "\n";
+    if($token->can("attr_hash") && exists $token->attr_hash->{start_line}) {
+      $current_line = $token->attr_hash->{start_line};
+    }
 
     if($token->is_text) {
-      DEBUG > 10 and warn " ->pod_text( ", $token->text, ")\n";
-      $w->pod_text( $token );
+      DEBUG > 10 and warn " ->pod_text( ", $token->text, ",", $current_line, ")\n";
+      $w->pod_text( $token, $current_line );
 
     } elsif($token->is_start) {
       ($tagname = $token->tagname ) =~ tr/-:./__/;
@@ -119,7 +123,7 @@ sub process { # main routine: non-handler
 ###########################################################################
 
 sub pod_text {
-  my($w, $t) = @_;
+  my($w, $t, $current_line) = @_;
   if( $w->{'pod_in_X'} ) {
     # no-op
   } else {
@@ -130,8 +134,8 @@ sub pod_text {
       join('/', %attributes), "\n";
 
     my $startpoint = $w->index('end -1c');
-    $w->insert( 'end -1c', $t->text );
-    
+    $w->insert( 'end -1c', $t->text, "start_line_" . $current_line );
+   
     $w->tag(
       'add',
       $w->tag_for(\%attributes),
