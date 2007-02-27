@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9933";
+$DIST_VERSION = "0.9934";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -50,7 +50,8 @@ WriteMakefile(
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
 	'VERSION'	=> $DIST_VERSION,
-	'NO_META'	=> 1,
+	'NO_META'	=> 1, # manually generated
+	'LICENSE'	=> 'perl',
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
 
