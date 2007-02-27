@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -1406,7 +1406,7 @@ Other Pod docu: Tk::Font, Tk::BrowseEntry
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
+Current maintainer is Slaven ReziE<0x107> <F<slaven@rezic.de>>.
 
 Copyright (c) 1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
