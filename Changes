@@ -6,6 +6,8 @@ version 0.9933
 	o Ptksh menu entry in debug mode
 	o tkpod: pod names now have priority over directories (problem
 	  spotted by Andreas Koenig)
+	o pod tree fixes for MacOSX
+	o do not run test suite if no DISPLAY available (X11 only)
 
 version 0.9932
 	o bugfix - Tk::Pod did not work with Tk804 and without
