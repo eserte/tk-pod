@@ -2,20 +2,23 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.2 2003/02/05 14:46:29 eserte Exp $
+# $Id: cmdline.t,v 1.6 2007/01/27 19:58:54 eserte Exp $
 # Author: Slaven Rezic
 #
 
 use strict;
+use FindBin;
 use File::Spec;
+use Getopt::Long;
 
 BEGIN {
     if (!eval q{
-	use Test;
+	use Test::More;
 	use POSIX ":sys_wait_h";
+	use File::Temp qw(tempfile tempdir);
 	1;
     }) {
-	print "1..0 # skip: no Test module\n";
+	print "1..0 # skip: no Test::More and/or POSIX module\n";
 	exit;
     }
     if ($ENV{BATCH} || $^O eq 'MSWin32') {
@@ -24,9 +27,29 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 6 }
+my $DEBUG = 0;
 
-my $script = 'blib/script/tkpod';
+my $blib   = File::Spec->rel2abs("$FindBin::RealBin/../blib");
+my $script = "$blib/script/tkpod";
+
+GetOptions("d|debug" => \$DEBUG)
+    or die "usage: $0 [-debug]";
+
+# Create test directories/files:
+my $testdir = tempdir("tkpod_XXXXXXXX", TMPDIR => 1, CLEANUP => 1);
+die "Can't create temporary directory: $!" if !$testdir;
+
+my $cpandir = "$testdir/CPAN";
+mkdir $cpandir or die "Cannot create temporary directory: $!";
+
+my $cpanfile = "$testdir/CPAN.pm";
+{
+    open my $fh, ">", $cpanfile
+	or die "Cannot create $cpanfile: $!";
+    print $fh "=pod\nTest\n=cut\n";
+    close $fh
+	or die "While closing: $!";
+}
 
 my @opt = (['-tk'],
 	   ['-tree','-geometry','+0+0'],
@@ -35,14 +58,37 @@ my @opt = (['-tk'],
 	   #['-Iblib/lib'],
 	   ['-d'],
 	   ['-server'],
+	   ['-xrm', '*font: {nimbus sans l} 24',
+	    '-xrm', '*serifFont: {nimbus roman no9 l}',
+	    '-xrm', '*sansSerifFont: {nimbus sans l}',
+	    '-xrm', '*monospaceFont: {nimbus mono l}',
+	   ],
+	   [$script], # the pod of tkpod itself
+	   # This should be near end...
+	   ['__ACTION__', chdir => $testdir ],
+	   ["CPAN"],
 	  );
+
+plan tests => scalar @opt;
+
 OPT:
 for my $opt (@opt) {
+    if ($opt->[0] eq '__ACTION__') {
+	my $action = $opt->[1];
+	if ($action eq 'chdir') {
+	    chdir $opt->[2] or die $!;
+	} else {
+	    die "Unknown action $action";
+	}
+	pass "Just setting an action...";
+	next;
+    }
+
     my $pid = fork;
     if ($pid == 0) {
-	my @cmd = ($^X, "-Mblib", $script, @$opt);
-	#warn "@cmd\n";
-	open(STDERR, ">" . File::Spec->devnull);
+	my @cmd = ($^X, "-Mblib=$blib", $script, "-geometry", "+10+10", @$opt);
+	warn "@cmd\n" if $DEBUG;
+	open(STDERR, ">" . File::Spec->devnull) unless $DEBUG;
 	exec @cmd;
 	die $!;
     }
@@ -50,7 +96,7 @@ for my $opt (@opt) {
 	select(undef,undef,undef,0.1);
 	my $kid = waitpid($pid, WNOHANG);
 	if ($kid) {
-	    ok($?, 0);
+	    is($?, 0, "Trying tkpod with @$opt");
 	    next OPT;
 	}
     }
@@ -58,12 +104,12 @@ for my $opt (@opt) {
     for (1..10) {
 	select(undef,undef,undef,0.1);
 	if (!kill 0 => $pid) {
-	    ok(1);
+	    pass("Trying tkpod with @$opt");
 	    next OPT;
 	}
     }
     kill KILL => $pid;
-    ok(1);
+    pass("Trying tkpod with @$opt");
 }
 
 __END__

@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.3 2005/08/12 21:31:02 eserte Exp $
+# $Id: FindPods.pm,v 5.5 2007/02/27 21:46:30 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2003,2004,2005 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2003,2004,2005,2007 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
@@ -36,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -256,6 +256,8 @@ sub simplify_name {
     # general pod documentation as well as Pod::* documentation:
     if ($^O =~ /^cygwin/) {
 	$f =~ s|^pods/||; # "pod" is "pods" on cygwin
+    } elsif ($^O =~ /^darwin/) {
+	$f =~ s|^pods/||; # ... and on MacOSX
     } elsif ($^O eq 'MSWin32') {
 	$f =~ s|^pod/perl|perl|i;
 	$f =~ s|^pod/Win32|Win32|i;

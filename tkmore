@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 use Tk;
 use Tk::More;
@@ -45,6 +45,8 @@ $fm->insert("Exit", "command", -label => "Open ...", -underline => 0,
 		return if !defined $f;
 		load_file($f);
 	    });
+$fm->entryconfigure("Exit", -accelerator => "Ctrl-Q");
+
 my $helpmenu = $menu->Menu
     (-tearoff => 0,
      -menuitems => [
@@ -61,6 +63,7 @@ $mw->configure(-menu => $menu);
 $more->focus;
 load_file($file);
 $more->bind("<q>" => sub { $mw->destroy });
+$more->bind("<Control-q>" => sub { $mw->destroy });
 MainLoop;
 
 sub load_file {

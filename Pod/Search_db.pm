@@ -15,7 +15,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Fcntl;
@@ -84,7 +84,7 @@ sub searchWords {
 
     #print "try words|", join('|',@_),"\n";
     my %score;
-    my $maxhits = 15;
+    my $maxhits = 50;
     my (@unknown, @stop);
 
     my $IF  = $self->{IF};

@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
-$DIST_VERSION = "0.9932";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.15 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = "0.9933";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -169,6 +169,31 @@ EOF
      '-accelerator' => 'Ctrl+-',
      '-command' => [$w, 'zoom_out'],
     ],
+    '-',
+    [Button => $compound->('Pod on search.cpan.org'),
+     '-command' => sub {
+	 require Tk::Pod::Util;
+	 my $url = $p->{pod_title};
+	 eval {
+	     require URI::Escape;
+	     $url = URI::Escape::uri_escape($url);
+	 };
+	 Tk::Pod::Util::start_browser("http://search.cpan.org/perldoc?" . $url);
+     },
+    ],
+    [Button => $compound->('Pod on annocpan.org'),
+     '-command' => sub {
+	 require Tk::Pod::Util;
+	 my $url = $p->{pod_title};
+	 eval {
+	     require URI::Escape;
+	     $url = URI::Escape::uri_escape($url);
+	 };
+	 ## It seems that the search works better than the direct link on annocpan.org...
+	 Tk::Pod::Util::start_browser("http://www.annocpan.org/?mode=search&field=Module&name=$url");
+	 #Tk::Pod::Util::start_browser("http://www.annocpan.org/perldoc?" . $url);
+     },
+    ],
    ]
   ],
 
@@ -233,6 +258,10 @@ EOF
     ($ENV{'TKPODDEBUG'}
      ? ('-',
 	[Button => 'WidgetDump', -command => sub { $w->WidgetDump }],
+	[Button => 'Ptksh', -command => sub {
+	     require Config;
+	     require $Config::Config{'scriptdir'} . "/ptksh";
+	 }],
 	(defined &Tk::App::Reloader::reload_new_modules
 	 ? [Button => 'Reloader', -command => sub { Tk::App::Reloader::reload_new_modules() }]
 	 : ()
@@ -272,6 +301,7 @@ EOF
   $w->bind($path, "<Control-n>" => [$w,'newwindow',$p]);
   $w->bind($path, "<Control-r>" => [$p, 'reload']);
   $w->bind($path, "<Control-p>" => [$p, 'Print']);
+  $w->bind($path, "<Print>"     => [$p, 'Print']);
   $w->bind($path, "<Control-w>" => [$w, 'quit']);
   $w->bind($path, "<Control-q>" => sub { $p->MainWindow->destroy })
       if $exitbutton;
@@ -774,10 +804,8 @@ C<-file>. So it is better to configure C<-file> separately:
 
 =head1 SEE ALSO
 
-L<Tk::Pod_usage|Tk::Pod_usage>
-L<Tk::Pod::Text|Tk::Pod::Text>
-L<tkpod|tkpod>
-L<perlpod|perlpod>
+L<Tk::Pod_usage>, L<Tk::Pod::Text>, L<tkpod>, L<perlpod>,
+L<Gtk2::Ex::PodViewer>, L<Prima::PodView>.
 
 =head1 AUTHOR
 

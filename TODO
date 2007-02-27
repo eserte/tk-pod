@@ -83,6 +83,10 @@ be necessary.
 
 Make tree busy while building first time.
 
+=item *
+
+Show a progress bar or an indicator when refreshing the pod index.
+
 =back
 
 =head3 Tk::More
@@ -101,11 +105,22 @@ Highlight matches in link text.
 
 =item *
 
-In server mode, no commandline options are accepted.
+In server mode, no commandline options are accepted. Probably at least
+-h/-? should be supported and errors for other options dropped.
 
 =item *
 
 Get rid of the numerous warnings in server/client mode.
+
+=item *
+
+If the client sends a file which cannot be opened, then the server
+crashes!
+
+=item *
+
+The tkpod client should send cwd, so relative filenames work in server
+mode, too.
 
 =back
 
@@ -156,6 +171,10 @@ from Tk::Pod::Styles and overrides one or more subs.
 
 But I would appreciate a general solution with either a
 ~/.tkpodrc or the X resources, as already mentioned.
+
+-> There's now a solution with X resources, which are also settable
+with -xrm. But maybe a .tkpodrc solution would also be nice, especially
+for non-X11 people.
 
 =item *
 
@@ -309,3 +328,16 @@ Maybe categorize perl language pods like in suggested in
 L<http://www.perlmonks.org/index.pl?node_id=352893>.
 
 =back
+
+=head3 tkpod
+
+=over
+
+=item *
+
+Instead of listening to a tcp socket, maybe one should use a unix
+domain socket (security, a unix domain socket may be chown'ed and
+chmod'ed!)
+
+=back
+

@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 5.1 2004/09/08 21:07:25 eserte Exp $
+# $Id: Tree.pm,v 5.2 2007/02/27 21:46:43 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2004 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2004,2007 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -401,6 +401,7 @@ sub SeePath {
     my($w,$path) = @_;
     my $fs_case_tolerant =
 	($^O eq 'MSWin32' ||
+	 $^O eq 'darwin' || # case_tolerant=0 here!
 	 (File::Spec->can("case_tolerant") && File::Spec->case_tolerant)
 	);
     if ($^O eq 'MSWin32') {

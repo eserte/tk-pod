@@ -21,12 +21,12 @@ use Tk::Frame;
 use Tk::Pod;
 use Tk::Pod::SimpleBridge;
 use Tk::Pod::Cache;
-use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager);
+use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_browser);
 
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.9 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -97,8 +97,12 @@ sub Find
 }
 
 sub findpod {
-    my ($w,$name) = @_;
+    my ($w,$name,%opts) = @_;
+    my $quiet = delete $opts{-quiet};
+    warn "Unhandled extra options: ". join " ", %opts
+	if %opts;
     unless (defined $name and length $name) {
+	return if $quiet;
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
           -message => "Empty Pod file/name",
@@ -111,6 +115,7 @@ sub findpod {
 	$absname = $name;
     } else {
 	if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
+	    return if $quiet;
 	    $w->messageBox(
 	      -title => "Tk::Pod Error",
 	      -message => "Invalid path/file/module name '$name'\n");
@@ -119,6 +124,7 @@ sub findpod {
 	$absname = Find($name);
     }
     if (!defined $absname) {
+	return if $quiet;
 	$w->messageBox(
 	  -title => "Tk::Pod Error",
 	  -message => "Can't find Pod '$name'\n"
@@ -246,7 +252,7 @@ sub reload
 
 sub edit
 {
- my ($w,$edit) = @_;
+ my ($w,$edit,$linenumber) = @_;
  my($text, $path);
  $path = $w->cget('-path');
  if (!defined $path)
@@ -323,11 +329,33 @@ sub edit
        else
         {
          # grandchild
-         exec("$edit $path");
+	 if (defined $linenumber && $edit =~ m{\bemacsclient\b}) # XXX an experiment, maybe support more editors?
+	  {
+	   exec("$edit +$linenumber $path");
+          }
+	 else
+	  {
+           exec("$edit $path");
+          }
         }
       }
     }
   }
+}
+
+sub edit_get_linenumber
+{
+ my($w) = @_;
+ my $linenumber;
+ for my $tag ($w->tagNames('@' . ($w->{MenuX} - $w->rootx) . ',' . ($w->{MenuY} - $w->rooty)))
+  {
+   if ($tag =~ m{start_line_(\d+)})
+    {
+     $linenumber = $1;
+     last;
+    }
+  }
+ $w->edit(undef, $linenumber);
 }
 
 sub _sgn { $_[0] cmp 0 }
@@ -384,6 +412,7 @@ sub Populate
     $p_scr->bind('<Double-1>',       sub  { $w->DoubleClick($_[0]) });
     $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });
     $p_scr->bind('<Double-2>',       sub  { $w->ShiftDoubleClick($_[0]) });
+    $p_scr->bind('<3>',              sub  { $w->PostPopupMenu($p_scr, $w->pointerxy) });
 
     $p->configure(-font => $w->Font(family => 'courier'));
 
@@ -406,13 +435,14 @@ sub Populate
     };
 
     my $m = $p->Menu
-	(-tearoff => $Tk::platform ne 'MSWin32',
+	(-title => "Tkpod",
+	 -tearoff => $Tk::platform ne 'MSWin32',
 	 -menuitems =>
 	 [
 	  [Button => 'Back',     -command => [$w, 'history_move', -1]],
 	  [Button => 'Forward',  -command => [$w, 'history_move', +1]],
 	  [Button => 'Reload',   -command => sub{$w->reload} ],
-	  [Button => 'Edit Pod',       -command => sub{$w->edit} ],
+	  [Button => 'Edit Pod',       -command => sub{ $w->edit_get_linenumber } ],
 	  [Button => 'Search fulltext',-command => ['SearchFullText', $w]],
 	  [Separator => ""],
 	  [Cascade => 'Edit',
@@ -629,20 +659,8 @@ sub Link
 
 sub Link_url {
     my ($w,$how,$index,$man,$sec) = @_;
-    if (!defined &WWWBrowser::start_browser && !eval { require WWWBrowser }) {
-	*WWWBrowser::start_browser = sub {
-	    my $url = shift;
-	    if ($^O eq 'MSWin32') {
-		system("start explorer $url");
-	    } elsif ($^O eq 'cygwin') {
-		system("explorer $url &");
-	    } else {
-		system("mozilla $url &");
-	    }
-	};
-    }
     DEBUG and warn "Start browser with $man\n";
-    WWWBrowser::start_browser($man);
+    start_browser($man);
 }
 
 sub Link_man {
@@ -1136,6 +1154,13 @@ sub history_view_select {
     }
 }
 
+sub PostPopupMenu {
+    my($w, $p_scr, $X, $Y) = @_;
+    $w->{MenuX} = $X;
+    $w->{MenuY} = $Y;
+    $p_scr->PostPopupMenu($X, $Y);
+}
+
 END {
     if (@tempfiles) {
 	my $gv_running;
@@ -1147,7 +1172,7 @@ END {
 	}
 
 	if ($gv_running) {
-	    warn "A ghostscript (or equivalent) process is still running, do not delete temporary files: @tempfiles\n";
+	    warn "A ghostscript (or equivalent) process is still running, won't delete temporary files: @tempfiles\n";
 	} else {
 	    for my $temp (@tempfiles) {
 		unlink $temp;
@@ -1213,6 +1238,9 @@ Set the wrap mode. Default is C<word>.
 The position of the scrollbars, see also L<Tk::Scrolled>. By default,
 the vertical scrollbar is on the right on Windows systems and on the
 left on X11 systems.
+
+Note that it is not necessary and usually will do the wrong thing if
+you put a C<Tk::Pod::Text> widget into a C<Scrolled> component.
 
 =back
 
@@ -1308,6 +1336,8 @@ German umlauts:
 =item sz: E<szlig> ß.
 
 =back
+
+Unicode outside Latin1 range: E<0x20ac> (euro sign).
 
 Pod with umlaut: L<ExtUtils::MakeMaker>.
 

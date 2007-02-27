@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9932";
+$DIST_VERSION = "0.9933";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -28,6 +28,16 @@ if ($is_devel_host) {
     }
 }
 
+my %add_prereq_pm;
+if (eval { require Tk::Tree; 1 } && $Tk::Tree::VERSION eq '4.6') {
+    warn <<EOF;
+**********************************************************************
+* You have Tk::Tree $Tk::Tree::VERSION, which is broken.
+**********************************************************************
+EOF
+    $add_prereq_pm{"Tk::Tree"} = "4.7";
+}
+
 WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk'             => 800.004,
 			     'Pod::Simple'    => 2.05, # there at least in 2.03 bugs when processing "-f ..." output
@@ -35,6 +45,7 @@ WriteMakefile(
 			     # the following are really only COREQUISITES
 	                     'Text::English'  => 0,
 			     'Tk::HistEntry'  => 0.40,
+			     %add_prereq_pm,
 			   },
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
@@ -48,10 +59,16 @@ WriteMakefile(
 	'dist' 		=> {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
 );
 
+sub MY::test_via_harness {
+    my($self, $perl, $tests) = @_;
+    qq{\t$perl "-It" "-MTkTest" "-MExtUtils::Command::MM" }.
+	qq{"-e" "check_display_harness; test_harness(\$(TEST_VERBOSE), '\$(INST_LIB)', '\$(INST_ARCHLIB)')" $tests\n};
+}
+
 sub MY::postamble {
     my $postamble = <<'EOF';
 demo :: pure_all
-	$(FULLPERL) -w -Mblib tkpod -tree -nodebug
+	$(FULLPERL) -w -Mblib $(INST_SCRIPT)$(DFSEP)tkpod -tree -nodebug
 
 EOF
 
