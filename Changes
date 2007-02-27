@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9934
+	o minor Pod changes
+
 version 0.9933
 	o new menu items with search.cpan.org and annocpan.org links
 	o Print keybinding

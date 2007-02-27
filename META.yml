@@ -1,6 +1,6 @@
 # http://module-build.sourceforge.net/META-spec.html
 name:         Tk-Pod
-version:      0.9933
+version:      0.9934
 version_from: 
 installdirs:  site
 requires:
