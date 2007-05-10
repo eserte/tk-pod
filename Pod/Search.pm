@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Tk::Frame;
@@ -203,6 +203,8 @@ sub pretty2path {
 1;
 __END__
 
+=encoding iso-8859-2
+
 =head1 NAME
 
 Tk::Pod::Search - Widget to access perlindex Pod full text index
@@ -258,7 +260,7 @@ as argument.
 
 =head1 SEE ALSO
 
-Tk::Pod::Text, tkpod, perlindex, Tk::Pod, Tk::Pod::Search_db
+L<Tk::Pod::Text>, L<tkpod>, L<perlindex>, L<Tk::Pod>, L<Tk::Pod::Search_db>
 
 =head1 KEYWORDS
 
@@ -268,7 +270,7 @@ widget, tk, pod, search, full text
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
 
-Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
+Current maintainer is Slaven Reziæ <F<slaven@rezic.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
