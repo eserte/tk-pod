@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -387,6 +387,8 @@ sub _common_heading {
 1;
 __END__
 
+=encoding iso-8859-2
+
 =head1 NAME
 
 Tk::Pod::SimpleBridge -- render Pod::Simple events to a Tk::Pod window
@@ -400,12 +402,12 @@ Tk::Pod::SimpleBridge -- render Pod::Simple events to a Tk::Pod window
 
 =head1 DESCRIPTION
 
-This class contains methods that Tk::Pod (specifically Tk::Pod::Text)
+This class contains methods that L<Tk::Pod> (specifically L<Tk::Pod::Text>)
 uses to render a pod page's text into its window.  It uses L<Pod::Simple>
 (specifically L<Pod::Simple::PullParser>) to do the parsing.
 
-Tk::Pod used to use Tk::Parse (a snapshot of an old old Pod-parser)
-to do the Pod-parsing.  But it doesn't anymore -- it now uses Pod::Simple
+L<Tk::Pod> used to use Tk::Parse (a snapshot of an old old Pod-parser)
+to do the Pod-parsing.  But it doesn't anymore -- it now uses L<Pod::Simple>
 via this module.
 
 =head1 COPYRIGHT AND DISCLAIMERS
@@ -425,6 +427,6 @@ Sean M. Burke <F<sburke@cpan.org>>, with bits of Tk code cribbed from
 the old Tk::Pod::Text code that Nick Ing-Simmons
 <F<nick@ni-s.u-net.com>> originally wrote.
 
-Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
+Current maintainer is Slaven Reziæ <F<slaven@rezic.de>>.
 
 =cut

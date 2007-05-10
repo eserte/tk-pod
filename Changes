@@ -1,5 +1,16 @@
 History for Tk::Pod
 
+version 0.9934
+	o Fixed fulltext search on Debian machines (different index
+	  location)
+	o minor Pod changes
+	o Tk::More and tkmore now support the -encoding option
+	o support coloring tree items for vendor directories
+	o new menu item: View Pod source (like Edit Pod, but using
+	  Tk::More)
+	o new method for Tk::More: AddQuitBindings
+	o documented public methods in Tk::More
+
 version 0.9933
 	o new menu items with search.cpan.org and annocpan.org links
 	o Print keybinding

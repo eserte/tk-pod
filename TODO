@@ -11,22 +11,6 @@ while using tkpod.
 
 =item *
 
-Ctrl-O Exporter does not work?!
-
-=item *
-
-What about the reported error on Suse Linux (see Tk-Pod entry on
-rt.cpan.org)? I can't reproduce this bug...
-
-=item *
-
-Dump does not always work on a RedHat 8.0 system, so I had to use a
-workaround. Also, Tk::Pod very often dumps core on this system in
-conjuction with perl5.8.0 and Tk800.025, but this might be a
-RedHat-related issue.
-
-=item *
-
 SE<lt>E<gt> seems often to be ignored. May be a core Tk::Text bug (i.e.
 C<< -wrap => "none" >> in tags being sometimes ignored)
 
@@ -35,11 +19,6 @@ C<< -wrap => "none" >> in tags being sometimes ignored)
 For Windows: check whether Tk::More/Tk::Tree match the system
 background colors. Also check if the "Help" menu item is on the
 correct place.
-
-=item *
-
-maybe special handling for Tk::Pod::FindPods under Mac OS X is
-necessary (pod directory is /System/Library/Perl/pods)
 
 =item *
 
@@ -74,6 +53,16 @@ Tweaking the _indent functionality in Tk::Pod::SimpleBridge seems to
 be necessary.
 
 =back
+
+=head3 Tk::Pod::FindPods
+
+=over
+
+=item *
+
+The location of the cache file is predictable and on /tmp which is
+bad. Either choose a unpredictable but unique filename, or use
+techniques like O_EXCL (is this supported everywhere?).
 
 =head3 Tk::Pod::Tree
 
@@ -148,10 +137,6 @@ KDE/GNOME, if available.
 =item *
 
 Optionally save settings on exit, e.g. current base font size.
-
-=item *
-
-New menu item: View Pod source (like Edit Pod, but using tkmore or Tk::More)
 
 =item *
 
@@ -338,6 +323,31 @@ L<http://www.perlmonks.org/index.pl?node_id=352893>.
 Instead of listening to a tcp socket, maybe one should use a unix
 domain socket (security, a unix domain socket may be chown'ed and
 chmod'ed!)
+
+=back
+
+=head2 Expired
+
+These bugs are probably fixed or not reproducable or apparent on old
+systems only:
+
+=over
+
+=item *
+
+Ctrl-O Exporter does not work?!
+
+=item *
+
+What about the reported error on Suse Linux (see Tk-Pod entry on
+rt.cpan.org)? I can't reproduce this bug...
+
+=item *
+
+Dump does not always work on a RedHat 8.0 system, so I had to use a
+workaround. Also, Tk::Pod very often dumps core on this system in
+conjuction with perl5.8.0 and Tk800.025, but this might be a
+RedHat-related issue.
 
 =back
 

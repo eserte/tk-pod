@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.11 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -250,14 +250,14 @@ sub reload
  $w->markSet(insert => '@0,0');
 }
 
-sub edit
+# Works also for viewing source code
+sub _get_editable_path
 {
- my ($w,$edit,$linenumber) = @_;
- my($text, $path);
- $path = $w->cget('-path');
+ my ($w) = @_;
+ my $path = $w->cget('-path');
  if (!defined $path)
   {
-   $text = $w->cget("-text");
+   my $text = $w->cget("-text");
    $w->_need_File_Temp;
    my($fh,$fname) = File::Temp::tempfile(UNLINK => 1,
 					 SUFFIX => ".pod");
@@ -265,6 +265,13 @@ sub edit
    close $fh;
    $path = $fname;
   }
+ $path;
+}
+
+sub edit
+{
+ my ($w,$edit,$linenumber) = @_;
+ my $path = $w->_get_editable_path;
  if (!defined $edit)
   {
    $edit = $ENV{TKPODEDITOR};
@@ -358,6 +365,22 @@ sub edit_get_linenumber
  $w->edit(undef, $linenumber);
 }
 
+sub view_source
+{
+ my($w) = @_;
+ # XXX why is -title empty here?
+ my $title = $w->cget(-title) || $w->cget('-file');
+ my $t = $w->Toplevel(-title => "Source of $title - Tkpod");
+ my $font_size = $w->base_font_size;
+ my $more = $t->Scrolled('More',
+			 -font => "Courier $font_size",
+			 -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w',
+			)->pack(-fill => "both", -expand => 1);
+ $more->Load($w->_get_editable_path);
+ $more->AddQuitBindings;
+ $more->focus;
+}
+
 sub _sgn { $_[0] cmp 0 }
 
 sub zoom_normal {
@@ -443,6 +466,7 @@ sub Populate
 	  [Button => 'Forward',  -command => [$w, 'history_move', +1]],
 	  [Button => 'Reload',   -command => sub{$w->reload} ],
 	  [Button => 'Edit Pod',       -command => sub{ $w->edit_get_linenumber } ],
+	  [Button => 'View source',    -command => sub{ $w->view_source } ],
 	  [Button => 'Search fulltext',-command => ['SearchFullText', $w]],
 	  [Separator => ""],
 	  [Cascade => 'Edit',
@@ -1406,7 +1430,7 @@ Other Pod docu: Tk::Font, Tk::BrowseEntry
 
 Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 
-Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
+Current maintainer is Slaven ReziE<0x107> <F<slaven@rezic.de>>.
 
 Copyright (c) 1998 Nick Ing-Simmons.  All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same

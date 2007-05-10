@@ -15,7 +15,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Fcntl;
@@ -25,6 +25,10 @@ use Config;
 (my $PREFIX = $Config::Config{prefix}) =~ y|\\|/|d;
 (my $IDXDIR = $Config::Config{man1dir}) =~ s|/[^/]+$||;
 $IDXDIR ||= $PREFIX; # use perl directory if no manual directory exists
+# Debian uses a non-standard directory:
+if (-e "/etc/debian_version" && -d "/var/cache/perlindex") {
+    $IDXDIR = "/var/cache/perlindex";
+}
 
 sub new {
     my $class = shift;
@@ -133,6 +137,8 @@ sub prefix {
 1;
 __END__
 
+=encoding iso-8859-2
+
 =head1 NAME
 
 Tk::Pod::Search_db - dirty OO wrapper for C<perlindex>'s search functionality
@@ -196,7 +202,7 @@ index specific prefix handling is a mess up to know.
 
 =head1 SEE ALSO
 
-tkpod, perlindex perlpod, Tk::Pod::Search
+L<tkpod>, L<perlindex>, L<perlpod>, L<Tk::Pod::Search>
 
 =head1 AUTHORS
 
@@ -205,7 +211,7 @@ Achim Bohnet  <F<ach@mpe.mpg.de>>
 Most of the code here is borrowed from L<perlindex> written by
 Ulrich Pfeifer <F<Ulrich.Pfeifer@de.uu.net>>.
 
-Current maintainer is Slaven Rezic <F<slaven@rezic.de>>.
+Current maintainer is Slaven Reziæ <F<slaven@rezic.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program is
 free software; you can redistribute it and/or modify it under the same
