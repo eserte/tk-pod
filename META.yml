@@ -19,4 +19,4 @@ distribution_type: module
 resources:
     bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tk-Pod
     license: http://dev.perl.org/licenses/
-generated_by: manually
+generated_by: Slaven Rezic
