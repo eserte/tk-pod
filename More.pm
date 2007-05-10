@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -96,6 +96,7 @@ sub Populate {
 		   'Search'    => 'SELF',
 		   'ShowMatch' => 'SELF',
 		   'Load'      => 'SELF',
+		   'AddQuitBindings' => 'SELF',
 		  );
 
     $cw->{DIRECTION} = "Next";
@@ -190,9 +191,15 @@ sub ShowMatch {
 # Load copied from TextUndo (xxx yy marks changes)
 sub Load
 {
- my ($text,$file) = @_;
+ my ($text,$file,%args) = @_;
+ my $encoding = delete $args{-encoding};
+ die "Unhandled arguments: " . join(" ", %args) if %args;
  if (open(FILE,"<$file"))
   {
+   if ($encoding)
+    {
+     binmode FILE, ":encoding($encoding)";
+    }
    $text->MainWindow->Busy;
    $text->SUPER::delete('1.0','end');
    #yy delete $text->{UNDO};
@@ -289,6 +296,11 @@ sub scroll {
     Tk->break;
 }
 
+sub AddQuitBindings {
+    my($more) = @_;
+    $more->bind("<q>" => sub { $more->toplevel->destroy });
+    $more->bind("<Control-q>" => sub { $more->toplevel->destroy });
+}
 
 #package Tk::More::Status;
 #
@@ -375,6 +387,30 @@ down one line
 =item Key-h
 
 invoke help window
+
+=back
+
+=head1 METHODS
+
+=over
+
+=item Load($file, %args)
+
+Load I<$file> into the widget. I<%args> may be one of the following
+
+=over
+
+=item -encoding => I<$encoding>
+
+Assume the encoding of the file to be I<$encoding>. If none is given,
+then assume no encoding (which is equivalent to iso-8859-1).
+
+=back
+
+=item AddQuitBinding
+
+Convenience method to add the bindinds Key-q and Control-Key-q to
+close the Toplevel window containing this More widget.
 
 =back
 

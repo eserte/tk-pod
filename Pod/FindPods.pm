@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.5 2007/02/27 21:46:30 eserte Exp $
+# $Id: FindPods.pm,v 5.6 2007/05/10 20:11:09 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003,2004,2005,2007 Slaven Rezic. All rights reserved.
@@ -13,6 +13,8 @@
 #
 
 package Tk::Pod::FindPods;
+
+=encoding iso-8859-2
 
 =head1 NAME
 
@@ -36,7 +38,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -325,6 +327,8 @@ sub module_location {
 	'cpan';
     } elsif (is_site_module($path)) {
 	'site';
+    } elsif (is_vendor_module($path)) {
+	'vendor';
     } else {
 	'core';
     }
@@ -339,6 +343,15 @@ sub is_site_module {
                 \Q$Config{'installsitelib'}\E
                |
 		\Q$Config{'installsitearch'}\E
+	       )/x;
+}
+
+sub is_vendor_module {
+    my $path = shift;
+    $path =~ /^(
+                \Q$Config{'installvendorlib'}\E
+               |
+		\Q$Config{'installvendorarch'}\E
 	       )/x;
 }
 
@@ -511,11 +524,11 @@ depending on your shell.
 
 =head1 SEE ALSO
 
-Tk::Tree(3).
+L<Tk::Tree>.
 
 =head1 AUTHOR
 
-Slaven Rezic <F<slaven@rezic.de>>
+Slaven Reziæ <F<slaven@rezic.de>>
 
 Copyright (c) 2001,2003,2004,2005 Slaven Rezic. All rights reserved.
 This program is free software; you can redistribute it and/or modify

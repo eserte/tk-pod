@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 5.3 2007/02/27 22:25:23 eserte Exp $
+# $Id: Tree.pm,v 5.4 2007/05/10 20:11:09 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2004,2007 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -234,6 +234,10 @@ sub Populate {
 					-foreground => '#702000',
 					-selectforeground => '#702000',
 				       );
+    $w->{Style}{'vendor'} = $w->ItemStyle('imagetext',
+					  -foreground => '#856b48',
+					  -selectforeground => '#856b48',
+					 );
     $w->{Style}{'cpan'} = $w->ItemStyle('imagetext',
 					-foreground => '#000080',
 					-selectforeground => '#000080',
