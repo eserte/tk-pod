@@ -19,4 +19,5 @@ distribution_type: module
 resources:
     bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Tk-Pod
     license: http://dev.perl.org/licenses/
+    repository: http://sourceforge.net/cvs/?group_id=91459
 generated_by: Slaven Rezic
