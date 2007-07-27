@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.9935
+	o fixed missing "use" in tkpod (spotted by Torsten Foertsch)
+	o nicer diagnostics output when finding duplicate modules
+	o better STDERR diagnostics if Pod cannot not be found in findpod
+	o cmdline.t tests with different environment settings
+	o cmdline.t works now in BATCH=0 mode
+
 version 0.9934
 	o Fixed fulltext search on Debian machines (different index
 	  location)

@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -129,7 +129,7 @@ sub findpod {
 	  -title => "Tk::Pod Error",
 	  -message => "Can't find Pod '$name'\n"
 	);
-	die;
+	die "Can't find Pod '$name' in @POD\n";
     }
     if (eval { require File::Spec; File::Spec->can("rel2abs") }) {
 	DEBUG and warn "Turn $absname into an absolute file name";

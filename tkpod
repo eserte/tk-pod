@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION $tk_opt $tree $server $portfile $Mblib @I $debug);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
 
 use IO::Socket;
 
@@ -83,11 +83,11 @@ BEGIN {
 ### Problems under Windows... do not use it anymore
 #BEGIN { eval { require Tk::FcyEntry; }; };
 use Tk::Pod 4.18;
+use Tk::Pod::Text; # for findpod
 use Getopt::Long;
 #require Tk::ErrorDialog;
 
 my $mw = MainWindow->new();
-eval 'use blib "/home/e/eserte/src/perl/Tk-App";require Tk::App::Debug';
 my $orig_state = $mw->state; # may be iconic
 $mw->withdraw;
 
@@ -140,6 +140,9 @@ if ($ENV{'TKPODDEBUG'}) {
 	$Tk::App::Reloader::VERBOSE = $Tk::App::Reloader::VERBOSE = 1;
 	Tk::App::Reloader::shortcut();
 	$use_reloader = 1;
+    }
+    if (eval { require Tk::App::Debug; 1 }) {
+	warn "Loaded Tk::App::Debug...\n";
     }
 }
 

@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.6 2007/01/27 19:58:54 eserte Exp $
+# $Id: cmdline.t,v 1.7 2007/07/27 20:31:51 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -21,8 +21,8 @@ BEGIN {
 	print "1..0 # skip: no Test::More and/or POSIX module\n";
 	exit;
     }
-    if ($ENV{BATCH} || $^O eq 'MSWin32') {
-	print "1..0 # skip: not on Windows or in BATCH mode\n";
+    if ($^O eq 'MSWin32') {
+	print "1..0 # skip: not on Windows\n"; # XXX but why?
 	exit;
     }
 }
@@ -32,8 +32,11 @@ my $DEBUG = 0;
 my $blib   = File::Spec->rel2abs("$FindBin::RealBin/../blib");
 my $script = "$blib/script/tkpod";
 
-GetOptions("d|debug" => \$DEBUG)
-    or die "usage: $0 [-debug]";
+my $batch_mode = defined $ENV{BATCH} ? $ENV{BATCH} : 1;
+
+GetOptions("d|debug" => \$DEBUG,
+	   "batch!" => \$batch_mode)
+    or die "usage: $0 [-debug] [-nobatch]";
 
 # Create test directories/files:
 my $testdir = tempdir("tkpod_XXXXXXXX", TMPDIR => 1, CLEANUP => 1);
@@ -46,12 +49,23 @@ my $cpanfile = "$testdir/CPAN.pm";
 {
     open my $fh, ">", $cpanfile
 	or die "Cannot create $cpanfile: $!";
-    print $fh "=pod\nTest\n=cut\n";
+    print $fh "=pod\n\nTest\n\n=cut\n";
     close $fh
 	or die "While closing: $!";
 }
 
-my @opt = (['-tk'],
+my $obscurepod = "ThisFileReallyShouldNotExistInAPerlDistroXYZfooBAR";
+my $obscurefile = "$testdir/$obscurepod.pod";
+{
+    open my $fh, ">", $obscurefile
+	or die "Cannot create $obscurefile: $!";
+    print $fh "=pod\n\nThis is: $obscurepod\n\n=cut\n";
+    close $fh
+	or die "While closing: $!";
+}
+
+my @opt = (
+	   ['-tk'],
 	   ['-tree','-geometry','+0+0'],
 	   ['-notree'],
 	   ['-Mblib'],
@@ -64,6 +78,13 @@ my @opt = (['-tk'],
 	    '-xrm', '*monospaceFont: {nimbus mono l}',
 	   ],
 	   [$script], # the pod of tkpod itself
+
+	   # Environment settings
+	   ['-tree', '__ENV__', TKPODCACHE => "$testdir/pods_%v_%o_%u"],
+	   ['__ENV__', TKPODDEBUG => 1],
+	   ['__ENV__', TKPODEDITOR => 'ptked'],
+	   [$obscurepod.".pod", '__ENV__', TKPODDIRS => $testdir],
+
 	   # This should be near end...
 	   ['__ACTION__', chdir => $testdir ],
 	   ["CPAN"],
@@ -84,32 +105,72 @@ for my $opt (@opt) {
 	next;
     }
 
-    my $pid = fork;
-    if ($pid == 0) {
-	my @cmd = ($^X, "-Mblib=$blib", $script, "-geometry", "+10+10", @$opt);
-	warn "@cmd\n" if $DEBUG;
+    local %ENV = %ENV;
+    delete $ENV{$_} for qw(TKPODCACHE TKPODDEBUG TKPODDIRS TKPODEDITOR);
+
+    my @this_opts;
+    my @this_env;
+    for(my $i = 0; $i<=$#$opt; $i++) {
+	if ($opt->[$i] eq '__ENV__') {
+	    $ENV{$opt->[$i+1]} = $opt->[$i+2];
+	    push @this_env, $opt->[$i+1]."=".$opt->[$i+2];
+	    $i+=2;
+	} else {
+	    push @this_opts, $opt->[$i];
+	}
+    }
+
+    my $testname = "Trying tkpod with @this_opts";
+    if (@this_env) {
+	$testname .= ", environment " . join(", ", @this_env);
+    }
+
+    if ($batch_mode) {
+	my $pid = fork;
+	if ($pid == 0) {
+	    run_tkpod(\@this_opts);
+	}
+	for (1..10) {
+	    select(undef,undef,undef,0.05);
+	    my $kid = waitpid($pid, WNOHANG);
+	    if ($kid) {
+		is($?, 0, $testname);
+		next OPT;
+	    }
+	}
+	kill TERM => $pid;
+	for (1..10) {
+	    select(undef,undef,undef,0.05);
+	    if (!kill 0 => $pid) {
+		pass($testname);
+		next OPT;
+	    }
+	}
+	kill KILL => $pid;
+	pass($testname);
+    } else {
+	run_tkpod(\@this_opts);
+	pass($testname);
+    }
+}
+
+sub run_tkpod {
+    my $this_opts_ref = shift;
+    my @cmd = ($^X, "-Mblib=$blib", $script, "-geometry", "+10+10", @$this_opts_ref);
+    warn "@cmd\n" if $DEBUG;
+    if ($batch_mode) {
 	open(STDERR, ">" . File::Spec->devnull) unless $DEBUG;
 	exec @cmd;
 	die $!;
-    }
-    for (1..10) {
-	select(undef,undef,undef,0.1);
-	my $kid = waitpid($pid, WNOHANG);
-	if ($kid) {
-	    is($?, 0, "Trying tkpod with @$opt");
-	    next OPT;
+    } else {
+	system @cmd;
+	if ($? == 2) {
+	    die "Aborted by user...\n";
+	}
+	if ($? != 0) {
+	    warn "<@cmd> failed with status code <$?>";
 	}
     }
-    kill TERM => $pid;
-    for (1..10) {
-	select(undef,undef,undef,0.1);
-	if (!kill 0 => $pid) {
-	    pass("Trying tkpod with @$opt");
-	    next OPT;
-	}
-    }
-    kill KILL => $pid;
-    pass("Trying tkpod with @$opt");
 }
 
 __END__
