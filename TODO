@@ -52,6 +52,11 @@ Paragraphs after bullet and number items do not align correctly.
 Tweaking the _indent functionality in Tk::Pod::SimpleBridge seems to
 be necessary.
 
+=item *
+
+If .pod and .pm are located in separated directories, then the wrong
+file (the .pm) might be chosen. Seen on Debian with IO::Handle.
+
 =back
 
 =head3 Tk::Pod::FindPods
