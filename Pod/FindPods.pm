@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.6 2007/05/10 20:11:09 eserte Exp $
+# $Id: FindPods.pm,v 5.7 2007/07/27 20:25:25 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003,2004,2005,2007 Slaven Rezic. All rights reserved.
@@ -38,7 +38,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -145,6 +145,8 @@ sub pod_find {
 	$pods{$args{-category}} = {};
     }
 
+    my $duplicate_warning_header_seen = 0;
+
     my $wanted = sub {
 	if (-d) {
 	    if ($seen_dir{$File::Find::name}) {
@@ -177,7 +179,13 @@ sub pod_find {
 		my($ext1) = $hash->{$name}    =~ /\.(.*)$/;
 		my($ext2) = $File::Find::name =~ /\.(.*)$/;
 		if ($ext1 eq $ext2) {
-		    warn "Pod with same name (" . basename($hash->{$name}) . ") at different locations found: $hash->{$name} and $File::Find::name.\n";
+		    (my $modname = $name) =~ s{/}{::}g;
+		    if (!$duplicate_warning_header_seen) {
+			$duplicate_warning_header_seen = 1;
+			warn "*** Pod(s) with same name at different locations found: ***\n";
+		    }
+		    (my $hash_name_without_scheme = $hash->{$name}) =~ s{^file:}{};
+		    warn "  $modname:\n    $hash_name_without_scheme\n    $File::Find::name\n";
 		    return;
 		}
 	    }
@@ -242,6 +250,10 @@ sub pod_find {
 
     foreach my $inc (@script_dirs) {
 	find({ %opts, wanted => $wanted_scripts }, $inc);
+    }
+
+    if ($duplicate_warning_header_seen) {
+	warn "*** This was the list of Pod(s) with same name at different locations. ***\n";
     }
 
     $self->{pods} = \%pods;
