@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: more.t,v 1.1 2004/06/05 11:33:29 eserte Exp $
+# $Id: more.t,v 1.2 2007/07/30 19:39:52 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -22,17 +22,32 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 1 }
+BEGIN { plan tests => 2 }
 
 my $mw = tkinit;
-my $more = $mw->Scrolled("More",
-			 -font => "Courier 10",
-			 -scrollbars => "osoe",
-			)->pack(-fill => "both", -expand => 1);
-$more->focus;
-$more->Load($INC{"Tk/More.pm"});
-$more->update;
-ok(Tk::Exists($more));
+
+{
+    my $more = $mw->Scrolled("More",
+			     -font => "Courier 10",
+			     -scrollbars => "osoe",
+			    )->pack(-fill => "both", -expand => 1);
+    $more->focus;
+    $more->Load($INC{"Tk/More.pm"});
+    $more->update;
+    ok(Tk::Exists($more));
+}
+
+{
+    my $more = $mw->More
+	(# -font: use default
+	 -width => 20,
+	 -height => 3,
+	)->pack;
+    $more->Load($0);
+    $more->update;
+    ok(Tk::Exists($more));
+}
+
 if (!$ENV{PERL_INTERACTIVE_TEST}) {
     $mw->after(1*1000, sub { $mw->destroy });
 }
