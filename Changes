@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9936
+	o Tk::More now used fixedFont/FixedFont for setting font via option db
+	o more Tk::More-related documentation
+
 version 0.9935
 	o fixed missing "use" in tkpod (spotted by Torsten Foertsch)
 	o nicer diagnostics output when finding duplicate modules
