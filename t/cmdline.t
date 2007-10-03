@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.8 2007/07/30 19:39:36 eserte Exp $
+# $Id: cmdline.t,v 1.9 2007/10/03 22:33:50 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -45,24 +45,24 @@ my $testdir = tempdir("tkpod_XXXXXXXX", TMPDIR => 1, CLEANUP => 1);
 die "Can't create temporary directory: $!" if !$testdir;
 
 my $cpandir = "$testdir/CPAN";
-mkdir $cpandir or die "Cannot create temporary directory: $!";
+mkdir $cpandir, 0777 or die "Cannot create temporary directory: $!";
 
 my $cpanfile = "$testdir/CPAN.pm";
 {
-    open my $fh, ">", $cpanfile
+    open FH, "> $cpanfile"
 	or die "Cannot create $cpanfile: $!";
-    print $fh "=pod\n\nTest\n\n=cut\n";
-    close $fh
+    print FH "=pod\n\nTest\n\n=cut\n";
+    close FH
 	or die "While closing: $!";
 }
 
 my $obscurepod = "ThisFileReallyShouldNotExistInAPerlDistroXYZfooBAR";
 my $obscurefile = "$testdir/$obscurepod.pod";
 {
-    open my $fh, ">", $obscurefile
+    open FH, "> $obscurefile"
 	or die "Cannot create $obscurefile: $!";
-    print $fh "=pod\n\nThis is: $obscurepod\n\n=cut\n";
-    close $fh
+    print FH "=pod\n\nThis is: $obscurepod\n\n=cut\n";
+    close FH
 	or die "While closing: $!";
 }
 
