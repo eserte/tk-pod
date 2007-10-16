@@ -28,6 +28,8 @@ BEGIN
       qw(
 	More
 	PodText
+	PodSearch
+	PodTree
 	Pod
       );
 
@@ -36,6 +38,10 @@ BEGIN
   };
 
 $ENV{TKPODDEBUG} = 0;
+
+if (!defined $ENV{BATCH}) {
+    $ENV{BATCH} = 1;
+}
 
 eval { require Tk; };
 ok($@, "", "loading Tk module");
@@ -51,11 +57,12 @@ foreach my $class (@class)
     print "Testing $class\n";
     undef($w);
 
-    if ($class eq 'PodText')
+    if ($class =~ m{^Pod(Text|Search|Tree)$})
       {
+	my $module = "Tk::Pod::$1";
 	# Tks autoload does not find it.
-	eval { require Tk::Pod::Text; };
-	ok($@, "", "loading Tk::Pod::Text module");
+	eval qq{ require $module; };
+	ok($@, "", "loading $module module");
       }
     else
       {
@@ -91,12 +98,15 @@ foreach my $class (@class)
           }
         eval { $mw->update; };
         ok ($@, "", "Error during 'update' for $class widget");
+
+	if (!$ENV{BATCH}) {
+	    $mw->messageBox(-icon => "info", -message => "Showing '$class'", -type => "Continue");
+	}
  
         eval { my @dummy = $w->configure; };
         ok ($@, "", "Error: configure list for $class");
         eval { $mw->update; };
         ok ($@, "", "Error: 'update' after configure for $class widget");
-
         eval { $w->destroy; };
         ok($@, "", "can't destroy $class widget");
         ok(!Tk::Exists($w), 1, "$class: widget not really destroyed");
