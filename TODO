@@ -176,8 +176,8 @@ for non-X11 people.
 
 =item *
 
-cleanup search interface to perlindex. Maybe patch Ulrichs TPJ example
-code for nroff pages to allow both POD and MAN.
+Maybe patch Ulrichs TPJ example code for nroff pages to allow both POD
+and MAN in fulltext search dialog.
 
 =item *
 
