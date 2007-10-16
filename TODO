@@ -320,11 +320,6 @@ Should I include something similar to perlfunc for perlfaq (perldoc
 
 Implement C<-rememberopen> in C<Fill> method.
 
-=item *
-
-Maybe categorize perl language pods like in suggested in
-L<http://www.perlmonks.org/index.pl?node_id=352893>.
-
 =back
 
 =head3 tkpod
