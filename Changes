@@ -4,6 +4,9 @@ version 0.9936
 	o Tk::More now used fixedFont/FixedFont for setting font via option db
 	o more Tk::More-related documentation
 	o t/cmdline.t does not fail anymore with perl 5.005_05
+	o fullsearch dialog with fixed font in listbox, making nicer columns
+	o OK button in fullsearch dialog
+	o added basic tests for PodSearch and PodTree
 
 version 0.9935
 	o fixed missing "use" in tkpod (spotted by Torsten Foertsch)
