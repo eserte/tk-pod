@@ -15,15 +15,17 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Fcntl;
+use File::Basename qw(dirname);
+use File::Spec;
 use Text::English;
 use Config;
 
-(my $PREFIX = $Config::Config{prefix}) =~ y|\\|/|d;
-(my $IDXDIR = $Config::Config{man1dir}) =~ s|/[^/]+$||;
+my $PREFIX = $Config::Config{prefix};
+my $IDXDIR = dirname $Config::Config{man1dir};
 $IDXDIR ||= $PREFIX; # use perl directory if no manual directory exists
 # Debian uses a non-standard directory:
 if (-e "/etc/debian_version" && -d "/var/cache/perlindex") {
@@ -37,13 +39,16 @@ sub new {
     $idir ||= $IDXDIR;
 
     my (%self, %IF, %IDF, %FN);
-    tie (%IF,   'AnyDBM_File', "$idir/index_if",   O_RDONLY, 0644)
-        	or confess "Could not tie $idir/index_if: $!\n".
+    my $if_file  = File::Spec->catfile($idir, "index_if");
+    tie (%IF,   'AnyDBM_File', $if_file,   O_RDONLY, 0644)
+        	or confess "Could not tie $if_file: $!\n".
             	"Did you install Text::English and run 'perlindex -index'?\n";
-    tie (%IDF,  'AnyDBM_File', "$idir/index_idf",   O_RDONLY, 0644)
-        	or confess "Could not tie $idir/index_idf: $!\n";
-    tie (%FN,   'AnyDBM_File', "$idir/index_fn",   O_RDONLY, 0644)
-        	or confess "Could not tie $idir/index_fn: $!\n";
+    my $idf_file = File::Spec->catfile($idir, "index_idf");
+    tie (%IDF,  'AnyDBM_File', $idf_file,   O_RDONLY, 0644)
+        	or confess "Could not tie $idf_file: $!\n";
+    my $fn_file  = File::Spec->catfile($idir, "index_fn");
+    tie (%FN,   'AnyDBM_File', $fn_file,   O_RDONLY, 0644)
+        	or confess "Could not tie $fn_file: $!\n";
 
     $self{IF}  = \%IF;
     $self{IDF} = \%IDF;
@@ -82,8 +87,8 @@ sub searchWords {
 
     my $restrict_pod = $args{-restrictpod};
     if (defined $restrict_pod) {
-	$restrict_pod =~ s{::}{/}g;
-	$restrict_pod = quotemeta $restrict_pod;
+	my(@modparts) = split /::/, $restrict_pod;
+	$restrict_pod = join('[/\\]', map { quotemeta } @modparts);
     }
 
     #print "try words|", join('|',@_),"\n";

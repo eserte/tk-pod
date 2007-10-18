@@ -3,9 +3,10 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
+use File::Spec;
 use Tk::Frame;
 
 Construct Tk::Widget 'PodSearch';
@@ -146,14 +147,15 @@ sub _search {
 	$idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});
     };
     if ($@) {
+	my $err = $@;
 	$e->messageBox(-icon => 'error',
 		       -title => 'perlindex error',
 		       -message => <<EOF);
 Can't create Tk::Pod::Search_db object:
-Is perlindex installed and did you run
-perlindex -index?
+Is perlindex (aka Text::English) installed
+and did you run 'perlindex -index'?
 EOF
-	die $@;
+	die $err;
     }
     my @raw_hits = $idx->searchWords($find, %args);
     if (@raw_hits) {
@@ -161,7 +163,7 @@ EOF
 	my @hits;
 	my $max_length;
 	for(my $i=1; $i<=$#raw_hits; $i+=2) {
-	    my($module, $path) = split_path($idx->prefix . '/'. $raw_hits[$i]);
+	    my($module, $path) = split_path(File::Spec->catfile($idx->prefix, $raw_hits[$i]));
 	    push @hits, [$raw_hits[$i-1], $module, $path];
 	    $max_length = length $module if !defined $max_length || length $module > $max_length;
 	}
@@ -190,20 +192,37 @@ EOF
 
 sub split_path {
     my($path, $max_length) = @_;
-    my @path = split '/', $path, -1;
-#    shift @path if $path[0] eq "";	# due to leading /
-    my $pretty = pop(@path);
-    while (@path) {
-        last if $path[-1] !~ /^[A-Z]/;
-	$pretty = pop(@path) . '/' . $pretty;
+    my(undef, $directories, $file) = File::Spec->splitpath($path);
+    my @path = (File::Spec->splitdir($directories), $file);
+
+    # Guess the separator point between path and module/script name
+    my $path_i;
+    for($path_i = $#path; $path_i >= 0; $path_i--) {
+	if ($path[$path_i] ne '' && $path[$path_i] !~ /^[A-Z]/) {
+	    last;
+	}
     }
-    ($pretty, join('/',@path));
+
+    # Scripts are usually lowercase, so the above logic does not work.
+    # Fix it:
+    if ($path_i == $#path) {
+	$path_i--;
+    }
+
+    # Remove empty directories from the end (a relict from
+    # splitpath/splitdir)
+    my @dirs = @path[0 .. $path_i];
+    while(@dirs && $dirs[-1] eq '') { pop @dirs }
+
+    my($dirpart,$modpart) = (File::Spec->catfile(@dirs),
+			     File::Spec->catfile(@path[$path_i+1 .. $#path]));
+    return ($modpart, $dirpart);
 }
 
 sub pretty2path {
     local($_) = shift;
     /([^\s]+) \s+\( (.*) \)/x;
-    $2 . '/' . $1;
+    File::Spec->catfile($2, $1);
 }
 
 #$path = '/where/ever/it/is/Tk/Pod.pm';	print "orig|",$path, "|\n";
