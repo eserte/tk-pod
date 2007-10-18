@@ -42,6 +42,7 @@ WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk'             => 800.004,
 			     'Pod::Simple'    => 2.05, # there at least in 2.03 bugs when processing "-f ..." output
 			     'File::Temp'     => 0,
+			     'File::Spec'     => 0,
 			     # the following are really only COREQUISITES
 	                     'Text::English'  => 0,
 			     'Tk::HistEntry'  => 0.40,
