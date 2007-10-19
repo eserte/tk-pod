@@ -15,7 +15,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Fcntl;
@@ -25,12 +25,18 @@ use Text::English;
 use Config;
 
 my $PREFIX = $Config::Config{prefix};
-my $IDXDIR = dirname $Config::Config{man1dir};
+# Bug in perlindex: because of assuming Unix directory separators the
+# index files are stored in man/man1, not in man on Windows:
+my $IDXDIR = $^O eq 'MSWin32' ? $Config::Config{man1dir} : dirname $Config::Config{man1dir};
 $IDXDIR ||= $PREFIX; # use perl directory if no manual directory exists
 # Debian uses a non-standard directory:
 if (-e "/etc/debian_version" && -d "/var/cache/perlindex") {
     $IDXDIR = "/var/cache/perlindex";
+    # XXX What to do if perlindex is installed by the user and uses
+    # the man directory for storing the index files?
 }
+# Deliberately ignore the INDEXDIR environment variable which is used
+# by perlindex
 
 sub new {
     my $class = shift;
@@ -127,6 +133,7 @@ sub searchWords {
     for $did (sort {$score{$b} <=> $score{$a}} keys %score) {
             my ($mtf, $path) = unpack('wa*', $FN->{$did});
 	    next if ($restrict_pod && $path !~ /$restrict_pod/);
+	    $path = File::Spec->catfile($self->prefix, $path) unless $^O eq 'MSWin32'; # This seems to be a perlindex bug in MSWin32
             push @results, $score{$did}, $path;
             last unless --$maxhits;
     }

@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use File::Spec;
@@ -163,7 +163,7 @@ EOF
 	my @hits;
 	my $max_length;
 	for(my $i=1; $i<=$#raw_hits; $i+=2) {
-	    my($module, $path) = split_path(File::Spec->catfile($idx->prefix, $raw_hits[$i]));
+	    my($module, $path) = split_path($raw_hits[$i]);
 	    push @hits, [$raw_hits[$i-1], $module, $path];
 	    $max_length = length $module if !defined $max_length || length $module > $max_length;
 	}
@@ -192,7 +192,7 @@ EOF
 
 sub split_path {
     my($path, $max_length) = @_;
-    my(undef, $directories, $file) = File::Spec->splitpath($path);
+    my($volume, $directories, $file) = File::Spec->splitpath($path);
     my @path = (File::Spec->splitdir($directories), $file);
 
     # Guess the separator point between path and module/script name
@@ -214,8 +214,13 @@ sub split_path {
     my @dirs = @path[0 .. $path_i];
     while(@dirs && $dirs[-1] eq '') { pop @dirs }
 
-    my($dirpart,$modpart) = (File::Spec->catfile(@dirs),
-			     File::Spec->catfile(@path[$path_i+1 .. $#path]));
+    # Remove empty directories from the beginning (also a relict from
+    # splitpath/splitdir)
+    my @moddirs = @path[$path_i+1 .. $#path];
+    while(@moddirs && $moddirs[0] eq '') { shift @moddirs }
+
+    my($dirpart,$modpart) = (File::Spec->catpath($volume, File::Spec->catfile(@dirs), ''),
+			     File::Spec->catfile(@moddirs));
     return ($modpart, $dirpart);
 }
 
