@@ -3,9 +3,10 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
+use Config qw(%Config);
 use File::Spec;
 use Tk::Frame;
 
@@ -192,6 +193,16 @@ EOF
 
 sub split_path {
     my($path, $max_length) = @_;
+
+    my @inc = sort { length($b) <=> length($a) } (@INC, $Config{scriptdir});
+    for my $inc (@inc) {
+	if (index($path, $inc) == 0) {
+	    return (substr($path, length($inc)+1), $inc);
+	}
+    }
+
+    # Rarely this fallback should be used:
+
     my($volume, $directories, $file) = File::Spec->splitpath($path);
     my @path = (File::Spec->splitdir($directories), $file);
 
