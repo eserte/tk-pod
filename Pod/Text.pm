@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.13 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -804,6 +804,7 @@ sub SearchFullText {
     unless (defined $IDX && $IDX->IsWidget) {
 	require Tk::Pod::Search; #
 	$IDX = $w->Toplevel(-title=>'Perl Library Full Text Search');
+	$IDX->transient($w);
 
 	my $current_path;
 	my $tree_sw = $w->parent->Subwidget("tree");
