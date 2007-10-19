@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.7 2007/07/27 20:25:25 eserte Exp $
+# $Id: FindPods.pm,v 5.8 2007/10/19 19:36:54 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003,2004,2005,2007 Slaven Rezic. All rights reserved.
@@ -38,7 +38,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -490,7 +490,7 @@ return 1 if caller;
 package main;
 
 require Data::Dumper;
-print Data::Dumper->Dumpxs([{Tk::Pod::FindPods::pod_find(-categorized => 0, -usecache => 0)}],[]);
+print Data::Dumper->Dumpxs([Tk::Pod::FindPods->new->pod_find(-categorized => 0, -usecache => 0)],[]);
 
 __END__
 
