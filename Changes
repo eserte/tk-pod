@@ -5,8 +5,10 @@ version 0.9936
 	o more Tk::More-related documentation
 	o t/cmdline.t does not fail anymore with perl 5.005_05
 	o fullsearch dialog with fixed font in listbox, making nicer columns
+	o fullsearch toplevel is now transient
 	o OK button in fullsearch dialog
-	o Use File::Spec instead of manual filename arithmetic
+	o made the fulltext search work under MSWin32 (by using File::Spec
+	  instead of manual filename arithmetic)
 	o added basic tests for PodSearch and PodTree
 
 version 0.9935
