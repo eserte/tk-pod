@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.13 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.14 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -828,6 +828,9 @@ sub SearchFullText {
 			},
 			-currentpath => $current_path,
 		       )->pack(-fill=>'both',-expand=>'both');
+	$IDX->Button(-text => "Close",
+		     -command => sub { $IDX->destroy },
+		    )->pack(-fill => 'x');
     }
     $IDX->deiconify;
     $IDX->raise;
@@ -1147,6 +1150,9 @@ sub history_view {
 		      return if !defined $sel;
 		      $w->history_set($sel);
 		  });
+	$t->Button(-text => "Close",
+		   -command => sub { $t->destroy },
+		  )->pack(-fill => 'x');
     }
     $t->deiconify;
     $t->raise;
