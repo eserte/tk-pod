@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.15 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.16 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -864,7 +864,7 @@ sub _print_pod_unix {
 	if ($^O eq 'darwin') {
 	    my $cmd = "$pod2ps_pipe | /usr/bin/open -a Preview -f";
 	    system($cmd) == 0
-		or $w->_die_dialog("Error while executing <$cmd>: $?");
+		or $w->_die_dialog("Error while executing <$cmd>. Status code is $?");
 	    return 1;
 	}
 
@@ -1176,8 +1176,7 @@ sub PostPopupMenu {
 
 sub _die_dialog {
     shift->_error_dialog(@_);
-    require Carp;
-    Carp::croak();
+    die;
 }
 
 sub _error_dialog {
