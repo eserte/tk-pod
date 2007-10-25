@@ -194,11 +194,6 @@ looking like a module /\w+::\w+/)
 
 =item *
 
-maybe put the removed WWWBrowser (as a new Launcher::WWW) code again
-to Tk::Pod::Text
-
-=item *
-
 make ManViewer into a standalone widget, link entries in "SEE ALSO" 
 
 =item *
