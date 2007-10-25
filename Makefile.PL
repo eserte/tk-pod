@@ -80,6 +80,19 @@ EOF
 .include "../../perl.release.mk"
 .include "../../perl.cvs.mk"
 
+update-WWWBrowser:
+	perl -nle '\
+	    BEGIN { print "# DO NOT EDIT\n" } \
+	    BEGIN { print "# DO NOT USE THIS MODULE IN YOUR PROJECTS\n" } \
+	    s{package WWWBrowser}{package # hide from PAUSE indexer\n\tTk::Pod::WWWBrowser}; \
+	    s{package Launcher::WWW}{package # hide from PAUSE indexer\n\tTk::Pod::Launcher::WWW}; \
+	    if (m{__END__}) { \
+		$$do_not_print++; \
+	    } \
+	    print if (!$$do_not_print); \
+	    ' \
+	    < ../../perl/WWWBrowser/WWWBrowser.pm > Pod/WWWBrowser.pm
+
 EOF
     }
 
