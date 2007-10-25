@@ -9,10 +9,10 @@ To navigate through the documentation one could use
 
 =head2 Hyperlinks
 
-A B<click> on a hyperlink display the corresponding documentation
+A B<click> on a hyperlink display the corresponding Pod documentation
 (if there is any) in the same window. An URL will be displayed in a
-web browser using the (non-CPAN) L<WWWBrowser> module (this will
-hopefully change).
+web browser. A man page will be displayed in a man viewer (if one is
+available).
 
 With <Button-2> the documentation is loaded into a new window
 (<Shift-Button-1> works also for those with only a 2 button mouse).
