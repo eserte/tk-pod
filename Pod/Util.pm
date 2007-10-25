@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Util.pm,v 5.2 2006/05/04 18:59:37 eserte Exp $
+# $Id: Util.pm,v 5.3 2007/10/25 19:48:44 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2003,2004 Slaven Rezic. All rights reserved.
@@ -15,7 +15,7 @@
 package Tk::Pod::Util;
 use strict;
 use vars qw($VERSION @EXPORT_OK);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 use base qw(Exporter);
 @EXPORT_OK = qw(is_in_path is_interactive detect_window_manager start_browser);
@@ -90,8 +90,8 @@ sub get_property {
 sub start_browser {
     my($url) = @_;
 
-    if (!defined &WWWBrowser::start_browser && !eval { require WWWBrowser }) {
-	*WWWBrowser::start_browser = sub {
+    if (!defined &Tk::Pod::WWWBrowser::start_browser && !eval { require Tk::Pod::WWWBrowser }) {
+	*Tk::Pod::WWWBrowser::start_browser = sub {
 	    my $url = shift;
 	    if ($^O eq 'MSWin32') {
 		system(qq{start explorer "$url"});
@@ -107,7 +107,7 @@ sub start_browser {
 	};
     }
 
-    WWWBrowser::start_browser($url);
+    Tk::Pod::WWWBrowser::start_browser($url);
 }
 
 1;
