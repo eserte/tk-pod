@@ -16,6 +16,7 @@ Pod/SimpleBridge.pm
 Pod/Styles.pm
 Pod/Cache.pm
 Pod/Util.pm
+Pod/WWWBrowser.pm		# inofficial module for accessing web browser
 t/TkTest.pm
 t/basic.t
 t/podtree.t
