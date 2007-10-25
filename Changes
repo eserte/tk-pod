@@ -11,6 +11,7 @@ version 0.9936
 	  instead of manual filename arithmetic)
 	o all transient windows now have close buttons
 	o WWWBrowser is now bundled as Tk::Pod::WWWBrowser
+	o printing under MacOSX
 	o added basic tests for PodSearch and PodTree
 
 version 0.9935
