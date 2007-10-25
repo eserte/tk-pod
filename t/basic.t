@@ -21,6 +21,7 @@ use strict;
 ##
 
 use vars '@class';
+use vars '@tk_pod_modules';
 
 BEGIN 
   {
@@ -32,8 +33,10 @@ BEGIN
 	PodTree
 	Pod
       );
+    @tk_pod_modules = qw(Cache FindPods Search_db Search SimpleBridge Styles
+			 Util WWWBrowser);
 
-   plan test => (10*@class+3);
+   plan test => (10*@class+3+@tk_pod_modules);
 
   };
 
@@ -118,6 +121,11 @@ foreach my $class (@class)
 	for (1..5) { skip (1,1,1, "skipped because widget could not be created"); }
       }
   }
+
+for my $base (@tk_pod_modules) {
+    eval "require Tk::Pod::$base";
+    ok($@, "", "Could not require Tk::Pod::$base: $@");
+}
 
 1;
 __END__
