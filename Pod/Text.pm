@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.16 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -103,11 +103,7 @@ sub findpod {
 	if %opts;
     unless (defined $name and length $name) {
 	return if $quiet;
-	$w->messageBox(
-	  -title => "Tk::Pod Error",
-          -message => "Empty Pod file/name",
-	);
-	die;
+	$w->_die_dialog("Empty Pod file/name");
     }
 
     my $absname;
@@ -116,19 +112,13 @@ sub findpod {
     } else {
 	if ($name !~ /^[-_+:.\/A-Za-z0-9]+$/) {
 	    return if $quiet;
-	    $w->messageBox(
-	      -title => "Tk::Pod Error",
-	      -message => "Invalid path/file/module name '$name'\n");
-	    die;
+	    $w->_die_dialog("Invalid path/file/module name '$name'\n");
 	}
 	$absname = Find($name);
     }
     if (!defined $absname) {
 	return if $quiet;
-	$w->messageBox(
-	  -title => "Tk::Pod Error",
-	  -message => "Can't find Pod '$name'\n"
-	);
+	$w->_error_dialog("Can't find Pod '$name'\n");
 	die "Can't find Pod '$name' in @POD\n";
     }
     if (eval { require File::Spec; File::Spec->can("rel2abs") }) {
@@ -304,10 +294,7 @@ sub edit
         {
          if (!$terminal_fallback_warn_shown)
 	  {
-           $w->messageBox(
-	 	-title => "Tk::Pod Warning",
-         	-message => "No terminal and neither TKPODEDITOR nor XEDITOR environment variables set. Fallback to ptked."
-	   );
+           $w->_warn_dialog("No terminal and neither TKPODEDITOR nor XEDITOR environment variables set. Fallback to ptked.");
 	   $terminal_fallback_warn_shown = 1;
           }
          $edit = 'ptked';
@@ -557,11 +544,7 @@ sub DoubleClick
          $w->configure('-file'=>$file);
         }
    } else {
-       $w->messageBox(
-         -title => "Tk::Pod Error",
-         -message => "No Pod documentation found for '$sel'\n"
-       );
-       die;
+       $w->_die_dialog("No Pod documentation found for '$sel'\n");
    }
   }
  Tk->break;
@@ -664,11 +647,7 @@ sub Link
     {
      DEBUG and warn " Not found! (\"sec\")\n";
 
-     $w->messageBox(
-       -title   => "Tk::Pod Error",
-       -message => "Section '$sec' not found\n"
-     );
-     die;
+     $w->_die_dialog("Section '$sec' not found\n");
     }
    DEBUG and warn "link-zapping to $start linestart\n";
    $w->yview("$start linestart");
@@ -724,11 +703,7 @@ sub Link_man {
 	}
     }
     if (!$w->InternalManViewer($mansec, $man)) {
-	$w->messageBox(
-          -title => "Tk::Pod Error",
-          -message => "No useable man browser found. Tried @manbrowser and internal man viewer via `man'",
-        );
-	die;
+	$w->_die_dialog("No useable man browser found. Tried @manbrowser and internal man viewer via `man'");
     }
 }
 
@@ -804,6 +779,7 @@ sub SearchFullText {
     unless (defined $IDX && $IDX->IsWidget) {
 	require Tk::Pod::Search; #
 	$IDX = $w->Toplevel(-title=>'Perl Library Full Text Search');
+	$IDX->transient($w);
 
 	my $current_path;
 	my $tree_sw = $w->parent->Subwidget("tree");
@@ -827,6 +803,9 @@ sub SearchFullText {
 			},
 			-currentpath => $current_path,
 		       )->pack(-fill=>'both',-expand=>'both');
+	$IDX->Button(-text => "Close",
+		     -command => sub { $IDX->destroy },
+		    )->pack(-fill => 'x');
     }
     $IDX->deiconify;
     $IDX->raise;
@@ -837,11 +816,7 @@ sub SearchFullText {
 sub _need_File_Temp {
     my $w = shift;
     if (!eval { require File::Temp; 1 }) {
-	$w->messageBox(
-		-title   => "Tk::Pod Error",
-		-message => "The perl module 'File::Temp' is missing"
-	);
-	die;
+	$w->_die_dialog("The perl module 'File::Temp' is missing");
     }
 }
 
@@ -852,11 +827,7 @@ sub Print {
     $path = $w->cget(-path);
     if (defined $path) {
 	if (!-r $path) {
-	    $w->messageBox(
-		-title   => "Tk::Pod Error",
-		-message => "Cannot find file `$path`"
-	    );
-	    die;
+	    $w->_die_dialog("Cannot find file `$path`");
 	}
     } else {
 	$text = $w->cget("-text");
@@ -878,7 +849,25 @@ sub Print {
     }
     # otherwise fall thru...
 
+    my $success = $w->_print_pod_unix($path);
+
+    if (!$success) {
+	$w->_error_dialog("Can't print on your system.\nEither pod2man, groff,\ngv or ghostview are missing.");
+    }
+}
+
+sub _print_pod_unix {
+    my($w, $path) = @_;
     if (is_in_path("pod2man") && is_in_path("groff")) {
+	my $pod2ps_pipe = "pod2man $path | groff -man -Tps";
+
+	if ($^O eq 'darwin') {
+	    my $cmd = "$pod2ps_pipe | /usr/bin/open -a Preview -f";
+	    system($cmd) == 0
+		or $w->_die_dialog("Error while executing <$cmd>. Status code is $?");
+	    return 1;
+	}
+
 	# XXX maybe determine user's environment (GNOME vs. KDE vs. plain X11)?
 	my $gv = is_in_path("gv")
 	      || is_in_path("ghostview")
@@ -888,7 +877,7 @@ sub Print {
 	    $w->_need_File_Temp;
 
 	    my($fh,$fname) = File::Temp::tempfile(SUFFIX => ".ps");
-	    system("pod2man $path | groff -man -Tps > $fname");
+	    system("$pod2ps_pipe > $fname");
 	    push @tempfiles, $fname;
 	    my $pid = fork;
 	    if (!defined $pid) {
@@ -900,15 +889,12 @@ sub Print {
 		CORE::exit(1);
 	    }
 	    push @gv_pids, $pid;
-	    return;
+	    return 1;
 	}
     }
-    $w->messageBox(
-      -title   => "Tk::Pod Error",
-      -message => "Can't print on your system.\nEither pod2man, groff,\ngv or ghostview are missing."
-    );
-    die;
+    return 0;
 }
+
 
 sub _substitute_cmd {
     my($cmd, $path) = @_;
@@ -1146,6 +1132,9 @@ sub history_view {
 		      return if !defined $sel;
 		      $w->history_set($sel);
 		  });
+	$t->Button(-text => "Close",
+		   -command => sub { $t->destroy },
+		  )->pack(-fill => 'x');
     }
     $t->deiconify;
     $t->raise;
@@ -1183,6 +1172,29 @@ sub PostPopupMenu {
     $w->{MenuX} = $X;
     $w->{MenuY} = $Y;
     $p_scr->PostPopupMenu($X, $Y);
+}
+
+sub _die_dialog {
+    shift->_error_dialog(@_);
+    die;
+}
+
+sub _error_dialog {
+    my($w, $message) = @_;
+    $w->messageBox(
+      -title   => "Tk::Pod Error",
+      -message => $message,
+      -icon => 'error',
+    );
+}
+
+sub _warn_dialog {
+    my($w, $message) = @_;
+    $w->messageBox(
+      -title   => "Tk::Pod Warning",
+      -message => $message,
+      -icon => 'warning',
+    );
 }
 
 END {

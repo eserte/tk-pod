@@ -57,6 +57,14 @@ be necessary.
 If .pod and .pm are located in separated directories, then the wrong
 file (the .pm) might be chosen. Seen on Debian with IO::Handle.
 
+=item *
+
+There is never a horizontal scrollbar, even if a verbatim block
+exceeds the window width. An workaround would be to have the vertical
+scrollbar non-optional and the horizontal scrollbar optional
+(unfortunately both cannot be optional because of a bug in the
+Scrolled code).
+
 =back
 
 =head3 Tk::Pod::FindPods
@@ -168,8 +176,8 @@ for non-X11 people.
 
 =item *
 
-cleanup search interface to perlindex. Maybe patch Ulrichs TPJ example
-code for nroff pages to allow both POD and MAN.
+Maybe patch Ulrichs TPJ example code for nroff pages to allow both POD
+and MAN in fulltext search dialog.
 
 =item *
 
@@ -183,11 +191,6 @@ use some kind of access control for the -s option
 
 new menu entry with a link list (e.g. all LE<lt>...E<gt> and everything
 looking like a module /\w+::\w+/)
-
-=item *
-
-maybe put the removed WWWBrowser (as a new Launcher::WWW) code again
-to Tk::Pod::Text
 
 =item *
 
@@ -311,11 +314,6 @@ Should I include something similar to perlfunc for perlfaq (perldoc
 =item *
 
 Implement C<-rememberopen> in C<Fill> method.
-
-=item *
-
-Maybe categorize perl language pods like in suggested in
-L<http://www.perlmonks.org/index.pl?node_id=352893>.
 
 =back
 

@@ -3,9 +3,11 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
+use Config qw(%Config);
+use File::Spec;
 use Tk::Frame;
 
 Construct Tk::Widget 'PodSearch';
@@ -27,6 +29,9 @@ sub Populate {
     }
 
     my $l = $cw->Scrolled('Listbox',-width=>40,-scrollbars=>$Tk::platform eq 'MSWin32'?'e':'w');
+    require Tk::Pod::Styles;
+    my $fontsize = Tk::Pod::Styles::standard_font_size($l);
+    $l->configure(-font => "courier $fontsize");
     #xxx BrowseEntry V1.3 does not honour -label at creation time :-(
     #my $e = $cw->BrowseEntry(-labelPack=>[-side=>'left'],-label=>'foo',
 	#-listcmd=> ['_logit', 'list'],
@@ -38,11 +43,13 @@ sub Populate {
 	$e->history($searchfull_history);
     }
     my $s = $f->Label();
+    my $b = $f->Button(-text=>'OK',-command=>[\&_search,$e,$cw,$l]);
 
     $l->pack(-fill=>'both', -side=>'top',  -expand=>1);
     $f->pack(-fill => "x", -side => "top");
     $s->pack(-anchor => 'e', -side=>'left');
     $e->pack(-fill=>'x', -side=>'left', -expand=>1);
+    $b->pack(-side => 'left');
 
     my $current_path = delete $args->{-currentpath};
     $cw->{RestrictPod} = undef;
@@ -78,7 +85,7 @@ sub Populate {
     foreach (qw/Return space 1/) {
 	$cw->Subwidget('listbox')->bind("<$_>", [\&_load_pod, $cw]);
     }
-    $cw->Subwidget('entry')->bind('<Return>',[\&_search,$cw,$l]);
+    $cw->Subwidget('entry')->bind('<Return>',[$b,'invoke']);
 
     undef;
 }
@@ -141,22 +148,29 @@ sub _search {
 	$idx = Tk::Pod::Search_db->new($w->{Configure}{-indexdir});
     };
     if ($@) {
+	my $err = $@;
 	$e->messageBox(-icon => 'error',
 		       -title => 'perlindex error',
 		       -message => <<EOF);
 Can't create Tk::Pod::Search_db object:
-Is perlindex installed and did you run
-perlindex -index?
+Is perlindex (aka Text::English) installed
+and did you run 'perlindex -index'?
 EOF
-	die $@;
+	die $err;
     }
-    my @hits = $idx->searchWords($find, %args);
-    if (@hits) {
+    my @raw_hits = $idx->searchWords($find, %args);
+    if (@raw_hits) {
 	$l->delete(0,'end');
-        while (@hits) {
-	    $l->insert('end', sprintf("%6.3f  %s", shift @hits,
-			 path2pretty($idx->prefix . '/'. shift(@hits)) )
-			);
+	my @hits;
+	my $max_length;
+	for(my $i=1; $i<=$#raw_hits; $i+=2) {
+	    my($module, $path) = split_path($raw_hits[$i]);
+	    push @hits, [$raw_hits[$i-1], $module, $path];
+	    $max_length = length $module if !defined $max_length || length $module > $max_length;
+	}
+	for my $hit (@hits) {
+	    my($quality, $module, $path) = @$hit;
+	    $l->insert('end', sprintf("%6.3f  %-${max_length}s (%s)", $quality, $module, $path));
         }
 	$l->see(0);
 	$l->activate(0);
@@ -172,27 +186,59 @@ EOF
 }
 
 # Converts  /where/ever/it/it/Mod/Sub/Name.pm
-# to	    Mod/Sub/Name.pm   (/where/ever/it/is)
-# and vice versa.  Assumes that module subdirectories
+# to	    ("Mod/Sub/Name.pm", "/where/ever/it/is")
+# .  Assumes that module subdirectories
 # start with an upper case char. (xxx: Better solution
 # when perlindex gives more infos.
 
-sub path2pretty {
-    my @path = split '/', shift, -1;
-#    shift @path if $path[0] eq "";	# due to leading /
-    my $pretty = pop(@path);
-    while (@path) {
-        last if $path[-1] !~ /^[A-Z]/;
-	$pretty = pop(@path) . '/' . $pretty;
+sub split_path {
+    my($path, $max_length) = @_;
+
+    my @inc = sort { length($b) <=> length($a) } (@INC, $Config{scriptdir});
+    for my $inc (@inc) {
+	if (index($path, $inc) == 0) {
+	    return (substr($path, length($inc)+1), $inc);
+	}
     }
-    #xxx is there a min 40c_or_more format directive?
-    sprintf "%-40s (%s)", $pretty, join('/',@path);
+
+    # Rarely this fallback should be used:
+
+    my($volume, $directories, $file) = File::Spec->splitpath($path);
+    my @path = (File::Spec->splitdir($directories), $file);
+
+    # Guess the separator point between path and module/script name
+    my $path_i;
+    for($path_i = $#path; $path_i >= 0; $path_i--) {
+	if ($path[$path_i] ne '' && $path[$path_i] !~ /^[A-Z]/) {
+	    last;
+	}
+    }
+
+    # Scripts are usually lowercase, so the above logic does not work.
+    # Fix it:
+    if ($path_i == $#path) {
+	$path_i--;
+    }
+
+    # Remove empty directories from the end (a relict from
+    # splitpath/splitdir)
+    my @dirs = @path[0 .. $path_i];
+    while(@dirs && $dirs[-1] eq '') { pop @dirs }
+
+    # Remove empty directories from the beginning (also a relict from
+    # splitpath/splitdir)
+    my @moddirs = @path[$path_i+1 .. $#path];
+    while(@moddirs && $moddirs[0] eq '') { shift @moddirs }
+
+    my($dirpart,$modpart) = (File::Spec->catpath($volume, File::Spec->catfile(@dirs), ''),
+			     File::Spec->catfile(@moddirs));
+    return ($modpart, $dirpart);
 }
 
 sub pretty2path {
     local($_) = shift;
     /([^\s]+) \s+\( (.*) \)/x;
-    $2 . '/' . $1;
+    File::Spec->catfile($2, $1);
 }
 
 #$path = '/where/ever/it/is/Tk/Pod.pm';	print "orig|",$path, "|\n";

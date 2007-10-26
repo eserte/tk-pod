@@ -1,5 +1,19 @@
 History for Tk::Pod
 
+version 0.9936
+	o Tk::More now used fixedFont/FixedFont for setting font via option db
+	o more Tk::More-related documentation
+	o t/cmdline.t does not fail anymore with perl 5.005_05
+	o fullsearch dialog with fixed font in listbox, making nicer columns
+	o fullsearch toplevel is now transient
+	o OK button in fullsearch dialog
+	o made the fulltext search work under MSWin32 (by using File::Spec
+	  instead of manual filename arithmetic)
+	o all transient windows now have close buttons
+	o WWWBrowser is now bundled as Tk::Pod::WWWBrowser
+	o printing under MacOSX
+	o added basic tests for PodSearch and PodTree
+
 version 0.9935
 	o fixed missing "use" in tkpod (spotted by Torsten Foertsch)
 	o nicer diagnostics output when finding duplicate modules

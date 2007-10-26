@@ -3,13 +3,13 @@
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 use Tk;
 use Tk::More;
 use Getopt::Long;
 
-my %opt = (font => "Courier 10"); # XXX do not hardcode, get size from default font
+my %opt;
 
 Getopt::Long::config('pass_through');
 if (!GetOptions(\%opt, "font=s", "i|ignore-case!", "encoding=s")) {

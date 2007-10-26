@@ -21,6 +21,7 @@ use strict;
 ##
 
 use vars '@class';
+use vars '@tk_pod_modules';
 
 BEGIN 
   {
@@ -28,14 +29,22 @@ BEGIN
       qw(
 	More
 	PodText
+	PodSearch
+	PodTree
 	Pod
       );
+    @tk_pod_modules = qw(Cache FindPods Search_db Search SimpleBridge Styles
+			 Util WWWBrowser);
 
-   plan test => (10*@class+3);
+   plan test => (10*@class+3+@tk_pod_modules);
 
   };
 
 $ENV{TKPODDEBUG} = 0;
+
+if (!defined $ENV{BATCH}) {
+    $ENV{BATCH} = 1;
+}
 
 eval { require Tk; };
 ok($@, "", "loading Tk module");
@@ -51,11 +60,12 @@ foreach my $class (@class)
     print "Testing $class\n";
     undef($w);
 
-    if ($class eq 'PodText')
+    if ($class =~ m{^Pod(Text|Search|Tree)$})
       {
+	my $module = "Tk::Pod::$1";
 	# Tks autoload does not find it.
-	eval { require Tk::Pod::Text; };
-	ok($@, "", "loading Tk::Pod::Text module");
+	eval qq{ require $module; };
+	ok($@, "", "loading $module module");
       }
     else
       {
@@ -91,12 +101,15 @@ foreach my $class (@class)
           }
         eval { $mw->update; };
         ok ($@, "", "Error during 'update' for $class widget");
+
+	if (!$ENV{BATCH}) {
+	    $mw->messageBox(-icon => "info", -message => "Showing '$class'", -type => "Continue");
+	}
  
         eval { my @dummy = $w->configure; };
         ok ($@, "", "Error: configure list for $class");
         eval { $mw->update; };
         ok ($@, "", "Error: 'update' after configure for $class widget");
-
         eval { $w->destroy; };
         ok($@, "", "can't destroy $class widget");
         ok(!Tk::Exists($w), 1, "$class: widget not really destroyed");
@@ -108,6 +121,11 @@ foreach my $class (@class)
 	for (1..5) { skip (1,1,1, "skipped because widget could not be created"); }
       }
   }
+
+for my $base (@tk_pod_modules) {
+    eval "require Tk::Pod::$base";
+    ok($@, "", "Could not require Tk::Pod::$base: $@");
+}
 
 1;
 __END__

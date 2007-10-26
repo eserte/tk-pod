@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9935";
+$DIST_VERSION = "0.9936";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -42,6 +42,7 @@ WriteMakefile(
 	'PREREQ_PM'	=> { 'Tk'             => 800.004,
 			     'Pod::Simple'    => 2.05, # there at least in 2.03 bugs when processing "-f ..." output
 			     'File::Temp'     => 0,
+			     'File::Spec'     => 0,
 			     # the following are really only COREQUISITES
 	                     'Text::English'  => 0,
 			     'Tk::HistEntry'  => 0.40,
@@ -78,6 +79,19 @@ EOF
 
 .include "../../perl.release.mk"
 .include "../../perl.cvs.mk"
+
+update-WWWBrowser:
+	perl -nle '\
+	    BEGIN { print "# DO NOT EDIT\n" } \
+	    BEGIN { print "# DO NOT USE THIS MODULE IN YOUR PROJECTS\n" } \
+	    s{package WWWBrowser}{package # hide from PAUSE indexer\n\tTk::Pod::WWWBrowser}; \
+	    s{package Launcher::WWW}{package # hide from PAUSE indexer\n\tTk::Pod::Launcher::WWW}; \
+	    if (m{__END__}) { \
+		$$do_not_print++; \
+	    } \
+	    print if (!$$do_not_print); \
+	    ' \
+	    < ../../perl/WWWBrowser/WWWBrowser.pm > Pod/WWWBrowser.pm
 
 EOF
     }

@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.2 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -92,6 +92,9 @@ sub Populate {
 	}
     }
 
+    # This was formerly possible, but is now invalid:
+    delete $args->{-font} if !defined $args->{-font};
+
     $cw->Delegates('DEFAULT'   => $t,
 		   'Search'    => 'SELF',
 		   'ShowMatch' => 'SELF',
@@ -109,6 +112,7 @@ sub Populate {
 		-searchcase    => ['PASSIVE', 'searchCase', 'SearchCase', 1],
 		-helpcommand   => ['CALLBACK', undef, undef, undef],
 		-background    => ['PASSIVE'],# XXX ignore -background, so optionAdd works.... still decide
+		-font	       => [$t, 'fixedFont', 'FixedFont', 'Courier 10'],
 		'DEFAULT'      => [$t]
 		);
 
@@ -387,6 +391,32 @@ down one line
 =item Key-h
 
 invoke help window
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item Name:     B<fixedFont>
+
+=item Class:    B<FixedFont>
+
+=item Switch:   B<-font>
+
+Set the font of the viewer widget. This is by default a fixed font.
+
+=item Name:     B<searchCase>
+
+=item Class:    B<SearchCase>
+
+=item Switch:   B<-searchcase>
+
+Set if searching should be done case-insensitive. Defaults to true.
+
+=item Switch:   B<-helpcommand>
+
+Sets the command for the "h" (help) key.
 
 =back
 

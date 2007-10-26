@@ -2,12 +2,13 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.7 2007/07/27 20:31:51 eserte Exp $
+# $Id: cmdline.t,v 1.9 2007/10/03 22:33:50 eserte Exp $
 # Author: Slaven Rezic
 #
 
 use strict;
 use FindBin;
+use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Long;
 
@@ -31,6 +32,7 @@ my $DEBUG = 0;
 
 my $blib   = File::Spec->rel2abs("$FindBin::RealBin/../blib");
 my $script = "$blib/script/tkpod";
+my $tkmore_script = "$blib/script/tkmore";
 
 my $batch_mode = defined $ENV{BATCH} ? $ENV{BATCH} : 1;
 
@@ -43,24 +45,24 @@ my $testdir = tempdir("tkpod_XXXXXXXX", TMPDIR => 1, CLEANUP => 1);
 die "Can't create temporary directory: $!" if !$testdir;
 
 my $cpandir = "$testdir/CPAN";
-mkdir $cpandir or die "Cannot create temporary directory: $!";
+mkdir $cpandir, 0777 or die "Cannot create temporary directory: $!";
 
 my $cpanfile = "$testdir/CPAN.pm";
 {
-    open my $fh, ">", $cpanfile
+    open FH, "> $cpanfile"
 	or die "Cannot create $cpanfile: $!";
-    print $fh "=pod\n\nTest\n\n=cut\n";
-    close $fh
+    print FH "=pod\n\nTest\n\n=cut\n";
+    close FH
 	or die "While closing: $!";
 }
 
 my $obscurepod = "ThisFileReallyShouldNotExistInAPerlDistroXYZfooBAR";
 my $obscurefile = "$testdir/$obscurepod.pod";
 {
-    open my $fh, ">", $obscurefile
+    open FH, "> $obscurefile"
 	or die "Cannot create $obscurefile: $!";
-    print $fh "=pod\n\nThis is: $obscurepod\n\n=cut\n";
-    close $fh
+    print FH "=pod\n\nThis is: $obscurepod\n\n=cut\n";
+    close FH
 	or die "While closing: $!";
 }
 
@@ -85,6 +87,11 @@ my @opt = (
 	   ['__ENV__', TKPODEDITOR => 'ptked'],
 	   [$obscurepod.".pod", '__ENV__', TKPODDIRS => $testdir],
 
+	   # tkmore
+	   ['__SCRIPT__', $tkmore_script, $0],
+	   ['__SCRIPT__', $tkmore_script, "-xrm", "*fixedFont:{monospace 10}", $0],
+	   ['__SCRIPT__', $tkmore_script, "-font", "monospace 10", $0],
+
 	   # This should be near end...
 	   ['__ACTION__', chdir => $testdir ],
 	   ["CPAN"],
@@ -108,6 +115,8 @@ for my $opt (@opt) {
     local %ENV = %ENV;
     delete $ENV{$_} for qw(TKPODCACHE TKPODDEBUG TKPODDIRS TKPODEDITOR);
 
+    my $this_script = $script;
+
     my @this_opts;
     my @this_env;
     for(my $i = 0; $i<=$#$opt; $i++) {
@@ -115,12 +124,15 @@ for my $opt (@opt) {
 	    $ENV{$opt->[$i+1]} = $opt->[$i+2];
 	    push @this_env, $opt->[$i+1]."=".$opt->[$i+2];
 	    $i+=2;
+	} elsif ($opt->[$i] eq '__SCRIPT__') {
+	    $this_script = $opt->[$i+1];
+	    $i+=1;
 	} else {
 	    push @this_opts, $opt->[$i];
 	}
     }
 
-    my $testname = "Trying tkpod with @this_opts";
+    my $testname = "Trying " . basename($this_script) . " with @this_opts";
     if (@this_env) {
 	$testname .= ", environment " . join(", ", @this_env);
     }
@@ -128,7 +140,7 @@ for my $opt (@opt) {
     if ($batch_mode) {
 	my $pid = fork;
 	if ($pid == 0) {
-	    run_tkpod(\@this_opts);
+	    run_tkpod($this_script, \@this_opts);
 	}
 	for (1..10) {
 	    select(undef,undef,undef,0.05);
@@ -149,13 +161,13 @@ for my $opt (@opt) {
 	kill KILL => $pid;
 	pass($testname);
     } else {
-	run_tkpod(\@this_opts);
+	run_tkpod($this_script, \@this_opts);
 	pass($testname);
     }
 }
 
 sub run_tkpod {
-    my $this_opts_ref = shift;
+    my($script, $this_opts_ref) = @_;
     my @cmd = ($^X, "-Mblib=$blib", $script, "-geometry", "+10+10", @$this_opts_ref);
     warn "@cmd\n" if $DEBUG;
     if ($batch_mode) {
