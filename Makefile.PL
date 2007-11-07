@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9936";
+$DIST_VERSION = "0.9937";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -36,6 +36,17 @@ if (eval { require Tk::Tree; 1 } && $Tk::Tree::VERSION eq '4.6') {
 **********************************************************************
 EOF
     $add_prereq_pm{"Tk::Tree"} = "4.7";
+}
+
+if ($] < 5.009003) {
+    warn <<EOF;
+**********************************************************************
+* Warnings in the form
+*    Unknown escape E<0x107>
+*    Unknown command paragraph "=encoding iso-8859-2"
+* are expected and may be ignored.
+**********************************************************************
+EOF
 }
 
 WriteMakefile(

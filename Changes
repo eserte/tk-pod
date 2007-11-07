@@ -1,5 +1,13 @@
 History for Tk::Pod
 
+version 0.9937
+	o Make sure the displayed Pods in the tree match the actual @INC path
+	o Tk::Pod::Text Pod should now contain all Pod constructs as examples
+        o bugfix: fixed architecture path component stripping
+	o bugfix: fixed core/site/vendor coloring if installvendorlib/arch not
+          defined at all
+	o warning fix in Tk::Pod::FindPods for perl 5.005
+
 version 0.9936
 	o Tk::More now used fixedFont/FixedFont for setting font via option db
 	o more Tk::More-related documentation
