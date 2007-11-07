@@ -6,6 +6,7 @@ version 0.9937
         o bugfix: fixed architecture path component stripping
 	o bugfix: fixed core/site/vendor coloring if installvendorlib/arch not
           defined at all
+	o warning fix in Tk::Pod::FindPods for perl 5.005
 
 version 0.9936
 	o Tk::More now used fixedFont/FixedFont for setting font via option db

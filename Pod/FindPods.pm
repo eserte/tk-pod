@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.9 2007/11/07 21:28:54 eserte Exp $
+# $Id: FindPods.pm,v 5.10 2007/11/07 21:38:48 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003,2004,2005,2007 Slaven Rezic. All rights reserved.
@@ -38,7 +38,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -360,8 +360,11 @@ sub is_site_module {
 
 sub is_vendor_module {
     my $path = shift;
-    return 0 if ($Config{'installvendorlib'} eq '' ||
-		 $Config{'installvendorarch'} eq '');
+    return 0 if (!defined $Config{'installvendorlib'}  ||
+		 $Config{'installvendorlib'}  eq ''    ||
+		 !defined $Config{'installvendorarch'} ||
+		 $Config{'installvendorarch'} eq ''
+		);
     $path =~ /^(
                 \Q$Config{'installvendorlib'}\E
                |
