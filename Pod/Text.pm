@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.16 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.17 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -1353,6 +1353,10 @@ A file: F</usr/local/bin/perl>.  A variable $a without markup.
 
 S<boofar> is in SE<lt>E<gt>.
 
+Indexed items are not supported in Tk::Pod. X<Index Test>
+
+Zero-Z<>effect formatting.
+
 German umlauts:
 
 =over 4
@@ -1436,7 +1440,22 @@ Thirs
 
 =back
 
-Other Pod docu: Tk::Font, Tk::BrowseEntry
+=head1 TESTING HEAD1
+
+=head2 TESTING HEAD2
+
+=head3 TESTING HEAD3
+
+=head4 TESTING HEAD4
+
+=begin a_format_which_does_not_exist
+
+This section should be invisible (=begin and =end).
+
+=end a_format_which_does_not_exist
+
+Other Pod docu: Tk::Font, Tk::BrowseEntry (not underlined, but
+double-clickable in Tk::Pod)
 
 =head1 AUTHOR
 
