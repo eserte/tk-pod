@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.19 $ =~ /(\d+)\.(\d+)/);
-$DIST_VERSION = "0.9937";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.20 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = "0.9938";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -153,7 +153,7 @@ EOF
 
   [Cascade => '~View', -menuitems =>
    [
-    [Checkbutton => $compound->('~Pod Tree'),
+    [Checkbutton => $compound->('Pod ~Tree'),
      '-variable' => \$w->{Tree_on},
      '-command' => sub { $w->tree($w->{Tree_on}) },
     ],
@@ -170,7 +170,7 @@ EOF
      '-command' => [$w, 'zoom_out'],
     ],
     '-',
-    [Button => $compound->('Pod on search.cpan.org'),
+    [Button => $compound->('Pod on ~search.cpan.org'),
      '-command' => sub {
 	 require Tk::Pod::Util;
 	 my $url = $p->{pod_title};
@@ -181,7 +181,7 @@ EOF
 	 Tk::Pod::Util::start_browser("http://search.cpan.org/perldoc?" . $url);
      },
     ],
-    [Button => $compound->('Pod on annocpan.org'),
+    [Button => $compound->('Pod on ~annocpan.org'),
      '-command' => sub {
 	 require Tk::Pod::Util;
 	 my $url = $p->{pod_title};
