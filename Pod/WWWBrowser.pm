@@ -1,12 +1,13 @@
 # DO NOT EDIT
 
 # DO NOT USE THIS MODULE IN YOUR PROJECTS
+# (That is, the module's code is OK, but don't rely on the package
+# name or the API of this module)
 
-#!/usr/bin/env perl
 # -*- perl -*-
 
 #
-# $Id: WWWBrowser.pm,v 1.3 2007/12/29 09:54:44 eserte Exp $
+# $Id: WWWBrowser.pm,v 1.4 2007/12/29 10:00:43 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999,2000,2001,2003,2005,2006 Slaven Rezic. All rights reserved.
@@ -26,7 +27,7 @@ use vars qw(@unix_browsers @available_browsers
 	    $VERSION $VERBOSE $initialized $os $fork
 	    $got_from_config $ignore_config);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
 
 @available_browsers = qw(_debian_browser _internal_htmlview
 			 _default_gnome _default_kde
