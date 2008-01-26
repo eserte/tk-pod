@@ -14,6 +14,7 @@ BEGIN
     Test->import;
   }
 use strict;
+use Tk;
 ##
 ## Test all widget classes:  load module, create, pack, and
 ## destory an instance. Check in configure does not return
@@ -23,6 +24,7 @@ use strict;
 use vars '@class';
 use vars '@tk_pod_modules';
 
+my $tests;
 BEGIN 
   {
     @class =
@@ -36,7 +38,8 @@ BEGIN
     @tk_pod_modules = qw(Cache FindPods Search_db Search SimpleBridge Styles
 			 Util WWWBrowser);
 
-   plan test => (10*@class+3+@tk_pod_modules);
+    $tests = 10*@class+@tk_pod_modules;
+    plan test => $tests;
 
   };
 
@@ -46,13 +49,16 @@ if (!defined $ENV{BATCH}) {
     $ENV{BATCH} = 1;
 }
 
-eval { require Tk; };
-ok($@, "", "loading Tk module");
-
 my $mw;
 eval {$mw = Tk::MainWindow->new();};
-ok($@, "", "can't create MainWindow");
-ok(Tk::Exists($mw), 1, "MainWindow creation failed");
+if (!Tk::Exists($mw))
+  {
+    for (1..$tests) 
+      {
+	skip("Cannot create MainWindow", 1, 1);
+      }
+    CORE::exit(0);
+  }
 
 my $w;
 foreach my $class (@class)
