@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9938
+	o The internal man viewer can handle utf-8 now.
+	o Upgraded to newer WWWBrowser version (changed Windows support)
+
 version 0.9937
 	o Make sure the displayed Pods in the tree match the actual @INC path
 	o Tk::Pod::Text Pod should now contain all Pod constructs as examples

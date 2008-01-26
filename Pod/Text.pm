@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.17 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.18 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -730,8 +730,18 @@ sub InternalManViewer {
     my $menu = $more->menu;
     $t->configure(-menu => $menu);
     local $SIG{PIPE} = "IGNORE";
+    my $can_langinfo = $] >= 5.008 && eval { require I18N::Langinfo; 1 };
+    local $ENV{LANG} = $ENV{LANG};
+    if (!$can_langinfo) {
+	$ENV{LANG} = "C";
+    }
     open(MAN, $man_exe . (defined $mansec ? " $mansec" : "") . " $man |")
 	or die $!;
+    if ($can_langinfo) {
+	my $codeset = I18N::Langinfo::langinfo(I18N::Langinfo::CODESET());
+	eval qq{ binmode MAN, q{:encoding($codeset)} };
+	warn $@ if $@;
+    }
     if (eof MAN) {
 	$more->insert("end", "No entry for for $man" . (defined $mansec ? " in section $mansec of" : "") . " the manual");
     } else {
