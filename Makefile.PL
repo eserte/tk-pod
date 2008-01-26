@@ -102,16 +102,22 @@ EOF
 
 update-WWWBrowser:
 	perl -nle '\
-	    BEGIN { print "# DO NOT EDIT\n" } \
-	    BEGIN { print "# DO NOT USE THIS MODULE IN YOUR PROJECTS\n" } \
+	    BEGIN { print "# DO NOT EDIT\n# Created by the update-WWWBrowser makefile rule\n\n# DO NOT USE THIS MODULE IN YOUR PROJECTS\n# (That is, the module\047s code is OK, but don\047t rely on the package\n# name or the API of this module)" } \
 	    s{package WWWBrowser}{package # hide from PAUSE indexer\n\tTk::Pod::WWWBrowser}; \
 	    s{package Launcher::WWW}{package # hide from PAUSE indexer\n\tTk::Pod::Launcher::WWW}; \
+	    if (m{#.*Forward compatibility}) { \
+		$$skip_forward_compat++; \
+	    } elsif ($$skip_forward_compat && m|^}|) { \
+		$$skip_forward_compat = 0; next; \
+	    } \
 	    if (m{__END__}) { \
 		$$do_not_print++; \
 	    } \
-	    print if (!$$do_not_print); \
+	    print if (!$$do_not_print && !$$skip_forward_compat); \
 	    ' \
-	    < ../../perl/WWWBrowser/WWWBrowser.pm > Pod/WWWBrowser.pm
+	    < ../../perl/WWWBrowser/WWWBrowser.pm > Pod/WWWBrowser.pm~
+	    perl -c Pod/WWWBrowser.pm~
+	    mv Pod/WWWBrowser.pm~ Pod/WWWBrowser.pm
 
 EOF
     }
