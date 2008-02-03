@@ -15,7 +15,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Fcntl;
@@ -94,7 +94,7 @@ sub searchWords {
     my $restrict_pod = $args{-restrictpod};
     if (defined $restrict_pod) {
 	my(@modparts) = split /::/, $restrict_pod;
-	$restrict_pod = join('[/\\]', map { quotemeta } @modparts);
+	$restrict_pod = join('[/\\\\]', map { quotemeta } @modparts);
     }
 
     #print "try words|", join('|',@_),"\n";

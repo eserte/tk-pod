@@ -1,5 +1,11 @@
 History for Tk::Pod
 
+version 0.9938	So  3 Feb 2008 19:12:04 CET
+	o The internal man viewer can handle utf-8 now.
+	o Upgraded to newer WWWBrowser version (changed Windows support)
+	o fix for ActivePerl: perl documentation is in "pods" directory
+	o special handling for a2p pod
+
 version 0.9937
 	o Make sure the displayed Pods in the tree match the actual @INC path
 	o Tk::Pod::Text Pod should now contain all Pod constructs as examples

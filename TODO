@@ -77,6 +77,19 @@ The location of the cache file is predictable and on /tmp which is
 bad. Either choose a unpredictable but unique filename, or use
 techniques like O_EXCL (is this supported everywhere?).
 
+=back
+
+=head3 Tk::Pod::Search
+
+=over
+
+=item *
+
+Reorder modules in the fulltext search results to reflect @INC
+order.
+
+=back
+
 =head3 Tk::Pod::Tree
 
 =over
@@ -220,13 +233,25 @@ some kind of stylesheet support
 
 =item *
 
-encoding support, especially for utf-8
-
-=item *
-
 It should probably be possible to create the menus Section and History
 independently of the main Tk::Pod frame, so the user may add these
 menus to the context menu of the PodText window.
+
+=item *
+
+Have a new popup menu entry "Copy Pod location", and maybe a new menu
+entry View -> Pod info which shows path and basic Pod information.
+
+=item *
+
+If a Pod could not be found: add a button "Look at search.cpan.org" to
+the error dialog.
+
+=item *
+
+"Open Pod by name" dialog could be done nicer, e.g. by using a rich
+Tk::Text instead of the label/message and use "sans serif"+"monospace"
+fonts.
 
 =back
 
@@ -314,6 +339,12 @@ Should I include something similar to perlfunc for perlfaq (perldoc
 =item *
 
 Implement C<-rememberopen> in C<Fill> method.
+
+=item *
+
+Mark modules which appear multiple times in the @INC tree, e.g. with
+an exclamation mark, and maybe show the paths and versions(?) of
+both/all versions.
 
 =back
 
