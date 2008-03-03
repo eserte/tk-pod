@@ -14,6 +14,8 @@ recommends:
     Text::English:                 0
     Tk::HistEntry:                 0.4
     Tk::ToolBar:                   0
+    Tk::WidgetDump:		   0
+    Module:Refresh:		   0
 license: perl
 distribution_type: module
 resources:

@@ -66,6 +66,9 @@ WriteMakefile(
 			     # the following are really only COREQUISITES
 	                     'Text::English'  => 0,
 			     'Tk::HistEntry'  => 0.40,
+			     # Very very optional Corequisites
+			     # 'Tk::WidgetDump' => 0,
+			     # 'Module::Refresh' => 0,
 			     %add_prereq_pm,
 			   },
 	'DISTNAME'	=> 'Tk-Pod',
