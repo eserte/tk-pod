@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.9 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Config qw(%Config);
@@ -196,7 +196,11 @@ sub split_path {
 
     my @inc = sort { length($b) <=> length($a) } (@INC, $Config{scriptdir});
     for my $inc (@inc) {
-	if (index($path, $inc) == 0) {
+	# XXX Nicer solution without hardcoded directory separators needed!
+	if (index($path, "$inc/") >= 0) {
+	    return (substr($path, length($inc)+1), $inc);
+	}
+	if ($^O eq 'MSWin32' && index($path, "$inc\\") >= 0) {
 	    return (substr($path, length($inc)+1), $inc);
 	}
     }

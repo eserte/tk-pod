@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.20 $ =~ /(\d+)\.(\d+)/);
-$DIST_VERSION = "0.9938";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.22 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = "0.9938_50";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -259,13 +259,43 @@ EOF
      ? ('-',
 	[Button => 'WidgetDump', -command => sub { $w->WidgetDump }],
 	[Button => 'Ptksh', -command => sub {
+	     # Code taken from bbbike
+	     # Is there already a (withdrawn) ptksh?
+	     foreach my $mw0 (Tk::MainWindow::Existing()) {
+		 if ($mw0->title =~ /^ptksh/) {
+		     $mw0->deiconify;
+		     $mw0->raise;
+		     return;
+		 }
+	     }
+
 	     require Config;
-	     require $Config::Config{'scriptdir'} . "/ptksh";
+	     my $perldir = $Config::Config{'scriptdir'};
+	     require "$perldir/ptksh";
+
+	     # Code taken from bbbike and slightly modified
+	     foreach my $mw0 (Tk::MainWindow::Existing()) {
+		 if ($mw0->title eq 'ptksh') {
+		     $mw0->protocol('WM_DELETE_WINDOW' => [$mw0, 'withdraw']);
+		 }
+	     }
 	 }],
-	(defined &Tk::App::Reloader::reload_new_modules
-	 ? [Button => 'Reloader', -command => sub { Tk::App::Reloader::reload_new_modules() }]
-	 : ()
-	),
+	[Button => 'Reloader', -command => sub {
+	     if (eval { require Module::Refresh; 1 }) {
+		 Module::Refresh->refresh;
+		 $w->messageBox(-title   => "Reloader",
+				-icon    => "info",
+				-message => "Modules were reloaded.",
+			       );
+	     } else {
+		 $w->messageBox(-title   => "Reloader",
+				-icon    => "error",
+				-message => "To use this functionality you have to install Module::Refresh from CPAN",
+			       );
+		 # So we have a chance to try it again...
+		 delete $INC{"Module/Refresh.pm"};
+	     }
+	 }],
        )
      : ()
     ),

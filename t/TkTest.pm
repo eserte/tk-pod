@@ -10,9 +10,13 @@ use strict;
 use vars qw(@EXPORT);
 
 use base qw(Exporter);
-@EXPORT    = qw(check_display_harness);
+@EXPORT    = qw(check_display_test_harness);
 
-sub check_display_harness () {
+use ExtUtils::Command::MM qw(test_harness);
+
+sub check_display_test_harness {
+    my(@test_harness_args) = @_;
+
     # In case of cygwin, use'ing Tk before forking (which is done by
     # Test::Harness) may lead to "remap" errors, which are normally
     # solved by the rebase or rebaseall utilities.
@@ -20,22 +24,27 @@ sub check_display_harness () {
     # Here, I just skip the DISPLAY check on cygwin to not force users
     # to run rebase.
     #
-    return if $^O eq 'cygwin' || $^O eq 'MSWin32';
+    if (!($^O eq 'cygwin' || $^O eq 'MSWin32')) {
 
-    eval q{
+	eval q{
            use blib;
            use Tk;
         };
-    die "Strange: could not load Tk library: $@" if $@;
+	die "Strange: could not load Tk library: $@" if $@;
 
-    if (defined $Tk::platform && $Tk::platform eq 'unix') {
-	my $mw = eval { MainWindow->new() };
-	if (!Tk::Exists($mw)) {
-	    warn "Cannot create MainWindow (maybe no X11 server is running or DISPLAY is not set?)\n$@\n";
-	    exit 0;
+	if (defined $Tk::platform && $Tk::platform eq 'unix') {
+	    my $mw = eval { MainWindow->new() };
+	    if (!Tk::Exists($mw)) {
+		warn "Cannot create MainWindow (maybe no X11 server is running or DISPLAY is not set?)\n$@\n";
+		# empty the argument list for the following test_harness
+		@ARGV = ();
+	    } else {
+		$mw->destroy;
+	    }
 	}
-	$mw->destroy;
     }
+
+    test_harness(@test_harness_args);
 }
 
 1;

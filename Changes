@@ -1,5 +1,14 @@
 History for Tk::Pod
 
+version 0.9938_50
+	o update to newest WWWBrowser.pm
+	o again fixes for fulltext search paths (problems seen on Debian
+          and Windows)
+	o debug mode: now with Reloader menu item
+	o META.yml uses optional_features instead of recommends
+	o changed DISPLAY check before test_harness call, hopefully
+	  generating UNKNOWN test results
+
 version 0.9938	So  3 Feb 2008 19:12:04 CET
 	o The internal man viewer can handle utf-8 now.
 	o Upgraded to newer WWWBrowser version (changed Windows support)
