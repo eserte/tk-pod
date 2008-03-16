@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9938";
+$DIST_VERSION = "0.9938_50";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -86,8 +86,8 @@ WriteMakefile(
 
 sub MY::test_via_harness {
     my($self, $perl, $tests) = @_;
-    qq{\t$perl "-It" "-MTkTest" "-MExtUtils::Command::MM" }.
-	qq{"-e" "check_display_harness; test_harness(\$(TEST_VERBOSE), '\$(INST_LIB)', '\$(INST_ARCHLIB)')" $tests\n};
+    qq{\t$perl "-It" "-MTkTest" }.
+	qq{"-e" "check_display_test_harness(\$(TEST_VERBOSE), '\$(INST_LIB)', '\$(INST_ARCHLIB)')" $tests\n};
 }
 
 sub MY::postamble {
