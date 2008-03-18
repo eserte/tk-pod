@@ -25,6 +25,7 @@ optional_features:
         requires:
             Tk::WidgetDump:                0
             Module:Refresh:                0
+dynamic_config: 0
 license: perl
 distribution_type: module
 resources:
