@@ -3,7 +3,11 @@ Tk::Pod
 This is a graphical user interface for viewing and browsing perl's Pod
 documentation.
 
-To install, type:
+To install, type
+
+	cpan .
+
+if you have a modern CPAN.pm, otherwise
 
 	perl Makefile.PL	(resolve all dependencies)
 	make
@@ -11,20 +15,23 @@ To install, type:
 	make demo		(optional)
 	make install
 
-Windows users should replace "make" with "nmake" unless using a
-cygwin-compiled or MinGW-compiled perl.
+Windows users should replace "make" with "nmake" if using ActivePerl
+or "dmake" if using Vanilla or Strawberry Perl.
 
-At least perl 5.005 and Tk 800.004 is required.
+At least perl 5.005 and Tk 800.004 are required.
 
 Features include:
 	o A standalone Tk pod viewer: tkpod
 	o Interface to perlindex full text Pod search
 	  (you need to install the perlindex distribution aka
-           Text::English from CPAN).
+           Text::English from CPAN and create an index using
+           "perlindex -index").
 	o Supports single or multiple Pod windows.
-	o Primitive Tk::More widget with '/', 'n', 'N', 'j', 'k'
+	o more/less-like Tk::More widget with '/', 'n', 'N', 'j', 'k'
 	  bindings
 	o Tree view of available Pods
+	o links to URLs and man pages are also handled
+	o printing using postscript, RTF or text output
 
 If Tk::ToolBar is installed, then tkpod may use the Tk::ToolBar icons
 for the menus. This works both in Tk804 with native compounds and in
@@ -32,7 +39,7 @@ Tk800 using Tk::Compound.
 
 The original Tk::Pod module was written by Nick Ing-Simmons
 <nik@tiuk.ti.com>. Former maintainer was Achim Bohnet. Current
-maintainer is Slaven Rezic <slaven@rezic.de>. Pod::Simple support is
+maintainer is Slaven Rezic <srezic@cpan.org>. Pod::Simple support is
 by Sean Burke. Please send bug reports, patches and comments to the
 current maintainer.
 

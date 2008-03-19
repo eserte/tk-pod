@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9938_51
+	o META.yml needs also dynamic_config setting
+	o update of README
+
 version 0.9938_50
 	o update to newest WWWBrowser.pm
 	o again fixes for fulltext search paths (problems seen on Debian
