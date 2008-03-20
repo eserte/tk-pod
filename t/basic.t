@@ -63,7 +63,7 @@ if (!Tk::Exists($mw))
 my $w;
 foreach my $class (@class)
   {
-    print "Testing $class\n";
+    print "# Testing $class\n";
     undef($w);
 
     if ($class =~ m{^Pod(Text|Search|Tree)$})
@@ -128,9 +128,14 @@ foreach my $class (@class)
       }
   }
 
+print "# Require all modules\n";
 for my $base (@tk_pod_modules) {
     eval "require Tk::Pod::$base";
-    ok($@, "", "Could not require Tk::Pod::$base: $@");
+    if ($@ && $base eq 'Search_db') {
+	ok($@ =~ m{locate Text.*English}, 1, "Could not require Tk::Pod::$base: $@");
+    } else {
+	ok($@, "", "Could not require Tk::Pod::$base: $@");
+    }
 }
 
 1;

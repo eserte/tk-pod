@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9938_52
+	o fixed some tests caused by the new optionality of some
+	  modules
+
 version 0.9938_51
 	o META.yml needs also dynamic_config setting
 	o update of README

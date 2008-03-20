@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Config qw(%Config);
@@ -133,7 +133,7 @@ sub _search {
     my $w = shift;
     my $l = shift;
 
-    my $find = $e->get;
+    my $find = ref $e eq 'Tk::BrowseEntry' ? $e->Subwidget("entry")->get : $e->get;
     $w->addHistory($find) if $find ne '';
 
     my %args;
