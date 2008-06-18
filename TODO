@@ -102,6 +102,11 @@ Make tree busy while building first time.
 
 Show a progress bar or an indicator when refreshing the pod index.
 
+=item *
+
+It would be nice if building the tree would happen in background, e.g.
+by using standard perl ipc (pipe+fork).
+
 =back
 
 =head3 Tk::More
