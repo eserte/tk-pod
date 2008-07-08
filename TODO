@@ -117,6 +117,23 @@ by using standard perl ipc (pipe+fork).
 
 Highlight matches in link text.
 
+=item *
+
+A menu item for switching between popular encodings. Default probably
+to iso-8859-1 or maybe user's locale.
+
+=item *
+
+A menu item (and maybe also the keyboard equivalent -x) for changing
+the indentation level.
+
+=item *
+
+If there are more configuration parameters resembling less, then maybe
+an environment variable like LESS could be useful for common
+configuration parameters. Question: should this only be valid if it's
+called as tkmore or also if embedded in Tk::Pod?
+
 =back
 
 =head3 tkpod
