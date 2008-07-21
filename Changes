@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9939
+	o new popup menu item "Copy Pod location"
+
 version 0.9938_52
 	o fixed some tests caused by the new optionality of some
 	  modules
