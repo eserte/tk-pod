@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.18 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.19 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -368,6 +368,27 @@ sub view_source
  $more->focus;
 }
 
+sub copy_pod_location
+{
+ my($w) = @_;
+ my $file = $w->_get_editable_path;
+ if (!defined $file)
+  {
+   $w->_error_dialog("Cannot copy location: this Pod is not associated with a file");
+   return;
+  }
+ $w->SelectionOwn;
+ $w->SelectionHandle(sub {
+			 my($offset,$maxbytes) = @_;
+			 # XXX It's not exactly clear why I have to
+			 # call _get_editable_path again here and not
+			 # reuse $file.
+			 my $file = $w->_get_editable_path;
+			 return undef if $offset > length($file);
+			 substr($file, $offset, $maxbytes);
+		     });
+}
+
 sub _sgn { $_[0] cmp 0 }
 
 sub zoom_normal {
@@ -454,6 +475,7 @@ sub Populate
 	  [Button => 'Reload',   -command => sub{$w->reload} ],
 	  [Button => 'Edit Pod',       -command => sub{ $w->edit_get_linenumber } ],
 	  [Button => 'View source',    -command => sub{ $w->view_source } ],
+	  [Button => 'Copy Pod location', -command => sub { $w->copy_pod_location } ],
 	  [Button => 'Search fulltext',-command => ['SearchFullText', $w]],
 	  [Separator => ""],
 	  [Cascade => 'Edit',
