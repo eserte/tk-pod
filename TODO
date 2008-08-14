@@ -75,7 +75,8 @@ Scrolled code).
 
 The location of the cache file is predictable and on /tmp which is
 bad. Either choose a unpredictable but unique filename, or use
-techniques like O_EXCL (is this supported everywhere?).
+techniques like O_EXCL (is this supported everywhere?), or store
+the cache in the user's home directory (preferred).
 
 =back
 
@@ -242,7 +243,7 @@ show "No documentation found for "..."" if there's no pod in the file
 
 =item *
 
-maybe you something selectable and copyable (e.g. Tk::ROText) in the
+maybe use something selectable and copyable (e.g. Tk::ROText) in the
 About dialog
 
 =item *
@@ -261,8 +262,8 @@ menus to the context menu of the PodText window.
 
 =item *
 
-Have a new popup menu entry "Copy Pod location", and maybe a new menu
-entry View -> Pod info which shows path and basic Pod information.
+Maybe have a new popup menu entry View -> Pod info which shows path
+and basic Pod information.
 
 =item *
 
