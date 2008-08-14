@@ -1,5 +1,16 @@
 History for Tk::Pod
 
+version 0.9939_50
+	o middle button acts now like Mozilla/Firefox: opening pod by selection
+	o moved "Reload" menu item to "View" menu
+	o new menu item "View" > "View source"
+	o improved full text search:
+	  o multi term searches are now possible
+	  o sorting results is done by using number of term hits first
+	  o full text search terms are translated into a stemmed regexp
+	    for the Pod viewer search 
+	  o avoiding AnyDBM_File-related warnings
+
 version 0.9939
 	o new popup menu item "Copy Pod location"
 

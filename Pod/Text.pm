@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.19 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.20 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -444,6 +444,7 @@ sub Populate
     $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });
     $p_scr->bind('<Double-2>',       sub  { $w->ShiftDoubleClick($_[0]) });
     $p_scr->bind('<3>',              sub  { $w->PostPopupMenu($p_scr, $w->pointerxy) });
+    $p_scr->bind('<2>',		     sub  { $w->OpenPodBySelection });
 
     $p->configure(-font => $w->Font(family => 'courier'));
 
@@ -476,7 +477,7 @@ sub Populate
 	  [Button => 'Edit Pod',       -command => sub{ $w->edit_get_linenumber } ],
 	  [Button => 'View source',    -command => sub{ $w->view_source } ],
 	  [Button => 'Copy Pod location', -command => sub { $w->copy_pod_location } ],
-	  [Button => 'Search fulltext',-command => ['SearchFullText', $w]],
+	  [Button => 'Search full text',-command => ['SearchFullText', $w]],
 	  [Separator => ""],
 	  [Cascade => 'Edit',
 	   ($Tk::VERSION > 800.015 && $p->can('EditMenuItems') ? (-menuitems => $p->EditMenuItems) : ()),
@@ -1204,6 +1205,18 @@ sub PostPopupMenu {
     $w->{MenuX} = $X;
     $w->{MenuY} = $Y;
     $p_scr->PostPopupMenu($X, $Y);
+}
+
+sub OpenPodBySelection {
+    my($w) = @_;
+    my $sel;
+    Tk::catch {
+	$sel = $w->SelectionGet('-selection' => ($Tk::platform eq 'MSWin32'
+						 ? "CLIPBOARD"
+						 : "PRIMARY"));
+    };
+    $sel =~ s{\s}{}g; # no whitespace in Pod names possible
+    $w->configure(-file => $sel);
 }
 
 sub _die_dialog {

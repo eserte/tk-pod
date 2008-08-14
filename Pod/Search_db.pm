@@ -4,10 +4,13 @@
 package
     AnyDBM_File; # hide from indexer
 use vars '@ISA';
-@ISA = qw(DB_File GDBM_File SDBM_File ODBM_File NDBM_File) unless @ISA;
+my @try = qw(DB_File GDBM_File SDBM_File ODBM_File NDBM_File) unless @ISA;
 my $mod;
-for $mod (@ISA) {
-    last if eval "require $mod"
+for $mod (@try) {
+    if (eval "require $mod") {
+	@ISA = $mod;
+	last;
+    }
 };
 
 package Tk::Pod::Search_db;
@@ -15,7 +18,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Fcntl;
@@ -41,20 +44,18 @@ if (-e "/etc/debian_version" && -d "/var/cache/perlindex") {
 sub new {
     my $class = shift;
     my $idir  = shift;
-
     $idir ||= $IDXDIR;
-
     my (%self, %IF, %IDF, %FN);
     my $if_file  = File::Spec->catfile($idir, "index_if");
     tie (%IF,   'AnyDBM_File', $if_file,   O_RDONLY, 0644)
         	or confess "Could not tie $if_file: $!\n".
-            	"Did you install Text::English and run 'perlindex -index'?\n";
+           	"Did you install Text::English and run 'perlindex -index'?\n";
     my $idf_file = File::Spec->catfile($idir, "index_idf");
     tie (%IDF,  'AnyDBM_File', $idf_file,   O_RDONLY, 0644)
-        	or confess "Could not tie $idf_file: $!\n";
+	       	or confess "Could not tie $idf_file: $!\n";
     my $fn_file  = File::Spec->catfile($idir, "index_fn");
     tie (%FN,   'AnyDBM_File', $fn_file,   O_RDONLY, 0644)
-        	or confess "Could not tie $fn_file: $!\n";
+	       	or confess "Could not tie $fn_file: $!\n";
 
     $self{IF}  = \%IF;
     $self{IDF} = \%IDF;
@@ -76,10 +77,10 @@ sub normalize {
     my @result;
 
     $line =~ tr/A-Z/a-z/;
-    $line =~ tr/a-z0-9/ /cs;
+    $line =~ tr/a-z0-9_/ /cs;
 
     my $word;
-    for $word (split ' ', $line ) {
+    for $word (split / /, $line ) {
         $word =~ s/^\d+//;
         next unless length($word) > 2;
         push @result, &Text::English::stem($word);
@@ -89,7 +90,9 @@ sub normalize {
 
 # changes for perlindex's search slightly modified
 sub searchWords {
-    my($self, $_word, %args) = @_;
+    my($self, $term, %args) = @_;
+
+    my @words = split / /, $term;
 
     my $restrict_pod = $args{-restrictpod};
     if (defined $restrict_pod) {
@@ -98,7 +101,9 @@ sub searchWords {
     }
 
     #print "try words|", join('|',@_),"\n";
+    my $p = 'w';
     my %score;
+    my %termhits;
     my $maxhits = 50;
     my (@unknown, @stop);
 
@@ -106,36 +111,33 @@ sub searchWords {
     my $IDF = $self->{IDF};
     my $FN  = $self->{FN};
 
-    #xxx &initstop if $opt_verbose;
-    my ($did, %post); #xxx
- TRY: {
-	my($word) = normalize($_word);
-	unless ($IF->{$word}) {
-	    #xxxif ($stop{$word}) {
-	    #xxx    push @stop, $word;
-	    #xxx} else {
-	    #xxx    push @unknown, $word;
-	    #xxx}
-	    next;
-	}
-	#my %post = unpack($p.'*',$IF->{$word});
-	%post = unpack('w*',$IF->{$word});
-	my $idf = log($FN->{'last'}/$IDF->{$word});
-	for $did (keys %post) {
-	    #xxx my ($maxtf) = unpack($p, $FN->{$did});
-	    my ($maxtf) = unpack('w', $FN->{$did});
-	    $score{$did} = 0 unless defined $score{$did}; # perl -w
-	    $score{$did} += $post{$did} / $maxtf * $idf;
-	}
+    #&initstop if $opt_verbose;
+    for my $word (normalize(@words)) {
+        unless ($IF->{$word}) {
+#             if ($stop{$word}) {
+#                 push @stop, $word;
+#             } else {
+#                 push @unknown, $word;
+#             }
+            next;
+        }
+        my %post = unpack($p.'*',$IF->{$word});
+        my $idf = log($FN->{'last'}/$IDF->{$word});
+        for my $did (keys %post) {
+            my ($maxtf) = unpack($p, $FN->{$did});
+            $score{$did} = 0 unless defined $score{$did}; # perl -w 
+            $score{$did} += $post{$did} / $maxtf * $idf;
+	    $termhits{$did}++;
+        }
     }
 
     my @results;
-    for $did (sort {$score{$b} <=> $score{$a}} keys %score) {
-            my ($mtf, $path) = unpack('wa*', $FN->{$did});
-	    next if ($restrict_pod && $path !~ /$restrict_pod/);
-	    $path = File::Spec->catfile($self->prefix, $path) unless $^O eq 'MSWin32'; # This seems to be a perlindex bug in MSWin32
-            push @results, $score{$did}, $path;
-            last unless --$maxhits;
+    for my $did (sort {	$termhits{$b} <=> $termhits{$a} || $score{$b} <=> $score{$a} } keys %score) {
+	my ($mtf, $path) = unpack($p.'a*', $FN->{$did});
+	next if ($restrict_pod && $path !~ /$restrict_pod/);
+	$path = File::Spec->catfile($self->prefix, $path) unless $^O eq 'MSWin32'; # This seems to be a perlindex bug in MSWin32
+	push @results, { termhits => $termhits{$did}, score => $score{$did}, path => $path };
+	last unless --$maxhits;
     }
 
     #print "results|", join('|',@results),"\n";

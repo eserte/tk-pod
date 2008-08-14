@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.13 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Config qw(%Config);
@@ -118,13 +118,29 @@ sub search {
     }
 }
 
+sub search_as_regexp {
+    my $cw = shift;
+    my $search = $cw->search;
+    my @search = split ' ', $search;
+    if (@search) {
+	require Text::English;
+	my $rx = join("|", map { quotemeta } Text::English::stem(@search));
+	if (@search > 1) {
+	    $rx = '(' . $rx . ')';
+	}
+	$rx;
+    } else {
+	'';
+    }
+}
+
 sub _load_pod {
     my $l = shift;
     my $cw = shift;
 
     my $pod = pretty2path( $l->get(($l->curselection)[0]));
 
-    $cw->Callback('-command', $pod, -searchterm => $cw->search());
+    $cw->Callback('-command', $pod, -searchterm => $cw->search_as_regexp());
 }
 
 
@@ -163,14 +179,17 @@ EOF
 	$l->delete(0,'end');
 	my @hits;
 	my $max_length;
-	for(my $i=1; $i<=$#raw_hits; $i+=2) {
-	    my($module, $path) = split_path($raw_hits[$i]);
-	    push @hits, [$raw_hits[$i-1], $module, $path];
+	for my $raw_hit (@raw_hits) {
+	    my($module, $path) = split_path($raw_hit->{path});
+	    push @hits, [$raw_hit->{termhits}, $raw_hit->{score}, $module, $path];
 	    $max_length = length $module if !defined $max_length || length $module > $max_length;
 	}
+	my $need_termhits = $hits[0]->[0] > 1;
 	for my $hit (@hits) {
-	    my($quality, $module, $path) = @$hit;
-	    $l->insert('end', sprintf("%6.3f  %-${max_length}s (%s)", $quality, $module, $path));
+	    my($termhits, $quality, $module, $path) = @$hit;
+	    $l->insert('end', sprintf(($need_termhits ? "%d " : "") . "%6.3f  %-${max_length}s (%s)",
+				      ($need_termhits ? $termhits : ()), $quality, $module, $path)
+		      );
         }
 	$l->see(0);
 	$l->activate(0);

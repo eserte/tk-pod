@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.25 $ =~ /(\d+)\.(\d+)/);
-$DIST_VERSION = "0.9939";
+$VERSION = sprintf("%d.%02d", q$Revision: 5.27 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = "0.9939_50";
 
 @ISA = qw(Tk::Toplevel);
 
@@ -122,10 +122,6 @@ EOF
      '-accelerator' => 'Ctrl+N',
      '-command' => ['newwindow',$w,$p],
     ],
-    [Button => $compound->('~Reload', "actreload"),
-     '-accelerator' => 'Ctrl+R',
-     '-command' => ['reload',$p],
-    ],
     [Button => $compound->('~Edit', "edit"),
      '-command' => ['edit',$p],
     ],
@@ -168,6 +164,15 @@ EOF
     [Button => $compound->("Zoom ~out", "viewmag-"),
      '-accelerator' => 'Ctrl+-',
      '-command' => [$w, 'zoom_out'],
+    ],
+    '-',
+    [Button => $compound->('~Reload', "actreload"),
+     '-accelerator' => 'Ctrl+R',
+     '-command' => ['reload',$p],
+    ],
+    [Button => $compound->("~View source"),
+     # unfortunately Tk::More already uses Ctrl+U
+     '-command' => ['view_source',$p],
     ],
     '-',
     [Button => $compound->('Pod on ~search.cpan.org'),
