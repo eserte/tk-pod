@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.11 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Config qw(%Config);
@@ -118,13 +118,24 @@ sub search {
     }
 }
 
+sub search_as_regexp {
+    my $cw = shift;
+    my $search = $cw->search;
+    my @search = split ' ', $search;
+    if (@search > 1) {
+	'(' . join("|", map { quotemeta } @search) . ')';
+    } else {
+	$search[0];
+    }
+}
+
 sub _load_pod {
     my $l = shift;
     my $cw = shift;
 
     my $pod = pretty2path( $l->get(($l->curselection)[0]));
 
-    $cw->Callback('-command', $pod, -searchterm => $cw->search());
+    $cw->Callback('-command', $pod, -searchterm => $cw->search_as_regexp());
 }
 
 
