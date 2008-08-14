@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.9940 NOT YET RELEASED
+	o middle button acts now like Mozilla/Firefox: opening pod by selection
+	o moved "Reload" menu item to "View" menu
+	o new menu item "View" > "View source"
+	o multi-word full text searches are translated into an regexp for
+	  the viewer search
+
 version 0.9939
 	o new popup menu item "Copy Pod location"
 
