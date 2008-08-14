@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Config qw(%Config);
@@ -123,7 +123,8 @@ sub search_as_regexp {
     my $search = $cw->search;
     my @search = split ' ', $search;
     if (@search > 1) {
-	'(' . join("|", map { quotemeta } @search) . ')';
+	require Text::English;
+	'(' . join("|", map { quotemeta } Text::English::stem(@search)) . ')';
     } else {
 	$search[0];
     }
