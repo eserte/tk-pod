@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: podtree.t,v 1.4 2008/08/16 18:42:51 eserte Exp $
+# $Id: podtree.t,v 1.5 2008/08/16 20:37:53 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -27,7 +27,7 @@ BEGIN {
 	print "# tests only work with installed Test module\n";
 	print "1..1\n";
 	print "ok 1\n";
-	exit;
+	CORE::exit(0);
     }
 }
 

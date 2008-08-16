@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.10 2008/08/16 18:42:50 eserte Exp $
+# $Id: cmdline.t,v 1.11 2008/08/16 20:37:50 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -26,11 +26,11 @@ BEGIN {
 	1;
     }) {
 	print "1..0 # skip no Test::More and/or POSIX module\n";
-	exit;
+	CORE::exit(0);
     }
     if ($^O eq 'MSWin32') {
 	print "1..0 # skip not on Windows\n"; # XXX but why?
-	exit;
+	CORE::exit(0);
     }
 }
 

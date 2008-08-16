@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: subclass.t,v 1.2 2008/08/16 18:42:51 eserte Exp $
+# $Id: subclass.t,v 1.3 2008/08/16 20:37:53 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -27,12 +27,12 @@ BEGIN {
 	1;
     }) {
 	print "1..0 # skip tests only work with installed Test module\n";
-	exit;
+	CORE::exit(0);
     }
 
     if ($] < 5.006) {
 	print "1..0 # skip subclassing does not work with perl 5.005 and lesser\n";
-	exit;
+	CORE::exit(0);
     }
 }
 

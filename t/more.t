@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: more.t,v 1.3 2008/08/16 18:42:50 eserte Exp $
+# $Id: more.t,v 1.4 2008/08/16 20:37:51 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -24,7 +24,7 @@ BEGIN {
 	1;
     }) {
 	print "1..0 # skip tests only work with installed Test module\n";
-	exit;
+	CORE::exit(0);
     }
 }
 

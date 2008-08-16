@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9939_52";
+$DIST_VERSION = "0.9939_53";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -81,7 +81,10 @@ WriteMakefile(
 
 	'EXE_FILES'	=> [ 'tkpod', 'tkmore' ],
 
-	'dist' 		=> {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
+	'dist' 		=> {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)',
+			    # http://rt.cpan.org/Ticket/Display.html?id=29664
+			    $is_devel_host ? ('PREOP'=>'test -w META.yml || (echo "META.yml has to be writable"; false)') : (),
+			   },
 );
 
 # This rule ensures that we get UNKNOWN test results on Unix platforms

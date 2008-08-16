@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9939_53
+	o fixed a broken test
+	o fixed optional_features in META.yml
+
 version 0.9939_52
 	o fixed: cygwin had no protection against missing/invalid DISPLAYs
 

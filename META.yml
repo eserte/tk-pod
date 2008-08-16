@@ -2,7 +2,7 @@ meta-spec:
     version: 1.3
     url: http://module-build.sourceforge.net/META-spec-v1.3.html
 name:         Tk-Pod
-version:      0.9939_52
+version:      0.9939_53
 abstract: Pod browser widget for Tk
 author:
     - Slaven Rezic <srezic@cpan.org>
@@ -11,16 +11,16 @@ requires:
     Pod::Simple:                   0
     Tk:                            800.004
 optional_features:
-    - fulltext_search:
+    fulltext_search:
         description: "Enable the full-text search"
         requires:
             Text::English:                 0
-    - nicer_gui:
+    nicer_gui:
         description: "Provide a nicer GUI"
         requires:
             Tk::HistEntry:                 0.4
             Tk::ToolBar:                   0
-    - debugging:
+    debugging:
         description: "Debugging helper"
         requires:
             Tk::WidgetDump:                0
