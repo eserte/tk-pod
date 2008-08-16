@@ -7,12 +7,20 @@ BEGIN
     if ($@)
       {
         $^W=0;
-	print "1..0\n";
-	print STDERR "\n\tTest.pm module not installed.\n\tGrab it from CPAN to run this test.\n\t";
+	print "1..0 # skip no Test module\n";
 	exit;
       }
     Test->import;
   }
+
+use FindBin;
+use lib $FindBin::RealBin;
+use TkTest qw(display_test);
+BEGIN
+  {
+    display_test();
+  }
+
 use strict;
 use Tk;
 ##

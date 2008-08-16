@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.9 2007/10/03 22:33:50 eserte Exp $
+# $Id: cmdline.t,v 1.10 2008/08/16 18:42:50 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -12,6 +12,12 @@ use File::Basename qw(basename);
 use File::Spec;
 use Getopt::Long;
 
+use lib $FindBin::RealBin;
+use TkTest qw(display_test);
+BEGIN {
+    display_test();
+}
+
 BEGIN {
     if (!eval q{
 	use Test::More;
@@ -19,11 +25,11 @@ BEGIN {
 	use File::Temp qw(tempfile tempdir);
 	1;
     }) {
-	print "1..0 # skip: no Test::More and/or POSIX module\n";
+	print "1..0 # skip no Test::More and/or POSIX module\n";
 	exit;
     }
     if ($^O eq 'MSWin32') {
-	print "1..0 # skip: not on Windows\n"; # XXX but why?
+	print "1..0 # skip not on Windows\n"; # XXX but why?
 	exit;
     }
 }

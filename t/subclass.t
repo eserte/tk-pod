@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: subclass.t,v 1.1 2004/02/04 20:35:57 eserte Exp $
+# $Id: subclass.t,v 1.2 2008/08/16 18:42:51 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -14,19 +14,24 @@ use strict;
 use Tk;
 use Tk::Pod;
 
+use FindBin;
+use lib $FindBin::RealBin;
+use TkTest qw(display_test);
+BEGIN {
+    display_test();
+}
+
 BEGIN {
     if (!eval q{
 	use Test;
 	1;
     }) {
-	print "1..1\n";
-	print "ok 1 # skip: tests only work with installed Test module\n";
+	print "1..0 # skip tests only work with installed Test module\n";
 	exit;
     }
 
     if ($] < 5.006) {
-	print "1..1\n";
-	print "ok 1 # skip: subclassing does not work with perl 5.005 and lesser\n";
+	print "1..0 # skip subclassing does not work with perl 5.005 and lesser\n";
 	exit;
     }
 }

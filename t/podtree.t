@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: podtree.t,v 1.3 2003/11/09 21:14:33 eserte Exp $
+# $Id: podtree.t,v 1.4 2008/08/16 18:42:51 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -11,6 +11,13 @@ use strict;
 use Tk;
 use Tk::Pod::Tree;
 use Tk::Pod::FindPods;
+
+use FindBin;
+use lib $FindBin::RealBin;
+use TkTest qw(display_test);
+BEGIN {
+    display_test();
+}
 
 BEGIN {
     if (!eval q{

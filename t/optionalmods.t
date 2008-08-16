@@ -2,11 +2,18 @@
 # -*- perl -*-
 
 #
-# $Id: optionalmods.t,v 1.4 2007/02/27 21:47:03 eserte Exp $
+# $Id: optionalmods.t,v 1.5 2008/08/16 18:42:50 eserte Exp $
 # Author: Slaven Rezic
 #
 
 use strict;
+
+use FindBin;
+use lib $FindBin::RealBin;
+use TkTest qw(display_test);
+BEGIN {
+    display_test();
+}
 
 BEGIN {
     if (!eval q{
@@ -19,8 +26,8 @@ BEGIN {
 	require Devel::Hide;
 	1;
     }) {
-#	print "1..0 # skip: no Test::More and/or Test::Without::Module (!= 0.09) modules\n";
-	print "1..0 # skip: no Test::More and/or Devel::Hide modules\n";
+#	print "1..0 # skip no Test::More and/or Test::Without::Module (!= 0.09) modules\n";
+	print "1..0 # skip no Test::More and/or Devel::Hide modules\n";
 	exit;
     }
 }

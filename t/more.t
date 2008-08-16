@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: more.t,v 1.2 2007/07/30 19:39:52 eserte Exp $
+# $Id: more.t,v 1.3 2008/08/16 18:42:50 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -11,13 +11,19 @@ use strict;
 use Tk;
 use Tk::More;
 
+use FindBin;
+use lib $FindBin::RealBin;
+use TkTest qw(display_test);
+BEGIN {
+    display_test();
+}
+
 BEGIN {
     if (!eval q{
 	use Test;
 	1;
     }) {
-	print "1..1\n";
-	print "ok 1 # skip: tests only work with installed Test module\n";
+	print "1..0 # skip tests only work with installed Test module\n";
 	exit;
     }
 }
