@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9939_51
+	o fixed <2> binding (the last change broke open in new window over
+	  links)
+
 version 0.9939_50
 	o middle button acts now like Mozilla/Firefox: opening pod by selection
 	o moved "Reload" menu item to "View" menu
