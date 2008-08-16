@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: optionalmods.t,v 1.5 2008/08/16 18:42:50 eserte Exp $
+# $Id: optionalmods.t,v 1.6 2008/08/16 20:37:51 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -28,7 +28,7 @@ BEGIN {
     }) {
 #	print "1..0 # skip no Test::More and/or Test::Without::Module (!= 0.09) modules\n";
 	print "1..0 # skip no Test::More and/or Devel::Hide modules\n";
-	exit;
+	CORE::exit;
     }
 }
 

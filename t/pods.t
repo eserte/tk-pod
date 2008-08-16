@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: pods.t,v 1.2 2008/08/16 18:42:50 eserte Exp $
+# $Id: pods.t,v 1.3 2008/08/16 20:37:53 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -24,7 +24,7 @@ BEGIN {
 	1;
     }) {
 	print "1..0 # skip no Test module\n";
-	exit;
+	CORE::exit(0);
     }
 }
 

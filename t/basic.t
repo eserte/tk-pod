@@ -8,7 +8,7 @@ BEGIN
       {
         $^W=0;
 	print "1..0 # skip no Test module\n";
-	exit;
+	CORE::exit(0);
       }
     Test->import;
   }
