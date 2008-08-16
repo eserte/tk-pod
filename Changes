@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9939_52
+	o fixed: cygwin had no protection against missing/invalid DISPLAYs
+
 version 0.9939_51
 	o fixed <2> binding (the last change broke open in new window over
 	  links)

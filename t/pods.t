@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: pods.t,v 1.1 2003/11/12 00:47:48 eserte Exp $
+# $Id: pods.t,v 1.2 2008/08/16 18:42:50 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -11,12 +11,19 @@ use strict;
 use Tk;
 use Tk::Pod::Text;
 
+use FindBin;
+use lib $FindBin::RealBin;
+use TkTest qw(display_test);
+BEGIN {
+    display_test();
+}
+
 BEGIN {
     if (!eval q{
 	use Test;
 	1;
     }) {
-	print "1..0 # skip: no Test module\n";
+	print "1..0 # skip no Test module\n";
 	exit;
     }
 }

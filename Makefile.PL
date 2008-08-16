@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9939_51";
+$DIST_VERSION = "0.9939_52";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
@@ -50,7 +50,7 @@ EOF
 if ($] < 5.009003) {
     warn <<EOF;
 **********************************************************************
-* Warnings in the form
+* Warnings looking like
 *    Unknown escape E<0x107>
 *    Unknown command paragraph "=encoding iso-8859-2"
 * are expected and may be ignored.
@@ -84,6 +84,10 @@ WriteMakefile(
 	'dist' 		=> {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
 );
 
+# This rule ensures that we get UNKNOWN test results on Unix platforms
+# if no X11 DISPLAY is available. This does not apply for cygwin/X11;
+# the display test there is done in the test files using
+# TkTest::display_test
 sub MY::test_via_harness {
     my($self, $perl, $tests) = @_;
     qq{\t$perl "-It" "-MTkTest" }.
