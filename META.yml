@@ -11,16 +11,16 @@ requires:
     Pod::Simple:                   0
     Tk:                            800.004
 optional_features:
-    - fulltext_search:
+    fulltext_search:
         description: "Enable the full-text search"
         requires:
             Text::English:                 0
-    - nicer_gui:
+    nicer_gui:
         description: "Provide a nicer GUI"
         requires:
             Tk::HistEntry:                 0.4
             Tk::ToolBar:                   0
-    - debugging:
+    debugging:
         description: "Debugging helper"
         requires:
             Tk::WidgetDump:                0
