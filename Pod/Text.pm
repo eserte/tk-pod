@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.20 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.21 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -444,7 +444,16 @@ sub Populate
     $p_scr->bind('<Shift-Double-1>', sub  { $w->ShiftDoubleClick($_[0]) });
     $p_scr->bind('<Double-2>',       sub  { $w->ShiftDoubleClick($_[0]) });
     $p_scr->bind('<3>',              sub  { $w->PostPopupMenu($p_scr, $w->pointerxy) });
-    $p_scr->bind('<2>',		     sub  { $w->OpenPodBySelection });
+    $p_scr->bind('<ButtonRelease-2>', [sub {
+					   # A hack solution to prevent from firing this
+					   # event over pod links. See http://wiki.tcl.tk/6101
+					   my($ro,$x,$y) = @_;
+					   if (grep { $_ eq 'pod_link' } $ro->tagNames("\@$x,$y")) {
+					       Tk->break;
+					   } else {
+					       $w->OpenPodBySelection;
+					   }
+				       }, Tk::Ev("x"), Tk::Ev("y")]);
 
     $p->configure(-font => $w->Font(family => 'courier'));
 

@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -329,6 +329,7 @@ sub pod_end_L   {
     $w->tag('configure', $tag, '-underline' => 1, '-foreground' => 'darkgreen' );
   }
   $w->tag('add', $tag, $_[2] ,'end -1c');
+  $w->tag('add', 'pod_link', $_[2] ,'end -1c'); # needed for ButtonRelease-2 hack, see Pod/Text.pm
 
   return;
 }
