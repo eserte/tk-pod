@@ -50,7 +50,7 @@ EOF
 if ($] < 5.009003) {
     warn <<EOF;
 **********************************************************************
-* Warnings in the form
+* Warnings looking like
 *    Unknown escape E<0x107>
 *    Unknown command paragraph "=encoding iso-8859-2"
 * are expected and may be ignored.
