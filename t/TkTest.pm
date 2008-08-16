@@ -10,7 +10,7 @@ use strict;
 use vars qw(@EXPORT);
 
 use base qw(Exporter);
-@EXPORT    = qw(check_display_test_harness);
+@EXPORT    = qw(check_display_test_harness display_test);
 
 use ExtUtils::Command::MM qw(test_harness);
 
@@ -32,19 +32,34 @@ sub check_display_test_harness {
         };
 	die "Strange: could not load Tk library: $@" if $@;
 
-	if (defined $Tk::platform && $Tk::platform eq 'unix') {
-	    my $mw = eval { MainWindow->new() };
-	    if (!Tk::Exists($mw)) {
-		warn "Cannot create MainWindow (maybe no X11 server is running or DISPLAY is not set?)\n$@\n";
-		# empty the argument list for the following test_harness
-		@ARGV = ();
-	    } else {
-		$mw->destroy;
-	    }
-	}
+	# empty the argument list for the following test_harness
+	@ARGV = () if !_can_MainWindow();
     }
 
     test_harness(@test_harness_args);
+}
+
+sub display_test {
+    if (!_can_MainWindow()) {
+	print "1..0 # skip Cannot create MainWindow\n";
+	CORE::exit(0);
+    }
+}
+
+sub _can_MainWindow {
+    require Tk;
+    if (defined $Tk::platform && $Tk::platform eq 'unix') {
+	my $mw = eval { MainWindow->new() };
+	if (!Tk::Exists($mw)) {
+	    warn "Cannot create MainWindow (maybe no X11 server is running or DISPLAY is not set?)\n$@\n";
+	    return 0;
+	} else {
+	    $mw->destroy;
+	    return 1;
+	}
+    } else {
+	return 1;
+    }
 }
 
 1;
