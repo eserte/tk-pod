@@ -243,11 +243,6 @@ show "No documentation found for "..."" if there's no pod in the file
 
 =item *
 
-maybe use something selectable and copyable (e.g. Tk::ROText) in the
-About dialog
-
-=item *
-
 support for the new Pod::Index module (similar to the fulltext search)
 
 =item *
