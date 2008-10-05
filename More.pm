@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -344,11 +344,11 @@ goto beginning of file
 
 goto end of file
 
-=item Key-f or Next
+=item Key-f or Next or Space
 
 forward screen
 
-=item Key-b or Prior
+=item Key-b or Prior or BackSpace
 
 backward screen
 
