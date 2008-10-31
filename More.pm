@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -437,7 +437,7 @@ then assume no encoding (which is equivalent to iso-8859-1).
 
 =back
 
-=item AddQuitBinding
+=item AddQuitBindings
 
 Convenience method to add the bindinds Key-q and Control-Key-q to
 close the Toplevel window containing this More widget.

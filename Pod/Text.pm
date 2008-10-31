@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.21 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.22 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -627,58 +627,72 @@ sub Link
 
  if ($sec ne '')
   {
-   # XXX the $start-setting logic doesn't seem to work right
-
    DEBUG and warn "Looking for section \"$sec\"...\n";
+
+   my $highlight_match = sub
+    {
+     my $start = shift;
+     my($line) = split(/\./, $start);
+     $w->tag('remove', '_section_mark', qw/0.0 end/);
+     $w->tag('add', '_section_mark',
+	     $line . ".0",
+	     $line . ".0 lineend");
+     $w->yview("_section_mark.first");
+     $w->after(500, [$w, qw/tag remove _section_mark 0.0 end/]);
+    };
+
    DEBUG and warn "Trying a search across Sections entries...\n";
 
-   my $start;
-
-   foreach my $s ( @{$w->{'sections'} || []} ) {
-     if($s->[1] eq $sec) {
+   foreach my $s ( @{$w->{'sections'} || []} )
+    {
+     if($s->[1] eq $sec)
+      {
        DEBUG and warn " $sec is $$s[1] (at $$s[2])\n";
-       $start = $s->[2];
-
+       my $start = $s->[2];
        my($line) = split(/\./, $start);
-       $w->tag('remove', '_section_mark', qw/0.0 end/);
-       $w->tag('add', '_section_mark',
-		  $line-1 . ".0",
-		  $line-1 . ".0 lineend");
-       $w->yview("_section_mark.first");
-       $w->after(500, [$w, qw/tag remove _section_mark 0.0 end/]);
+       $line--; # off by one, why?
+       $highlight_match->("$line.0");
        return;
-     } else {
+      }
+     else
+      {
        DEBUG > 2 and warn " Nope, it's not $$s[1] (at $$s[2])\n";
-     }
-   }
+      }
+    }
 
+   my $start = ($w->tag('nextrange',$sec, '1.0'))[0];
 
-   if( defined $start ) {
+   if (defined $start)
+    {
      DEBUG and warn " Found at $start\n";
-   } else {
-     $start = ($w->tag('nextrange',$sec, '1.0'))[0];
-   }
-
-   my $link = ($man || '') . $sec;
-
-   if( defined $start ) {
-     DEBUG and warn " Found at $start\n";
-   } else {
+     $highlight_match->($start);
+    }
+   else
+    {
      DEBUG and warn " Not found so far.  Using a quoted nextrange search...\n";
+     my $link = ($man || '') . $sec;
      $start = ($w->tag('nextrange',"\"$link\"",'1.0'))[0];
-   }
+    }
 
-   if( defined $start ) {
+   if (defined $start)
+    {
      DEBUG and warn " Found at $start\n";
-   } else {
+     $highlight_match->($start);
+    }
+   else
+    {
+     DEBUG and warn " Again not found.  Using an exact search...\n";
      $start = $w->search(qw/-exact -nocase --/, $sec, '1.0');
-   }
+    }
 
-
-   unless (defined $start)
+   if (defined $start)
+    {
+     DEBUG and warn " Found at $start\n";
+     $highlight_match->($start);
+    }
+   else
     {
      DEBUG and warn " Not found! (\"sec\")\n";
-
      $w->_die_dialog("Section '$sec' not found\n");
     }
    DEBUG and warn "link-zapping to $start linestart\n";
@@ -1523,3 +1537,7 @@ terms as Perl itself.
 
 =cut
 
+# Local Variables:
+# mode: cperl
+# cperl-indent-level: 1
+# End:

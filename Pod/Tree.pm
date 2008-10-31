@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 5.4 2007/05/10 20:11:09 eserte Exp $
+# $Id: Tree.pm,v 5.6 2008/10/31 23:44:57 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2004,2007 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2004,2007,2008 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -260,6 +260,10 @@ sub Populate {
 		});
     $m->command(-label => 'Search...', -command => [$w, 'search_dialog']);
 
+    $w->Component('Label' => 'UpdateLabel',
+		  -text => "Updating..."
+		 );
+
     $w->ConfigSpecs(
 	-showcommand  => ['CALLBACK', undef, undef, undef],
 	-showcommand2 => ['CALLBACK', undef, undef, undef],
@@ -271,7 +275,7 @@ sub Populate {
 
 =over 4
 
-=item I<$tree>-E<gt>B<Fill>(?I<-nocache =E<gt> 1>?)
+=item I<$tree>-E<gt>B<Fill>(?I<-nocache =E<gt> 1>?, ?I<-forked =E<gt> 0|1>?)
 
 Find Pod modules and fill the tree widget. If I<-nocache> is
 specified, then no cache will be used for loading.
@@ -279,17 +283,84 @@ specified, then no cache will be used for loading.
 A cache of Pod modules is written unless the B<-usecache>
 configuration option of the widget is set to false.
 
+If C<-forked> is specified, then searching for Pods is done in the
+background, if possible. Note that the default is currently
+unspecified.
+
 =cut
 
 sub Fill {
     my $w = shift;
     my(%args) = @_;
+
+    if ($w->{FillPid}) {
+	warn "Forked filling currently running.\n";
+	return;
+    }
+
     $w->delete("all");
+
+    $FindPods = Tk::Pod::FindPods->new unless $FindPods;
+
+    my $forked = delete $args{-forked};
+    if (!defined $forked) {
+	$forked = 1; # by default we try -forked
+    }
+    if ($forked) {
+	if (!eval { require Storable; 1 }) {
+	    warn "Cannot fork, Storable is missing.\n";
+	    $forked = 0;
+	} elsif ($^O eq 'MSWin32' || $^O eq 'cygwin') {
+	    warn "Cannot fork on Windows systems.\n";
+	    $forked = 0;
+	}
+    }
+
+    if ($forked) {
+	my($rdr,$wtr);
+	pipe($rdr,$wtr);
+	$w->{FillPid} = fork;
+	if (!defined $w->{FillPid}) {
+	    warn "Cannot fork: $!";
+	    # fall back to non-forked operation
+	} elsif (!$w->{FillPid}) {
+	    # child
+	    close $rdr;
+	    my $pods = $w->_FillFind(%args);
+	    my $serialized = Storable::freeze($pods);
+	    print $wtr $serialized
+		or die "While writing to pipe: $!";
+	    close $wtr
+		or die "While closing pipe: $!";
+	    CORE::exit(0);
+	} else {
+	    # parent
+	    close $wtr;
+	    $w->Subwidget('UpdateLabel')->place('-x' => 5, '-y' => 5);
+	    $w->fileevent($rdr, 'readable',
+			  sub {
+			      local $/;
+			      my $serialized = <$rdr>;
+			      my $pods = Storable::thaw($serialized);
+			      $w->_FillDone($pods);
+			      $w->fileevent($rdr, 'readable', '');
+			      $w->Subwidget('UpdateLabel')->placeForget;
+			      $w->{FillPid} = undef;
+			  });
+	    return;
+	}
+    }
+
+    # non-forked
+    my $pods = $w->_FillFind(%args);
+    $w->_FillDone($pods);
+}
+
+sub _FillFind {
+    my($w, %args) = @_;
 
     my $usecache = ($w->cget('-usecache') && !$args{'-nocache'});
 
-    # fills %pods hash:
-    $FindPods = Tk::Pod::FindPods->new unless $FindPods;
     my $pods = $FindPods->pod_find(-categorized => 1,
 				   -usecache => $usecache,
 				  );
@@ -306,6 +377,12 @@ sub Fill {
 	    $pods->{$k} = $v;
 	}
     }
+
+    $pods;
+}
+
+sub _FillDone {
+    my($w, $pods) = @_;
 
     my %category_seen;
 

@@ -1,5 +1,10 @@
 History for Tk::Pod
 
+version 0.9939_54
+	o Pod tree is updated in the background (Unix only)
+	o Link to sections: now also non-sections are highlighted
+	o fixed a spelling error in Tk::More's Pod
+
 version 0.9939_53
 	o fixed a broken test
 	o fixed optional_features in META.yml
