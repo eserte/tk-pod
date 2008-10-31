@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 5.5 2008/10/31 23:36:33 eserte Exp $
+# $Id: Tree.pm,v 5.6 2008/10/31 23:44:57 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2004,2007,2008 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -260,6 +260,10 @@ sub Populate {
 		});
     $m->command(-label => 'Search...', -command => [$w, 'search_dialog']);
 
+    $w->Component('Label' => 'UpdateLabel',
+		  -text => "Updating..."
+		 );
+
     $w->ConfigSpecs(
 	-showcommand  => ['CALLBACK', undef, undef, undef],
 	-showcommand2 => ['CALLBACK', undef, undef, undef],
@@ -332,14 +336,16 @@ sub Fill {
 	} else {
 	    # parent
 	    close $wtr;
+	    $w->Subwidget('UpdateLabel')->place('-x' => 5, '-y' => 5);
 	    $w->fileevent($rdr, 'readable',
 			  sub {
 			      local $/;
 			      my $serialized = <$rdr>;
 			      my $pods = Storable::thaw($serialized);
 			      $w->_FillDone($pods);
-			      $w->{FillPid} = undef;
 			      $w->fileevent($rdr, 'readable', '');
+			      $w->Subwidget('UpdateLabel')->placeForget;
+			      $w->{FillPid} = undef;
 			  });
 	    return;
 	}
