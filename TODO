@@ -105,8 +105,10 @@ Show a progress bar or an indicator when refreshing the pod index.
 
 =item *
 
-It would be nice if building the tree would happen in background, e.g.
-by using standard perl ipc (pipe+fork).
+This already happens for Unix, but it would be nice if it also
+implemented (and tested) on Windows systems: It would be nice if
+building the tree would happen in background, e.g. by using standard
+perl ipc (pipe+fork).
 
 =back
 
