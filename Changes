@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9939_55
+	o tkpod: new -version option
+
 version 0.9939_54
 	o Pod tree is updated in the background (Unix only)
 	o Link to sections: now also non-sections are highlighted
