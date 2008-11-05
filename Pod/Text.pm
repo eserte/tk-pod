@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.23 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.24 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -869,6 +869,26 @@ sub SearchFullText {
 			},
 			-currentpath => $current_path,
 		       )->pack(-fill=>'both',-expand=>'both');
+	# XXX A very rough solution:
+	$IDX->Button(-text => "Rebuild search index",
+		     -command => sub {
+		      if (!is_in_path("xsu"))
+		       {
+			$w->_error_dialog("xsu needed to start perlindex");
+		       }
+		      $w->_warn_dialog("The next dialog will ask for the root password. The search index building will happen in background.");
+		      if (fork == 0)
+		       {
+			system('xsu',
+			       '--command', 'perlindex -index',
+			       '--username', 'root',
+			       '--title' => 'Rebuild search index',
+			       '--set-display' => $w->screen,
+			      );
+			CORE::exit(0);
+		       }
+		     }
+		    )->pack(-fill => 'x');
 	$IDX->Button(-text => "Close",
 		     -command => sub { $IDX->destroy },
 		    )->pack(-fill => 'x');
