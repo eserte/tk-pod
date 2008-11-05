@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 5.6 2008/10/31 23:44:57 eserte Exp $
+# $Id: Tree.pm,v 5.7 2008/11/05 22:14:16 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2004,2007,2008 Slaven Rezic. All rights reserved.
@@ -53,8 +53,8 @@ in a tree.
 =cut
 
 use strict;
-use vars qw($VERSION @ISA @POD %EXTRAPODDIR $FindPods $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
+use vars qw($VERSION @ISA @POD %EXTRAPODDIR $ExtraFindPods);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -299,8 +299,8 @@ sub Fill {
     }
 
     $w->delete("all");
-
-    $FindPods = Tk::Pod::FindPods->new unless $FindPods;
+    delete $w->{Pods};
+    $w->{Filled} = 0;
 
     my $forked = delete $args{-forked};
     if (!defined $forked) {
@@ -361,6 +361,7 @@ sub _FillFind {
 
     my $usecache = ($w->cget('-usecache') && !$args{'-nocache'});
 
+    my $FindPods = Tk::Pod::FindPods->new;
     my $pods = $FindPods->pod_find(-categorized => 1,
 				   -usecache => $usecache,
 				  );
@@ -376,6 +377,10 @@ sub _FillFind {
 	while(my($k,$v) = each %$extra_pods) {
 	    $pods->{$k} = $v;
 	}
+    }
+
+    if ($w->cget('-usecache') && !$FindPods->has_cache) {
+	$FindPods->WriteCache;
     }
 
     $pods;
@@ -432,10 +437,7 @@ sub _FillDone {
 	}
     }
 
-    if ($w->cget('-usecache') && !$FindPods->has_cache) {
-	$FindPods->WriteCache;
-    }
-
+    $w->{Pods} = $pods;
     $w->{Filled}++;
 }
 
@@ -493,8 +495,7 @@ sub SeePath {
     }
     DEBUG and warn "Call SeePath with $path\n";
     return if !$w->Filled; # not yet filled
-    return if !$FindPods;
-    my $pods = $FindPods->pods;
+    my $pods = $w->{Pods};
     return if !$pods;
 
     my $see_treepath = sub {
