@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: Tree.pm,v 5.7 2008/11/05 22:14:16 eserte Exp $
+# $Id: Tree.pm,v 5.8 2008/11/05 22:31:48 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2004,2007,2008 Slaven Rezic. All rights reserved.
@@ -54,7 +54,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $ExtraFindPods);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 
 use base 'Tk::Tree';
 
@@ -275,7 +275,7 @@ sub Populate {
 
 =over 4
 
-=item I<$tree>-E<gt>B<Fill>(?I<-nocache =E<gt> 1>?, ?I<-forked =E<gt> 0|1>?)
+=item I<$tree>-E<gt>B<Fill>(?I<-nocache =E<gt> 1>?, ?I<-forked =E<gt> 0|1>?, ?I<-fillcb =E<gt> ...>?)
 
 Find Pod modules and fill the tree widget. If I<-nocache> is
 specified, then no cache will be used for loading.
@@ -286,6 +286,9 @@ configuration option of the widget is set to false.
 If C<-forked> is specified, then searching for Pods is done in the
 background, if possible. Note that the default is currently
 unspecified.
+
+A callback may be specified with the C<-fillcb> option and will be
+called after the tree is filled.
 
 =cut
 
@@ -342,7 +345,7 @@ sub Fill {
 			      local $/;
 			      my $serialized = <$rdr>;
 			      my $pods = Storable::thaw($serialized);
-			      $w->_FillDone($pods);
+			      $w->_FillDone($pods, $args{'-fillcb'});
 			      $w->fileevent($rdr, 'readable', '');
 			      $w->Subwidget('UpdateLabel')->placeForget;
 			      $w->{FillPid} = undef;
@@ -353,7 +356,7 @@ sub Fill {
 
     # non-forked
     my $pods = $w->_FillFind(%args);
-    $w->_FillDone($pods);
+    $w->_FillDone($pods, $args{'-fillcb'});
 }
 
 sub _FillFind {
@@ -387,7 +390,7 @@ sub _FillFind {
 }
 
 sub _FillDone {
-    my($w, $pods) = @_;
+    my($w, $pods, $fillcb) = @_;
 
     my %category_seen;
 
@@ -439,6 +442,10 @@ sub _FillDone {
 
     $w->{Pods} = $pods;
     $w->{Filled}++;
+
+    if ($fillcb) {
+	$fillcb->();
+    }
 }
 
 sub folderentry {
