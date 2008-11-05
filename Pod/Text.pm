@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.22 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.23 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -340,16 +340,21 @@ sub edit
 sub edit_get_linenumber
 {
  my($w) = @_;
- my $linenumber;
+ my $linenumber = $w->get_linenumber;
+ $w->edit(undef, $linenumber);
+}
+
+sub get_linenumber
+{
+ my($w) = @_;
  for my $tag ($w->tagNames('@' . ($w->{MenuX} - $w->rootx) . ',' . ($w->{MenuY} - $w->rooty)))
   {
    if ($tag =~ m{start_line_(\d+)})
     {
-     $linenumber = $1;
-     last;
+     return $1;
     }
   }
- $w->edit(undef, $linenumber);
+ undef;
 }
 
 sub view_source
@@ -364,6 +369,11 @@ sub view_source
 			 -scrollbars => $Tk::platform eq 'MSWin32' ? 'e' : 'w',
 			)->pack(-fill => "both", -expand => 1);
  $more->Load($w->_get_editable_path);
+ my $linenumber = $w->get_linenumber;
+ if (defined $linenumber)
+  {
+   $more->see($linenumber.'.'.0);
+  }
  $more->AddQuitBindings;
  $more->focus;
 }
