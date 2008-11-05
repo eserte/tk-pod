@@ -2,6 +2,7 @@ History for Tk::Pod
 
 version 0.9939_55
 	o tkpod: new -version option
+	o View Source: show Pod source at current line now
 
 version 0.9939_54
 	o Pod tree is updated in the background (Unix only)
