@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.32 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.33 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = "0.9939_55";
 
 @ISA = qw(Tk::Toplevel);
@@ -604,7 +604,9 @@ sub tree {
 		$w->_configure_tree;
 		$w->Busy(-recurse => 1);
 		eval {
-		    $tree->Fill;
+		    $tree->Fill(-fillcb => sub {
+				    $tree->SeePath("file:" . $p->cget(-path)) if $p->cget(-path);
+				});
 		};
 		my $err = $@;
 		$w->Unbusy;
@@ -612,7 +614,6 @@ sub tree {
 		    die $err;
 		}
 	    }
-	    $tree->SeePath("file:" . $p->cget(-path)) if $p->cget(-path);
 	} else {
 	    if ($tree && $tree->manager) {
 		$tree->packForget;
