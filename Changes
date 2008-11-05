@@ -4,6 +4,7 @@ version 0.9939_55
 	o tkpod: new -version option
 	o View Source: show Pod source at current line now
 	o fixed partially breakage because of background tree updating
+	o experimental: a new button for rebuilding the fullsearch index
 
 version 0.9939_54
 	o Pod tree is updated in the background (Unix only)
