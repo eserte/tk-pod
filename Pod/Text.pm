@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.25 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.26 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -1514,6 +1514,13 @@ Pod with umlaut: L<ExtUtils::MakeMaker>.
 Details:  L<perlpod> or perl, perlfunc.
 
 External links: L<http://www.cpan.org> (URL), L<perl(1)> (man page).
+
+Links to local sections: L<a section (SYNOPSIS)|/SYNOPSIS>, L<an item
+(-file, currently wrong)|/-file>, L<a working item (auml)|/auml>.
+
+Links to external sections: L<a section (DESCRIPTION in
+perl.pod)|perl/DESCRIPTION>, L<an item (Uncuddled elses in
+perlstyle.pod)|perlstyle/Uncuddled elses>.
 
 Here some code in a as is paragraph
 
