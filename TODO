@@ -378,6 +378,11 @@ Instead of listening to a tcp socket, maybe one should use a unix
 domain socket (security, a unix domain socket may be chown'ed and
 chmod'ed!)
 
+=item *
+
+tkpod -s: should probably reuse the Pod window instead of re-creating
+new ones. Maybe this should be controlled by another option.
+
 =back
 
 =head2 Expired
