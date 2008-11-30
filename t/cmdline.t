@@ -2,11 +2,12 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.11 2008/08/16 20:37:50 eserte Exp $
+# $Id: cmdline.t,v 1.12 2008/11/30 22:42:20 eserte Exp $
 # Author: Slaven Rezic
 #
 
 use strict;
+use Cwd qw(cwd);
 use FindBin;
 use File::Basename qw(basename);
 use File::Spec;
@@ -41,6 +42,11 @@ my $script = "$blib/script/tkpod";
 my $tkmore_script = "$blib/script/tkmore";
 
 my $batch_mode = defined $ENV{BATCH} ? $ENV{BATCH} : 1;
+
+my $cwd = cwd;
+# http://rt.cpan.org/Ticket/Display.html?id=41320 (have to chdir out
+# of temp directory before File::Temp cleans directories)
+END { chdir $cwd if defined $cwd }
 
 GetOptions("d|debug" => \$DEBUG,
 	   "batch!" => \$batch_mode)
