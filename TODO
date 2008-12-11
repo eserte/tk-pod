@@ -67,19 +67,6 @@ Scrolled code).
 
 =back
 
-=head3 Tk::Pod::FindPods
-
-=over
-
-=item *
-
-The location of the cache file is predictable and on /tmp which is
-bad. Either choose a unpredictable but unique filename, or use
-techniques like O_EXCL (is this supported everywhere?), or store
-the cache in the user's home directory (preferred).
-
-=back
-
 =head3 Tk::Pod::Search
 
 =over

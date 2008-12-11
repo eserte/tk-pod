@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.11 2008/02/03 16:10:51 eserte Exp $
+# $Id: FindPods.pm,v 5.12 2008/12/11 23:03:47 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001,2003,2004,2005,2007 Slaven Rezic. All rights reserved.
@@ -38,7 +38,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -383,8 +383,16 @@ sub _cache_file {
 
     my $cache_file_pattern = $ENV{TKPODCACHE};
     if (!defined $cache_file_pattern) {
+	my $cache_root;
+	if ($^O =~ m{^(darwin|MSWin32)} && eval { require File::HomeDir; 1 }) {
+	    $cache_root = File::Spec->catfile(File::HomeDir->my_data, ".tkpod_cache");
+	} elsif ($ENV{HOME} && -d $ENV{HOME}) {
+	    $cache_root = "$ENV{HOME}/.tkpod_cache";
+	} else {
+	    $cache_root = File::Spec->can('tmpdir') ? File::Spec->tmpdir : $ENV{TMPDIR}||"/tmp";
+	}
 	$cache_file_pattern = File::Spec->catfile
-	    (File::Spec->can('tmpdir') ? File::Spec->tmpdir : $ENV{TMPDIR}||"/tmp",
+	    ($cache_root,
 	     join('_', 'pods',"%v","%o","%u")
 	    );
     }
@@ -510,8 +518,10 @@ __END__
 =item TKPODCACHE
 
 Path for the cache file. By default, the cache file is written to the
-temporary directory (F</tmp> or the OS equivalent). The following
-placeholders are recognized:
+directory F<~/.tkpod_cache> (Unix systems), or the data directory as
+determined by L<File::HomeDir> (Windows, MacOSX). If everything fails,
+then the temporary directory (F</tmp> or the OS equivalent) is used. The
+following placeholders are recognized:
 
 =over
 
@@ -530,16 +540,15 @@ The user id.
 
 =back
 
-Example for using F</var/tmp> instead of F</tmp> for the cache file
-location (on many systems F</var/tmp> is persistent, unlike F</tmp>):
+Example for using F</some/other/directory> for the cache file location:
 
-	setenv TKPODCACHE /var/tmp/pods_%v_%o_%u
+	TKPODCACHE=/some/other/directory/pods_%v_%o_%u; export TKPODCACHE
 
 or
 
-	TKPODCACHE=/var/tmp/pods_%v_%o_%u; export TKPODCACHE
+	setenv TKPODCACHE /some/other/directory/pods_%v_%o_%u
 
-depending on your shell.
+depending on your shell (sh-like or csh-like).
 
 =back
 
