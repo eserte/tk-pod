@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: podtree.t,v 1.5 2008/08/16 20:37:53 eserte Exp $
+# $Id: podtree.t,v 1.6 2009/08/07 22:44:25 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -44,6 +44,12 @@ $pt = $mw->Scrolled("PodTree",
 		   )->grid(-sticky => "esnw");
 $mw->gridColumnconfigure(0, -weight => 1);
 $mw->gridRowconfigure(0, -weight => 1);
+
+warn <<EOF;
+#
+# Tests may take a long time (up to 10 minutes or so) if you have a lot
+# of modules installed.
+EOF
 
 ok(Tk::Exists($pt), 1);
 $pt->Fill;
