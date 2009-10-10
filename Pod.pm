@@ -4,8 +4,8 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.34 $ =~ /(\d+)\.(\d+)/);
-$DIST_VERSION = '0.9939_56';
+$VERSION = sprintf("%d.%02d", q$Revision: 5.35 $ =~ /(\d+)\.(\d+)/);
+$DIST_VERSION = '0.9939_57';
 
 @ISA = qw(Tk::Toplevel);
 

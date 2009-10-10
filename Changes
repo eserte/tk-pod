@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9939_57
+	o fix for http://rt.cpan.org/Ticket/Display.html?id=41320
+	  (1st issue, cleanup of temporary directory)
+
 version 0.9939_56
 	o create cache directory if necessary
 	o cache directory documentation
@@ -14,6 +18,7 @@ version 0.9939_55
 	o experimental: a new button for rebuilding the fullsearch index
 	  (needs either gksu or xsu)
 	o fix for http://rt.cpan.org/Ticket/Display.html?id=41320
+	  (2nd issue)
 	o pod cache now lives in the home or data directory
 	o TODO file is now written in org-mode, not anymore as Pod
 

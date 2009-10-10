@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9939_56";
+$DIST_VERSION = "0.9939_57";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
