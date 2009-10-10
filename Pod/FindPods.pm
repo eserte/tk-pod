@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: FindPods.pm,v 5.12 2008/12/11 23:03:47 eserte Exp $
+# $Id: FindPods.pm,v 5.13 2009/10/10 14:10:28 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2003,2004,2005,2007 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2003,2004,2005,2007,2009 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
 #
@@ -13,8 +13,6 @@
 #
 
 package Tk::Pod::FindPods;
-
-=encoding iso-8859-2
 
 =head1 NAME
 
@@ -38,7 +36,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.12 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.13 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -87,9 +85,9 @@ be set to force the Pods into a category.
 By default, C<@INC> is scanned for Pods. This can be overwritten by
 the C<-directories> option (specify as an array reference).
 
-If C<-usecache> is specified, then the list of Pods is cached in a
-temporary directory. C<-usecache> is disabled if C<-categorized> is
-not set or C<-directories> is set.
+If C<-usecache> is specified, then the list of Pods is cached (see
+L<cache directory|/Cache directory>). C<-usecache> is disabled if
+C<-categorized> is not set or C<-directories> is set.
 
 =cut
 
@@ -112,17 +110,25 @@ sub pod_find {
 	    my $perllocal_site = File::Spec->catfile($Config{'installsitearch'},'perllocal.pod');
 	    my $perllocal_lib  = File::Spec->catfile($Config{'installarchlib'},'perllocal.pod');
 	    my $cache_file = _cache_file();
-	    if (-r $cache_file &&
-		(-e $perllocal_site && -M $perllocal_site > -M $cache_file) &&
-		(-e $perllocal_lib  && -M $perllocal_lib > -M $cache_file)
-	       ) {
+	VALIDATE_CACHE: {
+		if (!-r $cache_file) {
+		    DEBUG and warn "Cache file $cache_file does not exist or is not readable\n";
+		    last VALIDATE_CACHE;
+		}
+		if (-e $perllocal_site && -M $perllocal_site < -M $cache_file) {
+		    DEBUG and warn "$perllocal_site is more recent than cache file $cache_file\n";
+		    last VALIDATE_CACHE;
+		}
+		if (-e $perllocal_lib  && -M $perllocal_lib < -M $cache_file) {
+		    DEBUG and warn "$perllocal_lib is more recent than cache file $cache_file\n";
+		    last VALIDATE_CACHE;
+		}
+
 		$self->LoadCache;
 		if ($self->{pods}) {
 		    $self->{has_cache} = 1;
 		    return $self->{pods};
 		}
-	    } else {
-		DEBUG and warn "$perllocal_site and/or $perllocal_lib are more recent than cache file $cache_file or cache file does not exist\n";
 	    }
 	}
     }
@@ -459,9 +465,9 @@ sub function_pod {
 
 =head2 WriteCache
 
-Write the Pod cache. The cache is written to the temporary directory.
-The file name is constructed from the perl version, operation system
-and user id.
+Write the Pod cache. The cache is written to the L<cache
+directory|/Cache directory>. The file name is constructed from the
+perl version, operation system and user id.
 
 =cut
 
@@ -470,14 +476,23 @@ sub WriteCache {
 
     require Data::Dumper;
 
-    if (!open(CACHE, ">" . _cache_file())) {
-	warn "Can't write to cache file " . _cache_file();
-    } else {
-	my $dd = Data::Dumper->new([$self->{pods}], ['pods']);
-	$dd->Indent(0);
-	print CACHE $dd->Dump;
-	close CACHE;
+    my $cache_dir = dirname _cache_file();
+    if (!-d $cache_dir) {
+	mkdir $cache_dir
+	    or do {
+		warn "Can't create cache directory $cache_dir: $!";
+		return;
+	    };
     }
+    if (!open(CACHE, ">" . _cache_file())) {
+	warn "Can't write to cache file " . _cache_file() . ": $!";
+	return;
+    }
+
+    my $dd = Data::Dumper->new([$self->{pods}], ['pods']);
+    $dd->Indent(0);
+    print CACHE $dd->Dump;
+    close CACHE;
 }
 
 =head2 LoadCache()
@@ -511,17 +526,27 @@ print Data::Dumper->Dumpxs([Tk::Pod::FindPods->new->pod_find(-categorized => 0, 
 
 __END__
 
+=head2 Cache directory
+
+By default the cache file is written to the directory
+F<~/.tkpod_cache> (Unix systems), or the data directory as determined
+by L<File::HomeDir> (Windows, MacOSX). If everything fails, then the
+temporary directory (F</tmp> or the OS equivalent) is used.
+
+If necessary, then the last path component will be created (that is,
+F<.tkpod_cache> will be created if the directory does not exist).
+
+To use another cache directory set the environment variable
+L</TKPODCACHE>.
+
 =head1 ENVIRONMENT
 
 =over
 
 =item TKPODCACHE
 
-Path for the cache file. By default, the cache file is written to the
-directory F<~/.tkpod_cache> (Unix systems), or the data directory as
-determined by L<File::HomeDir> (Windows, MacOSX). If everything fails,
-then the temporary directory (F</tmp> or the OS equivalent) is used. The
-following placeholders are recognized:
+Use a custom cache file instead of a file in the L<cache directory|/Cache directory>.
+The following placeholders are recognized:
 
 =over
 
@@ -558,9 +583,9 @@ L<Tk::Tree>.
 
 =head1 AUTHOR
 
-Slaven Reziæ <F<slaven@rezic.de>>
+Slaven ReziE<0x0107> <F<slaven@rezic.de>>
 
-Copyright (c) 2001,2003,2004,2005 Slaven Rezic. All rights reserved.
+Copyright (c) 2001,2003,2004,2005,2007,2009 Slaven ReziE<0x0107>. All rights reserved.
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
