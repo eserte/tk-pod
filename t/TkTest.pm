@@ -39,6 +39,13 @@ sub check_display_test_harness {
     test_harness(@test_harness_args);
 }
 
+# Avoid this function. Tk 804.xxx may die if multiple MainWindows are
+# created within one process (seen e.g. on FreeBSD systems). By using
+# this function a test MainWindow will be created, so the next "real"
+# $mw creation may fail.
+#
+# display_test() is only safe if subsequent creation of MainWindows is
+# done in separate processes (i.e. if using system(...))
 sub display_test {
     if (!_can_MainWindow()) {
 	print "1..0 # skip Cannot create MainWindow\n";
