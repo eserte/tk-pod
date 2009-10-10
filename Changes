@@ -1,5 +1,10 @@
 History for Tk::Pod
 
+version 0.9939_56
+	o create cache directory if necessary
+	o cache directory documentation
+	o use entities instead of iso-8859-2 encoding in some Pods
+
 version 0.9939_55
 	o tkpod: new -version option
 	o View Source: show Pod source at current line now
