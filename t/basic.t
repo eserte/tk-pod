@@ -13,14 +13,6 @@ BEGIN
     Test->import;
   }
 
-use FindBin;
-use lib $FindBin::RealBin;
-use TkTest qw(display_test);
-BEGIN
-  {
-    display_test();
-  }
-
 use strict;
 use Tk;
 ##

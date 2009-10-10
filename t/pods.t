@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: pods.t,v 1.3 2008/08/16 20:37:53 eserte Exp $
+# $Id: pods.t,v 1.4 2009/10/10 15:55:35 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -10,13 +10,6 @@ use strict;
 
 use Tk;
 use Tk::Pod::Text;
-
-use FindBin;
-use lib $FindBin::RealBin;
-use TkTest qw(display_test);
-BEGIN {
-    display_test();
-}
 
 BEGIN {
     if (!eval q{
@@ -28,10 +21,15 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 4 }
-
 use Tk;
-my $mw = MainWindow->new;
+my $mw = eval { MainWindow->new };
+if (!$mw) {
+    print "1..0 # cannot create MainWindow\n";
+    CORE::exit(0);
+}
+
+plan tests => 4;
+
 my $pt = $mw->PodText->pack;
 for my $pod ('perl',       # pod in perl.pod
 	     'perldoc',    # pod in script itself

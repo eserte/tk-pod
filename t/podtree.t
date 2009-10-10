@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: podtree.t,v 1.6 2009/08/07 22:44:25 eserte Exp $
+# $Id: podtree.t,v 1.7 2009/10/10 15:55:35 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -11,13 +11,6 @@ use strict;
 use Tk;
 use Tk::Pod::Tree;
 use Tk::Pod::FindPods;
-
-use FindBin;
-use lib $FindBin::RealBin;
-use TkTest qw(display_test);
-BEGIN {
-    display_test();
-}
 
 BEGIN {
     if (!eval q{
@@ -31,9 +24,13 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 5 }
+my $mw = eval { tkinit };
+if (!$mw) {
+    print "1..0 # cannot create MainWindow\n";
+    CORE::exit(0);
+}
 
-my $mw = tkinit;
+plan tests => 5;
 
 my $pt;
 $pt = $mw->Scrolled("PodTree",

@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: subclass.t,v 1.3 2008/08/16 20:37:53 eserte Exp $
+# $Id: subclass.t,v 1.4 2009/10/10 15:55:35 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -13,13 +13,6 @@ use strict;
 
 use Tk;
 use Tk::Pod;
-
-use FindBin;
-use lib $FindBin::RealBin;
-use TkTest qw(display_test);
-BEGIN {
-    display_test();
-}
 
 BEGIN {
     if (!eval q{
@@ -36,7 +29,13 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 1 }
+my $mw = eval { MainWindow->new };
+if (!$mw) {
+    print "1..0 # cannot create MainWindow\n";
+    CORE::exit(0);
+}
+
+plan tests => 1;
 
 {
     package Tk::MyMore;
@@ -68,7 +67,6 @@ BEGIN { plan tests => 1 }
     sub Pod_Text_Widget { "MyPodText" }
 }
 
-my $mw = MainWindow->new;
 $mw->withdraw;
 my $pod = $mw->MyPod;
 $pod->configure(-file => "perl.pod");

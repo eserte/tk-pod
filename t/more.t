@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: more.t,v 1.4 2008/08/16 20:37:51 eserte Exp $
+# $Id: more.t,v 1.5 2009/10/10 15:55:34 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -10,13 +10,6 @@ use strict;
 
 use Tk;
 use Tk::More;
-
-use FindBin;
-use lib $FindBin::RealBin;
-use TkTest qw(display_test);
-BEGIN {
-    display_test();
-}
 
 BEGIN {
     if (!eval q{
@@ -28,9 +21,13 @@ BEGIN {
     }
 }
 
-BEGIN { plan tests => 2 }
+my $mw = eval { tkinit };
+if (!$mw) {
+    print "1..0 # cannot create MainWindow\n";
+    CORE::exit(0);
+}
 
-my $mw = tkinit;
+plan tests => 2;
 
 {
     my $more = $mw->Scrolled("More",

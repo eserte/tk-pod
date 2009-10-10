@@ -2,18 +2,11 @@
 # -*- perl -*-
 
 #
-# $Id: optionalmods.t,v 1.6 2008/08/16 20:37:51 eserte Exp $
+# $Id: optionalmods.t,v 1.7 2009/10/10 15:55:34 eserte Exp $
 # Author: Slaven Rezic
 #
 
 use strict;
-
-use FindBin;
-use lib $FindBin::RealBin;
-use TkTest qw(display_test);
-BEGIN {
-    display_test();
-}
 
 BEGIN {
     if (!eval q{
@@ -38,9 +31,14 @@ use Devel::Hide qw(Text::English Tk::HistEntry Tk::ToolBar);
 use Tk;
 use Tk::Pod;
 
+my $mw = eval { tkinit };
+if (!$mw) {
+    print "1..0 # cannot create MainWindow\n";
+    CORE::exit(0);
+}
+
 plan tests => 1;
 
-my $mw = tkinit;
 $mw->geometry("+0+0");
 
 my $pod = $mw->Pod;

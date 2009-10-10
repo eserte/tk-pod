@@ -4,6 +4,8 @@ version 0.9939_56
 	o create cache directory if necessary
 	o cache directory documentation
 	o use entities instead of iso-8859-2 encoding in some Pods
+	o tests may fail on some systems because of a bug in Tk
+	  (i.e. when creating multiple MainWindows within one process)
 
 version 0.9939_55
 	o tkpod: new -version option
