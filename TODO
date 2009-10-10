@@ -36,6 +36,9 @@ while using tkpod (best viewed with Emacs' org-mode).
     An workaround would be to have the vertical scrollbar non-optional
     and the horizontal scrollbar optional (unfortunately both cannot
     be optional because of a bug in the Scrolled code).
+*** DONE old window is jumping after ctrl-n and ctrl-p
+    because these already have bindings in Tk::Text
+    -> workarounded, but need good checks first!
 ** Tk::Pod::Search
 *** Reorder modules in the fulltext search results to reflect @INC order
 ** Tk::More
@@ -129,6 +132,9 @@ while using tkpod (best viewed with Emacs' org-mode).
 *** use a LRU cache with $MAX_CACHE documents
 *** maybe do not cache small documents at all
 *** store modtime of POD files and flush cache automatically if the file changed
+*** consider to cache per INC path, so user can use custom @INC/@PERLPOD and everything works as expected
+    e.g. ~/tkpod_cache/perlspec(abspathofconfig)/MD5orSHA1ofpath
+         ~/tkpod_cache/perlspec(abspathofconfig)/.info
 ** Tk::Pod::Tree
 *** Make tree busy while building first time
 *** Show a progress bar or an indicator when refreshing the pod index
@@ -149,7 +155,7 @@ while using tkpod (best viewed with Emacs' org-mode).
     (security, a unix domain socket may be chown'ed and chmod'ed!)
 *** tkpod -s: should probably reuse the Pod window instead of re-creating new ones 
     Maybe this should be controlled by another option.
-* Expired
+* Expired problems
   These bugs are probably fixed or not reproducable or apparent on old
   systems only:
 ** Ctrl-O Exporter does not work?!

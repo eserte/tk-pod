@@ -4,7 +4,7 @@ use Tk ();
 use Tk::Toplevel;
 
 use vars qw($VERSION $DIST_VERSION @ISA);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.35 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.36 $ =~ /(\d+)\.(\d+)/);
 $DIST_VERSION = '0.9939_57';
 
 @ISA = qw(Tk::Toplevel);
@@ -333,9 +333,9 @@ EOF
   $w->bind($path, "<Control-plus>" => [$w, 'zoom_in']);
   $w->bind($path, "<F3>" => [$w,'openfile']);
   $w->bind($path, "<Control-o>" => [$w,'openpod',$p]);
-  $w->bind($path, "<Control-n>" => [$w,'newwindow',$p]);
+  $w->bind($path, "<Control-n>" => sub { $w->newwindow($p); Tk->break });
   $w->bind($path, "<Control-r>" => [$p, 'reload']);
-  $w->bind($path, "<Control-p>" => [$p, 'Print']);
+  $w->bind($path, "<Control-p>" => sub { $p->Print; Tk->break });
   $w->bind($path, "<Print>"     => [$p, 'Print']);
   $w->bind($path, "<Control-w>" => [$w, 'quit']);
   $w->bind($path, "<Control-q>" => sub { $p->MainWindow->destroy })
