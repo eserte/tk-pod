@@ -1,415 +1,161 @@
-=head1 TODO
+TODO					-*- mode: org; coding: utf-8; -*-
 
 Scratch pad of bugs, missing features, and misbehaviors collected
-while using tkpod.
+while using tkpod (best viewed with Emacs' org-mode).
 
-=head2 BUGS
-
-=head3 Tk::Pod
-
-=over
-
-=item *
-
-SE<lt>E<gt> seems often to be ignored. May be a core Tk::Text bug (i.e.
-C<< -wrap => "none" >> in tags being sometimes ignored)
-
-=item *
-
-For Windows: check whether Tk::More/Tk::Tree match the system
-background colors. Also check if the "Help" menu item is on the
-correct place.
-
-=item *
-
-Title is not displayed if function or FAQ pod in displayed in a new
-window or when navigating in the history back or forward to a
-function/FAQ pod.
-
-=item *
-
-C<< $podtext->configure(-file => ...) >> does not work always as
-expected. When set from a command line argument, then one expects to
-use the name of a module in perl's pod path (specified without .pm or
-.pod extension) or a (relative) path to a file (with extension). Example:
+* BUGS
+** Tk::Pod
+*** S<> seems often to be ignored
+    May be a core Tk::Text bug (i.e. -wrap => "none" in tags being
+    sometimes ignored)
+    -> Should find sample Pod to easily reproduce this problem.
+*** For Windows: check whether Tk::More/Tk::Tree match the system background colors
+    Also check if the "Help" menu item is on the correct place.
+*** Title is not displayed if function or FAQ pod in displayed in a new window
+    or when navigating in the history back or forward to a function/FAQ pod
+*** $podtext->configure(-file => ...) does not work always as expected
+    When set from a command line argument, then one expects to use the
+    name of a module in perl's pod path (specified without .pm or .pod
+    extension) or a (relative) path to a file (with extension).
+    Example:
 
     cd ~/src/bbbike
     tkpod ESRI/esri2bbd.pl
     * now click on bbbike link => bbbike itself will be loaded, not bbbike.pod
       because of a -f test in findpod
 
-=item *
-
-Do not move focus if already in PodText's search entry.
-
-=item *
-
-The perlfunc subentries do not show up in the history.
-
-=item *
-
-Links within perlfunc subentries do not work (seen in "-f import").
-
-=item *
-
-Paragraphs after bullet and number items do not align correctly.
-Tweaking the _indent functionality in Tk::Pod::SimpleBridge seems to
-be necessary.
-
-=item *
-
-If .pod and .pm are located in separated directories, then the wrong
-file (the .pm) might be chosen. Seen on Debian with IO::Handle.
-
-=item *
-
-There is never a horizontal scrollbar, even if a verbatim block
-exceeds the window width. An workaround would be to have the vertical
-scrollbar non-optional and the horizontal scrollbar optional
-(unfortunately both cannot be optional because of a bug in the
-Scrolled code).
-
-=back
-
-=head3 Tk::Pod::Search
-
-=over
-
-=item *
-
-Reorder modules in the fulltext search results to reflect @INC
-order.
-
-=back
-
-=head3 Tk::Pod::Tree
-
-=over
-
-=item *
-
-Make tree busy while building first time.
-
-=item *
-
-Show a progress bar or an indicator when refreshing the pod index.
-
-=item *
-
-This already happens for Unix, but it would be nice if it also
-implemented (and tested) on Windows systems: It would be nice if
-building the tree would happen in background, e.g. by using standard
-perl ipc (pipe+fork).
-
-=back
-
-=head3 Tk::More
-
-=over
-
-=item *
-
-Highlight matches in link text.
-
-=item *
-
-A menu item for switching between popular encodings. Default probably
-to iso-8859-1 or maybe user's locale.
-
-=item *
-
-A menu item (and maybe also the keyboard equivalent -x) for changing
-the indentation level.
-
-=item *
-
-If there are more configuration parameters resembling less, then maybe
-an environment variable like LESS could be useful for common
-configuration parameters. Question: should this only be valid if it's
-called as tkmore or also if embedded in Tk::Pod?
-
-=back
-
-=head3 tkpod
-
-=over
-
-=item *
-
-In server mode, no commandline options are accepted. Probably at least
--h/-? should be supported and errors for other options dropped.
-
-=item *
-
-Get rid of the numerous warnings in server/client mode.
-
-=item *
-
-If the client sends a file which cannot be opened, then the server
-crashes!
-
-=item *
-
-The tkpod client should send cwd, so relative filenames work in server
-mode, too.
-
-=item *
-
-Some systems (e.g. Debian) may not have any perl documentation
-installed, i.e. no perl.pod. tkpod should not die if perl.pod is not
-available, but maybe just start with a blank page.
-
-=back
-
-=head2 WISHLIST
-
-=head3 Tk::Pod
-
-=over
-
-=item *
-
-History: prefer short pod names over filenames. If filenames, then
-maybe show more than the basename, and maybe abbreviate it if it's too
-long. Do not record temporary file names (as in perldoc -f / -q) in
-history view. But show something sensible instead (currently it seems
-that there's only an empty entry).
-
-=item *
-
-If "perlindex -index" is not run yet: ask user to run it? Problematic
-on Unix, because perlindex should be run as superuser.
-
-=item *
-
-On Windows: show printer selection dialog first, maybe also on
-KDE/GNOME, if available.
-
-=item *
-
-Optionally save settings on exit, e.g. current base font size.
-
-=item *
-
-Marek Rouchal writes:
-
-Subject: tkpod - other font
-
-Fine, there is a central
-place where I can do adaptations easily - but how can
-I easily override? The only solution I can imagine
-right now is to place a Tk::Pod::Styles in some
-$PERL5LIB directory and shadow the installation's
-Tk::Pod::Styles; there could be e.g. a 
-  -usestyle Tk::Pod::Styles::Mine
-option, where I can provide my own package, which inherits
-from Tk::Pod::Styles and overrides one or more subs.
-
-But I would appreciate a general solution with either a
-~/.tkpodrc or the X resources, as already mentioned.
-
--> There's now a solution with X resources, which are also settable
-with -xrm. But maybe a .tkpodrc solution would also be nice, especially
-for non-X11 people.
-
-=item *
-
-Maybe patch Ulrichs TPJ example code for nroff pages to allow both POD
-and MAN in fulltext search dialog.
-
-=item *
-
-add meaningful regression tests
-
-=item *
-
-use some kind of access control for the -s option
-
-=item *
-
-new menu entry with a link list (e.g. all LE<lt>...E<gt> and everything
-looking like a module /\w+::\w+/)
-
-=item *
-
-make ManViewer into a standalone widget, link entries in "SEE ALSO" 
-
-=item *
-
-option for interleaving POD and code
-
-=item *
-
-show "No documentation found for "..."" if there's no pod in the file
-(just like perldoc)
-
-=item *
-
-support for the new Pod::Index module (similar to the fulltext search)
-
-=item *
-
-some kind of stylesheet support
-
-=item *
-
-It should probably be possible to create the menus Section and History
-independently of the main Tk::Pod frame, so the user may add these
-menus to the context menu of the PodText window.
-
-=item *
-
-Maybe have a new popup menu entry View -> Pod info which shows path
-and basic Pod information.
-
-=item *
-
-If a Pod could not be found: add a button "Look at search.cpan.org" to
-the error dialog.
-
-=item *
-
-"Open Pod by name" dialog could be done nicer, e.g. by using a rich
-Tk::Text instead of the label/message and use "sans serif"+"monospace"
-fonts.
-
-=back
-
-=head3 Tk::More
-
-=over
-
-=item *
-
-Tk/More status bar:  filename  %   line x
-
-=item *
-
-more 'more' like key bindings to Tk::More.
-
-=item *
-
-More.pm: search should scroll per page
-
-=item *
-
-search policies: regexp, glob, incremental (as in xmore)
-and 'normalized' as in perlindex.  Should go into it's own
-Tk::Text::Util.pm module
-
-Or: use Tk::FindBar (create it first by branching Tkx::FindBar) for
-incremental search.
-
-=item *
-
-after switching between case sensitive/insensitive highlightning
-should be updated immediately
-
-=item *
-
-scrolling is not as exact as it shoule be (i.e. scroll forw, then
-scroll back will not get to the same position as before)
-
-=item *
-
-use Tk::HistEntry for search entry
-
-=item *
-
-implement isearch
-
-=item *
-
-<Return> over a link opens the link (but this needs some kind of
-"current link" feature, probably by using <Tab> or similar to select
-the next link).
-
-=back
-
-=head3 Tk::Pod::Cache
-
-=over
-
-=item *
-
-use a LRU cache with $MAX_CACHE documents
-
-=item *
-
-maybe do not cache small documents at all
-
-=item *
-
-store modtime of POD files and flush cache automatically if the file
-changed
-
-=back
-
-=head3 Tk::Pod::Tree
-
-=over
-
-=item *
-
-Some zoom functionality, maybe depending on the zoom factor of the
-main window, and/or an additional menu entry.
-
-=item *
-
-Should I include something similar to perlfunc for perlfaq (perldoc
--q)? Maybe a new menu item "Search FAQ"?
-
-=item *
-
-Implement C<-rememberopen> in C<Fill> method.
-
-=item *
-
-Mark modules which appear multiple times in the @INC tree, e.g. with
-an exclamation mark, and maybe show the paths and versions(?) of
-both/all versions.
-
-=back
-
-=head3 tkpod
-
-=over
-
-=item *
-
-Instead of listening to a tcp socket, maybe one should use a unix
-domain socket (security, a unix domain socket may be chown'ed and
-chmod'ed!)
-
-=item *
-
-tkpod -s: should probably reuse the Pod window instead of re-creating
-new ones. Maybe this should be controlled by another option.
-
-=back
-
-=head2 Expired
-
-These bugs are probably fixed or not reproducable or apparent on old
-systems only:
-
-=over
-
-=item *
-
-Ctrl-O Exporter does not work?!
-
-=item *
-
-What about the reported error on Suse Linux (see Tk-Pod entry on
-rt.cpan.org)? I can't reproduce this bug...
-
-=item *
-
-Dump does not always work on a RedHat 8.0 system, so I had to use a
-workaround. Also, Tk::Pod very often dumps core on this system in
-conjuction with perl5.8.0 and Tk800.025, but this might be a
-RedHat-related issue.
-
-=back
-
+*** Do not move focus if already in PodText's search entry
+*** The perlfunc subentries do not show up in the history
+*** Links within perlfunc subentries do not work (seen in "-f import")
+*** Paragraphs after bullet and number items do not align correctly
+    Tweaking the _indent functionality in Tk::Pod::SimpleBridge seems
+    to be necessary.
+*** If .pod and .pm are located in separated directories, then the wrong file (the .pm) might be chosen
+    Seen on Debian with IO::Handle.
+*** There is never a horizontal scrollbar, even if a verbatim block exceeds the window width
+    An workaround would be to have the vertical scrollbar non-optional
+    and the horizontal scrollbar optional (unfortunately both cannot
+    be optional because of a bug in the Scrolled code).
+** Tk::Pod::Search
+*** Reorder modules in the fulltext search results to reflect @INC order
+** Tk::More
+*** Highlight matches also in link text
+** tkpod
+*** In server mode, no commandline options are accepted
+    Probably at least -h/-? should be supported and errors for other
+    options dropped.
+*** Get rid of the numerous warnings in server/client mode.
+*** If the client sends a file which cannot be opened, then the server crashes!
+*** The tkpod client should send cwd, so relative filenames work in server mode, too.
+*** Some systems (e.g. Debian) may not have any perl documentation installed, i.e. no perl.pod
+    tkpod should not die if perl.pod is not available, but maybe just
+    start with a blank page.
+* WISHLIST
+** Tk::Pod
+*** History: prefer short pod names over filenames
+    If filenames, then maybe show more than the basename, and maybe
+    abbreviate it if it's too long. Do not record temporary file names
+    (as in perldoc -f / -q) in history view. But show something
+    sensible instead (currently it seems that there's only an empty
+    entry).
+*** If "perlindex -index" is not run yet: ask user to run it?
+    Problematic on Unix, because perlindex should be run as superuser.
+*** On Windows: show printer selection dialog first, maybe also on KDE/GNOME, if available
+*** Optionally save settings on exit, e.g. current base font size
+*** using other fonts
+    Marek Rouchal writes:
+
+    Subject: tkpod - other font
+
+    Fine, there is a central
+    place where I can do adaptations easily - but how can
+    I easily override? The only solution I can imagine
+    right now is to place a Tk::Pod::Styles in some
+    $PERL5LIB directory and shadow the installation's
+    Tk::Pod::Styles; there could be e.g. a 
+      -usestyle Tk::Pod::Styles::Mine
+    option, where I can provide my own package, which inherits
+    from Tk::Pod::Styles and overrides one or more subs.
+
+    But I would appreciate a general solution with either a ~/.tkpodrc
+    or the X resources, as already mentioned.
+
+    -> There's now a solution with X resources, which are also
+    settable with -xrm. But maybe a .tkpodrc solution would also be nice,
+    especially for non-X11 people.
+*** Maybe patch Ulrichs TPJ example code for nroff pages to allow both POD and MAN in fulltext search dialog
+*** add meaningful regression tests
+*** use some kind of access control for the -s option
+*** new menu entry with a link list
+    (e.g. all L<...> and everything looking like a module /\w+::\w+/)
+*** make ManViewer into a standalone widget, link entries in "SEE ALSO" 
+*** option for interleaving POD and code
+*** show "No documentation found for "..."" if there's no pod in the file
+    (just like perldoc)
+*** support for the new Pod::Index module
+    (similar to the fulltext search)
+*** some kind of stylesheet support
+*** It should probably be possible to create the menus Section and History independently of the main Tk::Pod frame
+    So the user may add these menus to the context menu of the PodText
+    window.
+*** Maybe have a new popup menu entry View -> Pod info which shows path and basic Pod information
+*** If a Pod could not be found: add a button "Look at search.cpan.org" to the error dialog
+*** "Open Pod by name" dialog could be done nicer
+    e.g. by using a rich Tk::Text instead of the label/message and use
+    "sans serif"+"monospace" fonts.
+** Tk::More
+*** A menu item for switching between popular encodings
+    Default probably to iso-8859-1 or maybe user's locale.
+*** A menu item (and maybe also the keyboard equivalent -x) for changing the indentation level
+*** If there are more configuration parameters resembling less, then maybe an environment variable like LESS could be useful for common configuration parameters
+    Question: should this only be valid if it's called as tkmore or
+    also if embedded in Tk::Pod?
+*** Tk/More status bar:  filename  %   line x
+*** more 'more' like key bindings to Tk::More
+*** search should scroll per page
+*** search policies: regexp, glob, incremental (as in xmore) and 'normalized' as in perlindex
+    Should go into it's own Tk::Text::Util.pm module
+
+    Or: use Tk::FindBar (create it first by branching Tkx::FindBar)
+    for incremental search.
+*** after switching between case sensitive/insensitive highlightning should be updated immediately
+*** scrolling is not as exact as it shoule be (i.e. scroll forw, then scroll back will not get to the same position as before)
+*** use Tk::HistEntry for search entry
+*** implement isearch
+*** <Return> over a link opens the link
+    (but this needs some kind of "current link" feature, probably by
+    using <Tab> or similar to select the next link).
+** Tk::Pod::Cache
+*** use a LRU cache with $MAX_CACHE documents
+*** maybe do not cache small documents at all
+*** store modtime of POD files and flush cache automatically if the file changed
+** Tk::Pod::Tree
+*** Make tree busy while building first time
+*** Show a progress bar or an indicator when refreshing the pod index
+*** Build the tree in background, e.g. by using standard perl ipc (pipe+fork)
+    This already happens for Unix, but it would be nice if it also
+    implemented (and tested) on Windows systems.
+*** Some zoom functionality
+    Maybe depending on the zoom factor of the main window, and/or an
+    additional menu entry.
+*** Should I include something similar to perlfunc for perlfaq (perldoc -q)?
+    Maybe a new menu item "Search FAQ"?
+*** Implement C<-rememberopen> in C<Fill> method
+*** Mark modules which appear multiple times in the @INC tree
+    e.g. with an exclamation mark, and maybe show the paths and
+    versions(?) of both/all versions
+** tkpod
+*** Instead of listening to a tcp socket, maybe one should use a unix domain socket
+    (security, a unix domain socket may be chown'ed and chmod'ed!)
+*** tkpod -s: should probably reuse the Pod window instead of re-creating new ones 
+    Maybe this should be controlled by another option.
+* Expired
+  These bugs are probably fixed or not reproducable or apparent on old
+  systems only:
+** Ctrl-O Exporter does not work?!
+** What about the reported error on Suse Linux (see Tk-Pod entry on rt.cpan.org)?
+   I can't reproduce this bug...
+** Dump does not always work on a RedHat 8.0 system, so I had to use a workaround.
+   Also, Tk::Pod very often dumps core on this system in conjuction
+   with perl5.8.0 and Tk800.025, but this might be a RedHat-related
+   issue.

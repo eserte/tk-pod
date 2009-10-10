@@ -8,6 +8,7 @@ version 0.9939_55
 	  (needs either gksu or xsu)
 	o fix for http://rt.cpan.org/Ticket/Display.html?id=41320
 	o pod cache now lives in the home or data directory
+	o TODO file is now written in org-mode, not anymore as Pod
 
 version 0.9939_54
 	o Pod tree is updated in the background (Unix only)
