@@ -48,6 +48,10 @@ The perlfunc subentries do not show up in the history.
 
 =item *
 
+Links within perlfunc subentries do not work (seen in "-f import").
+
+=item *
+
 Paragraphs after bullet and number items do not align correctly.
 Tweaking the _indent functionality in Tk::Pod::SimpleBridge seems to
 be necessary.
@@ -149,6 +153,12 @@ crashes!
 The tkpod client should send cwd, so relative filenames work in server
 mode, too.
 
+=item *
+
+Some systems (e.g. Debian) may not have any perl documentation
+installed, i.e. no perl.pod. tkpod should not die if perl.pod is not
+available, but maybe just start with a blank page.
+
 =back
 
 =head2 WISHLIST
@@ -159,8 +169,11 @@ mode, too.
 
 =item *
 
-History: prefer short pod names over filenames. Do not record
-temporary file names (as in perldoc -f / -q) in history view.
+History: prefer short pod names over filenames. If filenames, then
+maybe show more than the basename, and maybe abbreviate it if it's too
+long. Do not record temporary file names (as in perldoc -f / -q) in
+history view. But show something sensible instead (currently it seems
+that there's only an empty entry).
 
 =item *
 
@@ -283,6 +296,9 @@ More.pm: search should scroll per page
 search policies: regexp, glob, incremental (as in xmore)
 and 'normalized' as in perlindex.  Should go into it's own
 Tk::Text::Util.pm module
+
+Or: use Tk::FindBar (create it first by branching Tkx::FindBar) for
+incremental search.
 
 =item *
 
