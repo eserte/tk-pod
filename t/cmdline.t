@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.12 2008/11/30 22:42:20 eserte Exp $
+# $Id: cmdline.t,v 1.13 2009/10/10 16:14:58 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -107,6 +107,9 @@ my @opt = (
 	   # This should be near end...
 	   ['__ACTION__', chdir => $testdir ],
 	   ["CPAN"],
+
+	   # Cleanup (jump out of $testdir, so File::Temp cleanup does not fail)
+	   ['__ACTION__', chdir => $FindBin::RealBin ],
 	  );
 
 plan tests => scalar @opt;
