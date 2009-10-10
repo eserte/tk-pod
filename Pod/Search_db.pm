@@ -18,7 +18,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Fcntl;
@@ -134,7 +134,12 @@ sub searchWords {
     my @results;
     for my $did (sort {	$termhits{$b} <=> $termhits{$a} || $score{$b} <=> $score{$a} } keys %score) {
 	my ($mtf, $path) = unpack($p.'a*', $FN->{$did});
-	next if ($restrict_pod && $path !~ /$restrict_pod/);
+	# XXX Should not use Tk::Pod::Search::split_path, or split_path should be moved to another package
+	if ($restrict_pod) {
+	    my($check_path) = Tk::Pod::Search::split_path($path);
+	    next if $check_path !~ /^$restrict_pod/;
+	}
+	#next if ($restrict_pod && $path !~ /$restrict_pod/);
 	$path = File::Spec->catfile($self->prefix, $path) unless $^O eq 'MSWin32'; # This seems to be a perlindex bug in MSWin32
 	push @results, { termhits => $termhits{$did}, score => $score{$did}, path => $path };
 	last unless --$maxhits;
@@ -150,8 +155,6 @@ sub prefix {
 
 1;
 __END__
-
-=encoding iso-8859-2
 
 =head1 NAME
 
@@ -225,7 +228,7 @@ Achim Bohnet  <F<ach@mpe.mpg.de>>
 Most of the code here is borrowed from L<perlindex> written by
 Ulrich Pfeifer <F<Ulrich.Pfeifer@de.uu.net>>.
 
-Current maintainer is Slaven Reziæ <F<slaven@rezic.de>>.
+Current maintainer is Slaven ReziE<0x0107> <F<slaven@rezic.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program is
 free software; you can redistribute it and/or modify it under the same

@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -388,8 +388,6 @@ sub _common_heading {
 1;
 __END__
 
-=encoding iso-8859-2
-
 =head1 NAME
 
 Tk::Pod::SimpleBridge -- render Pod::Simple events to a Tk::Pod window
@@ -428,6 +426,6 @@ Sean M. Burke <F<sburke@cpan.org>>, with bits of Tk code cribbed from
 the old Tk::Pod::Text code that Nick Ing-Simmons
 <F<nick@ni-s.u-net.com>> originally wrote.
 
-Current maintainer is Slaven Reziæ <F<slaven@rezic.de>>.
+Current maintainer is Slaven ReziE<0x0107> <F<slaven@rezic.de>>.
 
 =cut

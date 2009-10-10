@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.13 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.14 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Config qw(%Config);
@@ -210,6 +210,7 @@ EOF
 # start with an upper case char. (xxx: Better solution
 # when perlindex gives more infos.
 
+# XXX Note that split_path is also used in Search_db.pm
 sub split_path {
     my($path, $max_length) = @_;
 
@@ -271,8 +272,6 @@ sub pretty2path {
 
 1;
 __END__
-
-=encoding iso-8859-2
 
 =head1 NAME
 
@@ -339,7 +338,7 @@ widget, tk, pod, search, full text
 
 Achim Bohnet <F<ach@mpe.mpg.de>>
 
-Current maintainer is Slaven Reziæ <F<slaven@rezic.de>>.
+Current maintainer is Slaven ReziE<0x0107> <F<slaven@rezic.de>>.
 
 Copyright (c) 1997-1998 Achim Bohnet. All rights reserved.  This program
 is free software; you can redistribute it and/or modify it under the same
