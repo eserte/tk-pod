@@ -2,9 +2,8 @@
 \bRCS\b
 \bCVS\b
 \bChangeLog\b
-^MANIFEST\.
+^MANIFEST\.bak
 \bMakefile$
-^Makefile.PL$
 ~$
 ^Attic/
 \.gdbinit$
