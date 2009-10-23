@@ -2,7 +2,7 @@ meta-spec:
     version: 1.3
     url: http://module-build.sourceforge.net/META-spec-v1.3.html
 name:         Tk-Pod
-version:      0.9939_57
+version:      0.9939_58
 abstract: Pod browser widget for Tk
 author:
     - Slaven Rezic <srezic@cpan.org>
@@ -25,6 +25,10 @@ optional_features:
         requires:
             Tk::WidgetDump:                0
             Module:Refresh:                0
+    gzip_support:
+        description: "gzip support in tkmore"
+        requires:
+            PerlIO::gzip:                  0
 dynamic_config: 0
 license: perl
 distribution_type: module
