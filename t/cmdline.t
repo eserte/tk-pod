@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.13 2009/10/10 16:14:58 eserte Exp $
+# $Id: cmdline.t,v 1.14 2009/10/23 18:35:37 eserte Exp $
 # Author: Slaven Rezic
 #
 
@@ -103,6 +103,9 @@ my @opt = (
 	   ['__SCRIPT__', $tkmore_script, $0],
 	   ['__SCRIPT__', $tkmore_script, "-xrm", "*fixedFont:{monospace 10}", $0],
 	   ['__SCRIPT__', $tkmore_script, "-font", "monospace 10", $0],
+	   ['__SCRIPT__', $tkmore_script, "$FindBin::RealBin/testdata/latin1.txt"],
+	   ['__SCRIPT__', $tkmore_script, -encoding => "utf-8", "$FindBin::RealBin/testdata/utf8.txt"],
+	   ['__SCRIPT__', $tkmore_script, -encoding => "utf-8", "$FindBin::RealBin/testdata/utf8.txt.gz"],
 
 	   # This should be near end...
 	   ['__ACTION__', chdir => $testdir ],
