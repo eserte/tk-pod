@@ -1,5 +1,7 @@
 History for Tk::Pod
 
+	o added gzip support in tkmore (needs PerlIO::gzip)
+
 version 0.9939_57
 	o fix for http://rt.cpan.org/Ticket/Display.html?id=41320
 	  (1st issue, cleanup of temporary directory)

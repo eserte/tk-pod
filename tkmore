@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 use Tk;
 use Tk::More;
@@ -67,7 +67,22 @@ MainLoop;
 
 sub load_file {
     my $file = shift;
-    $more->Load($file, -encoding => $opt{encoding});
+ LOAD_FILE: {
+	# check if it's gzipped
+	my $buf;
+	if (open(FILE, "<$file") &&
+	    read(FILE, $buf, 2) == 2 &&
+	    $buf eq "\037\213" &&
+	    eval { require PerlIO::gzip; 1 }
+	   ) {
+	    seek FILE, 0, 0 or die $!;
+	    binmode FILE, ':gzip'; # XXX -encoding probably does not work!
+	    $more->LoadFH(\*FILE);
+	    last LOAD_FILE;
+	}
+
+	$more->Load($file, -encoding => $opt{encoding});
+    };
     $mw->title("tkmore - $file");
 }
 

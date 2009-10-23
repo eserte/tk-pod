@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -106,6 +106,7 @@ sub Populate {
 		   'Search'    => 'SELF',
 		   'ShowMatch' => 'SELF',
 		   'Load'      => 'SELF',
+		   'LoadFH'    => 'SELF',
 		   'AddQuitBindings' => 'SELF',
 		  );
 
@@ -203,31 +204,37 @@ sub ShowMatch {
 sub Load
 {
  my ($text,$file,%args) = @_;
- my $encoding = delete $args{-encoding};
- die "Unhandled arguments: " . join(" ", %args) if %args;
  if (open(FILE,"<$file"))
   {
-   if ($encoding)
-    {
-     binmode FILE, ":encoding($encoding)";
-    }
-   $text->MainWindow->Busy;
-   $text->SUPER::delete('1.0','end');
-   #yy delete $text->{UNDO};
-   while (<FILE>)
-    {
-     $text->SUPER::insert('end',$_);
-    }
+   $text->LoadFH(\*FILE,%args);
    close(FILE);
-   #yy $text->{FILE} = $file;
-   $text->markSet('insert', '@1,0');
-   $text->MainWindow->Unbusy;
   }
  else
   {
    $text->messageBox(-message => "Cannot open $file: $!\n");
    die;
   }
+}
+
+sub LoadFH
+{
+ my ($text,$fh,%args) = @_;
+ my $encoding = delete $args{-encoding};
+ die "Unhandled arguments: " . join(" ", %args) if %args;
+ if ($encoding)
+  {
+   binmode $fh, ":encoding($encoding)";
+  }
+ $text->MainWindow->Busy;
+ $text->SUPER::delete('1.0','end');
+ #yy delete $text->{UNDO};
+ while (<$fh>)
+  {
+   $text->SUPER::insert('end',$_);
+  }
+ #yy $text->{FILE} = $file;
+ $text->markSet('insert', '@1,0');
+ $text->MainWindow->Unbusy;
 }
 
 # search_text copied from demo search.pl (modified)
