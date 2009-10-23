@@ -155,6 +155,7 @@ while using tkpod (best viewed with Emacs' org-mode).
     (security, a unix domain socket may be chown'ed and chmod'ed!)
 *** tkpod -s: should probably reuse the Pod window instead of re-creating new ones 
     Maybe this should be controlled by another option.
+*** handle "-" for stdin
 * Expired problems
   These bugs are probably fixed or not reproducable or apparent on old
   systems only:
