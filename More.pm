@@ -3,7 +3,7 @@ package Tk::More;
 use strict;
 use vars qw($VERSION @ISA);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
 
 use Tk qw(Ev);
 use Tk::Derived;
@@ -45,15 +45,8 @@ sub Populate {
     $cw->Advertise('text' => $t);
     $t->tagConfigure('search', -foreground => 'red');
 
-    # reorder bindings: toplevel and private widget bindings first
-    #
-    # The theory behind it: every event not overwritten and marked
-    # with Tk->break will in the end be handled by ROText. Often it is
-    # likely that some "application" bindings should win over the
-    # ROText. In fact, most keyboard bindings of ROText (besides
-    # cursor keys) are not useful in this context. So let the
-    # application's bindings win.
-    $t->bindtags([$cw->parent->toplevel, $t, grep { $_ ne $t->PathName } $t->bindtags]);
+    # reorder bindings: private widget bindings first
+    $t->bindtags([$t, grep { $_ ne $t->PathName } $t->bindtags]);
 
     $t->bind('<Key-slash>',    [$cw, 'Search', 'Next']);
     $t->bind('<Key-question>', [$cw, 'Search', 'Prev']);
