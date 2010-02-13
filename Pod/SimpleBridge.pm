@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {
@@ -265,6 +265,7 @@ sub tag_for {
         '-font' => $font_name,
         ('none' eq ($attr->{'wrap'} || '')) ? ('-wrap' => 'none') : (),
         $attr->{'underline'} ? ('-underline' => 'true') : (),
+	(map { defined $attr->{$_} ? ("-$_" => $attr->{$_}) : () } qw(background borderwidth relief lmargin1 rmargin)),
       );
       DEBUG > 10 and sleep 1;
       $canonical_form;

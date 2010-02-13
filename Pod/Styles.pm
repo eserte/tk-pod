@@ -4,7 +4,7 @@ use strict;
 package Tk::Pod::Styles;
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.4 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
 
 sub init_styles {
   my $w = shift;
@@ -107,6 +107,11 @@ sub style_Verbatim {
     [ 'family' => $_[0]->font_monospace,
       'size' => $_[0]->base_font_size,
       'wrap' => 'none',
+     # background  => '#cccccc',
+     # borderwidth => 1,
+     # relief      => "solid",
+     # lmargin1    => 10,
+     # rmargin     => 10,
     ]
 }
 
