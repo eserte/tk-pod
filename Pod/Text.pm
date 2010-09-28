@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.27 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.28 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -732,6 +732,25 @@ sub Link
 
 sub Link_url {
     my ($w,$how,$index,$man,$sec) = @_;
+    if (my($lat,$lon) = $man =~ m{^geo:([^,]+),([^,]+)}) {
+        DEBUG and warn "Translate geo URI $man\n";
+        # XXX currently hardcoded to Wikipedia's GeoHack page, maybe make
+        # configurable
+        my $ddd2dms = sub {
+            my($ddd) = @_;
+	    my $north_east = $ddd >= 0;
+	    $ddd = -$ddd if !$north_east;
+	    my $deg = int($ddd);
+	    my $min = ($ddd-$deg)*60;
+	    my $sec = ($min-int($min))*60;
+	    $min = int($min);
+	    (($north_east ? $deg : -$deg), $min, $sec);
+	};
+	my $lat_sgn = $lat < 0 ? do { $lat *= -1; "S" } : "N";
+	my $lon_sgn = $lon < 0 ? do { $lon *= -1; "W" } : "E";
+        $man = "http://toolserver.org/~geohack/geohack.php?params="
+	    . join("_", $ddd2dms->($lat), $lat_sgn, $ddd2dms->($lon), $lon_sgn);
+    }
     DEBUG and warn "Start browser with $man\n";
     start_browser($man);
 }
