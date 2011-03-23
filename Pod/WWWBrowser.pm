@@ -7,7 +7,7 @@
 # -*- perl -*-
 
 #
-# $Id: WWWBrowser.pm,v 1.7 2008/07/21 06:22:56 eserte Exp $
+# $Id: WWWBrowser.pm,v 1.8 2011/03/23 20:41:41 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999,2000,2001,2003,2005,2006,2007,2008 Slaven Rezic.
@@ -30,7 +30,7 @@ use vars qw(@unix_browsers @available_browsers
 	    $VERSION $VERBOSE $initialized $os $fork
 	    $ignore_config);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 @available_browsers = qw(_debian_browser _internal_htmlview
 			 _default_gnome _default_kde
@@ -162,6 +162,7 @@ sub start_browser {
 	} elsif ($browser eq '_debian_browser') {
 	    if (-x "/usr/bin/sensible-browser") {
 		exec_bg("/usr/bin/sensible-browser", $url);
+		return 1;
 	    } else {
 		if ($ENV{DISPLAY}) {
 		    if (-x "/etc/alternatives/gnome-www-browser") { # usually firefox or mozilla
