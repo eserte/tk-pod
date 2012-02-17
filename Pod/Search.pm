@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.14 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%02d", q$Revision: 5.15 $ =~ /(\d+)\.(\d+)/);
 
 use Carp;
 use Config qw(%Config);
@@ -302,7 +302,7 @@ GUI interface to the full Pod text indexer B<perlindex>.
 
 =item B<Option:> -search
 
-Expects a list of words (or a whitespace seperated list).
+Expects a list of words (or a whitespace separated list).
 
 =item B<Class:> undef
 
