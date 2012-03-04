@@ -1,6 +1,7 @@
 # common files
 \bRCS\b
 \bCVS\b
+^\.git/
 \bChangeLog\b
 ^MANIFEST\.bak
 \bMakefile$
