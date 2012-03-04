@@ -4,6 +4,8 @@ use ExtUtils::MakeMaker;
 
 $DIST_VERSION = "0.9939_58";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
+$eumm_recent_enough = $ExtUtils::MakeMaker::VERSION >= 6.54;
+
 if ($is_devel_host) {
     open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
  SEARCH_FOR_DIST_VERSION: {
@@ -37,6 +39,16 @@ if ($is_devel_host) {
     }
 }
 
+if (!$eumm_recent_enough) {
+    *MY::dist_core = sub {
+	<<'EOF';
+dist :
+	$(NOECHO) $(ECHO) "Sorry, use a newer EUMM!"
+
+EOF
+    };
+}
+
 my %add_prereq_pm;
 if (eval { require Tk::Tree; 1 } && $Tk::Tree::VERSION eq '4.6') {
     warn <<EOF;
@@ -62,10 +74,10 @@ WriteMakefile(
 			     'Pod::Simple'    => 2.05, # there at least in 2.03 bugs when processing "-f ..." output
 			     'File::Temp'     => 0,
 			     'File::Spec'     => 0,
-			     # the following are really only COREQUISITES
-	                     'Text::English'  => 0,
-			     'Tk::HistEntry'  => 0.40,
-			     # Very very optional Corequisites
+			     ## the following are only corequisites, see optional_features
+	                     #'Text::English'  => 0,
+			     #'Tk::HistEntry'  => 0.40,
+			     ## very very optional corequisites, see optional_features
 			     # 'Tk::WidgetDump' => 0,
 			     # 'Module::Refresh' => 0,
 			     %add_prereq_pm,
@@ -73,7 +85,6 @@ WriteMakefile(
 	'DISTNAME'	=> 'Tk-Pod',
 	'NAME'		=> 'Tk::Pod',
 	'VERSION'	=> $DIST_VERSION,
-	'NO_META'	=> 1, # manually generated
 	'LICENSE'	=> 'perl',
 
 	'DIR'		=> [],	# Tk-Pod dist build dir is ignored
@@ -84,6 +95,44 @@ WriteMakefile(
 			    # http://rt.cpan.org/Ticket/Display.html?id=29664
 			    $is_devel_host ? ('PREOP'=>'test -w META.yml || (echo "META.yml has to be writable"; false)') : (),
 			   },
+
+        ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
+         (ABSTRACT       => 'Pod browser widget for Tk',
+          AUTHOR         => 'Slaven Rezic <srezic@cpan.org>') : ()),
+
+	($eumm_recent_enough ?
+	  (META_MERGE => {
+	    resources => { repository => 'git://github.com/eserte/tk-pod.git' },
+	    optional_features => {
+	      fulltext_search => {
+		description => "Enable the full-text search",
+		requires => {
+		  'Text::English' => 0,
+		},
+	      },
+	      nicer_gui => {
+		description => "Provide a nicer GUI",
+		requires => {
+		  'Tk::HistEntry' => '0.4',
+		  'Tk::ToolBar'   => 0,
+		},
+	      },
+	      debugging => {
+		description => "Debugging helper",
+		requires => {
+		  'Tk::WidgetDump' => 0,
+		  'Module::Refresh' => 0,
+		},
+	      },
+	      gzip_support => {
+	        description => "gzip support in tkmore",
+		requires => {
+		  'PerlIO::gzip' => 0,
+		},
+	      },
+	    },
+	  }) : ()),
+
 );
 
 # This rule ensures that we get UNKNOWN test results on Unix platforms
@@ -107,7 +156,7 @@ EOF
 	$postamble .= <<'EOF';
 
 .include "../../perl.release.mk"
-.include "../../perl.cvs.mk"
+.include "../../perl.git.mk"
 
 update-WWWBrowser:
 	perl -nle '\
