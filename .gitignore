@@ -1,0 +1,7 @@
+/Makefile
+/Makefile.old
+/blib
+/pm_to_blib
+/.prove
+/cover_db
+/Tk-Pod-*.tar.gz
