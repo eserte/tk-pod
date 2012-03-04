@@ -122,6 +122,9 @@ while using tkpod (best viewed with Emacs' org-mode).
     Or: use Tk::FindBar (create it first by branching Tkx::FindBar)
     for incremental search.
 *** after switching between case sensitive/insensitive highlightning should be updated immediately
+*** automatic case-sensitive search
+if there is at least one uppercase character in the search string,
+then do a case-sensitive search (like emacs)
 *** scrolling is not as exact as it shoule be (i.e. scroll forw, then scroll back will not get to the same position as before)
 *** use Tk::HistEntry for search entry
 *** implement isearch
