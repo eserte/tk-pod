@@ -4,7 +4,7 @@ use strict;
 package Tk::Pod::Styles;
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.5 $ =~ /(\d+)\.(\d+)/);
+$VERSION = '5.06';
 
 sub init_styles {
   my $w = shift;

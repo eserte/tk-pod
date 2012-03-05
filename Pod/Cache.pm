@@ -1,10 +1,9 @@
 # -*- perl -*-
 
 #
-# $Id: Cache.pm,v 5.1 2004/09/08 21:09:32 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2002 Slaven Rezic. All rights reserved.
+# Copyright (C) 2002,2012 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -26,7 +25,7 @@ BEGIN {  # Make a DEBUG constant very first thing...
   }
 }
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.1 $ =~ /(\d+)\.(\d+)/);
+$VERSION = '5.02';
 
 $MAX_CACHE = 20; # documents # XXX not yet used, LRU etc...
 

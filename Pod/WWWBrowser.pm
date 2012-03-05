@@ -7,10 +7,9 @@
 # -*- perl -*-
 
 #
-# $Id: WWWBrowser.pm,v 1.8 2011/03/23 20:41:41 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 1999,2000,2001,2003,2005,2006,2007,2008 Slaven Rezic.
+# Copyright (C) 1999,2000,2001,2003,2005,2006,2007,2008,2009 Slaven Rezic.
 # All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -30,7 +29,7 @@ use vars qw(@unix_browsers @available_browsers
 	    $VERSION $VERBOSE $initialized $os $fork
 	    $ignore_config);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = 2.48;
 
 @available_browsers = qw(_debian_browser _internal_htmlview
 			 _default_gnome _default_kde

@@ -18,7 +18,7 @@ package Tk::Pod::Search_db;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = '5.09';
 
 use Carp;
 use Fcntl;

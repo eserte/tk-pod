@@ -1,10 +1,9 @@
 # -*- perl -*-
 
 #
-# $Id: Util.pm,v 5.3 2007/10/25 19:48:44 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2003,2004 Slaven Rezic. All rights reserved.
+# Copyright (C) 2003,2004,2012 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -15,7 +14,7 @@
 package Tk::Pod::Util;
 use strict;
 use vars qw($VERSION @EXPORT_OK);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.3 $ =~ /(\d+)\.(\d+)/);
+$VERSION = '5.04';
 
 use base qw(Exporter);
 @EXPORT_OK = qw(is_in_path is_interactive detect_window_manager start_browser);

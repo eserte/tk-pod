@@ -2,7 +2,6 @@
 # -*- perl -*-
 
 #
-# $Id: optionalmods.t,v 1.7 2009/10/10 15:55:34 eserte Exp $
 # Author: Slaven Rezic
 #
 

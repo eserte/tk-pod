@@ -2,7 +2,6 @@
 # -*- perl -*-
 
 #
-# $Id: cmdline.t,v 1.14 2009/10/23 18:35:37 eserte Exp $
 # Author: Slaven Rezic
 #
 

@@ -5,7 +5,7 @@ package Tk::Pod::SimpleBridge;
 # Interface between Tk::Pod and Pod::Simple
 
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%02d", q$Revision: 5.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = '5.07';
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {

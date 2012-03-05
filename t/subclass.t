@@ -2,7 +2,6 @@
 # -*- perl -*-
 
 #
-# $Id: subclass.t,v 1.4 2009/10/10 15:55:35 eserte Exp $
 # Author: Slaven Rezic
 #
 

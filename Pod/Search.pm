@@ -3,7 +3,7 @@ package Tk::Pod::Search;
 use strict;
 use vars qw(@ISA $VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.15 $ =~ /(\d+)\.(\d+)/);
+$VERSION = '5.16';
 
 use Carp;
 use Config qw(%Config);
