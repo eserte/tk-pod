@@ -2,7 +2,6 @@ Changes
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-META.yml
 More.pm
 Pod.pm
 Pod/Cache.pm
