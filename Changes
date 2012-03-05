@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.9939_59
+	o support for geo: URIs
+	o WWWBrowser update (fixing Debian issues)
+	o spelling fix in Pod
+	o modernized META.yml/.json creation
+	o regain 5.005 compat
+
 version 0.9939_58
 	o added gzip support in tkmore (needs PerlIO::gzip)
 
