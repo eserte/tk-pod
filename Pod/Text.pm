@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = '5.29';
+$VERSION = '5.30';
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -1532,7 +1532,7 @@ Pod with umlaut: L<ExtUtils::MakeMaker>.
 
 Details:  L<perlpod> or perl, perlfunc.
 
-External links: L<http://www.cpan.org> (URL), L<< URL with link text|http://www.cpan.org >>, L<perl(1)> (man page).
+External links: L<http://www.cpan.org> (URL), L<< URL with link text|http://www.cpan.org >>, L<perl(1)> (man page), L<Berliner Fernsehturm|geo:52.520685,13.409461> (geo: URL)
 
 Links to local sections: L<a section (SYNOPSIS)|/SYNOPSIS>, L<an item
 (-file, currently wrong)|/-file>, L<a working item (auml)|/auml>.
