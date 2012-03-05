@@ -4,13 +4,14 @@ use ExtUtils::MakeMaker;
 
 $DIST_VERSION = "0.9939_59";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
-$eumm_recent_enough = $ExtUtils::MakeMaker::VERSION >= 6.54;
+$min_eumm_version = 6.58;
+$eumm_recent_enough = $ExtUtils::MakeMaker::VERSION >= $min_eumm_version;
 
 if (!$eumm_recent_enough) {
     *MY::dist_core = sub {
 	<<'EOF';
 dist :
-	$(NOECHO) $(ECHO) "Sorry, use a newer EUMM!"
+	$(NOECHO) $(ECHO) "Sorry, use a newer EUMM, at least version $min_eumm_version!"
 
 EOF
     };
