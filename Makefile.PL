@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9939_59";
+$DIST_VERSION = "0.9940";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i && -f "../../perl.release.mk";
 $min_eumm_version = 6.58;
 $eumm_recent_enough = $ExtUtils::MakeMaker::VERSION >= $min_eumm_version;
@@ -15,6 +15,21 @@ dist :
 
 EOF
     };
+}
+
+if ($is_devel_host) {
+    open(P, "Pod.pm") or die "Can't open Pod.pm: $!";
+ SEARCH_FOR_DIST_VERSION: {
+       while(<P>) {
+           if (/DIST_VERSION\s*=\s*["'](.*)["']/) {
+               if ($DIST_VERSION ne $1) {
+                   die "Please adjust DIST_VERSION in Makefile.PL ($DIST_VERSION vs $1)";
+               }
+               last SEARCH_FOR_DIST_VERSION;
+           }
+       }
+       die "Cannot find DIST_VERSION definition in Pod.pm";
+    }
 }
 
 my %add_prereq_pm;
