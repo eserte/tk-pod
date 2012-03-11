@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9940
+	o stable release with all changes in 0.9939_50..0.9939_59
+
 version 0.9939_59
 	o support for geo: URIs
 	o WWWBrowser update (fixing Debian issues)
