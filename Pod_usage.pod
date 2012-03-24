@@ -38,7 +38,7 @@ Pressing <Key-/> lets you search in the displayed documentation.
 
 The Section Menu
 
-The 'Section' menu allows to directly jump to the start of a
+The 'Section' menu allows one to directly jump to the start of a
 section in the documentation.
 
 =head2 Action Menu
