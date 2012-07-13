@@ -96,8 +96,6 @@ sub start_browser {
 		system(qq{start explorer "$url"});
 	    } elsif ($^O eq 'cygwin') {
 		system(qq{explorer "$url" &});
-	    } elsif (is_in_path("mozilla")) {
-		system(qq{mozilla "$url" &});
 	    } elsif (is_in_path("firefox")) {
 		system(qq{firefox "$url" &});
 	    } else { # last fallback
