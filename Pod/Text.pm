@@ -45,23 +45,36 @@ BEGIN {
   DEBUG and warn "POD: @POD\n";
 };
 
-use Class::Struct;
-struct '_HistoryEntry' => [
-    'file'  => '$',
-    'text'  => '$',
-    'index' => '$',
-];
-sub _HistoryEntry::create {
-    my $o = shift->new;
-    my($what, $index) = @_;
-    if (ref $what eq 'HASH') {
-	$o->file($what->{file});
-	$o->text($what->{text});
-    } else {
-	$o->file($what);
+{
+    package # hide from CPAN indexer
+	Tk::Pod::Text::_HistoryEntry;
+
+    use File::Basename qw(basename);
+
+    for my $member (qw(file text index)) {
+	my $sub = sub {
+	    my $self = shift;
+	    if (@_) {
+		$self->{$member} = $_[0];
+	    }
+	    $self->{$member};
+	};
+	no strict 'refs';
+	*{$member} = $sub;
     }
-    $o->index($index);
-    $o;
+
+    sub create {
+	my($class,$what,$index) = @_;
+	my $o = bless {}, $class;
+	if (ref $what eq 'HASH') {
+	    $o->file($what->{file});
+	    $o->text($what->{text});
+	} else {
+	    $o->file($what);
+	}
+	$o->index($index);
+	$o;
+    }
 }
 
 use constant HISTORY_DIALOG_ARGS => [-icon => 'info',
@@ -1125,7 +1138,7 @@ sub history_add {
 	}
     }
     my $hist = $w->privateData()->{history};
-    my $hist_entry = _HistoryEntry->create($what, $index);
+    my $hist_entry = Tk::Pod::Text::_HistoryEntry->create($what, $index, $w->{pod_title});
     $hist->[++$w->privateData()->{history_index}] = $hist_entry;
     splice @$hist, $w->privateData()->{history_index}+1;
     $w->history_view_update;
@@ -1241,10 +1254,8 @@ sub history_set {
 sub history_modify_entry {
     my $w = shift;
     if ($w->privateData()->{'history_index'} >= 0) {
-	my $old_entry = _HistoryEntry->create({file => $w->cget('-path'),
-					       text => $w->cget('-text')
-					      }, $w->index('@0,0'));
-	$w->privateData()->{'history'}->[$w->privateData()->{'history_index'}] = $old_entry;
+	my $entry = $w->privateData()->{'history'}->[$w->privateData()->{'history_index'}];
+	$entry->index($w->index('@0,0'));
     }
 }
 
