@@ -51,7 +51,7 @@ BEGIN {
 
     use File::Basename qw(basename);
 
-    for my $member (qw(file text index)) {
+    for my $member (qw(file text index pod_title)) {
 	my $sub = sub {
 	    my $self = shift;
 	    if (@_) {
@@ -74,6 +74,15 @@ BEGIN {
 	}
 	$o->index($index);
 	$o;
+    }
+
+    sub get_label {
+	my $self = shift;
+	my $pod_title = $self->pod_title;
+	return $pod_title if defined $pod_title;
+	my $file = $self->file;
+	return basename $file if defined $file;
+	return "<Untitled document>";
     }
 }
 
@@ -162,10 +171,11 @@ sub file {   # main entry point
       my $file = shift;
       $w->_remember_old;
       eval {
+	  my $calling_from_history = $w->privateData()->{'from_history'};
 	  $w->{'File'} = $file;
 	  $w->{'Text'} = undef;
 	  my $path = $w->findpod($file);
-	  if (!$w->privateData()->{'from_history'}) {
+	  if (!$calling_from_history) {
 	      $w->history_modify_entry;
 	      $w->history_add({file => $path}, "1.0");
 	  }
@@ -183,6 +193,9 @@ sub file {   # main entry point
 	  if (!$w->get_from_cache) {
 	      $w->process($path);
 	      $w->add_to_cache; # XXX pass time for processing?
+	      if (!$calling_from_history) {
+		  $w->history_modify_current_title; # now the pod_title is known
+	      }
 	  }
 	  if (defined $t) {
 	      print Benchmark::timediff(Benchmark->new, $t)->timestr,"\n";
@@ -204,9 +217,10 @@ sub text {
       my $text = shift;
       $w->_remember_old;
       eval {
+	  my $calling_from_history = $w->privateData()->{'from_history'};
 	  $w->{'Text'} = $text;
 	  $w->{'File'} = undef;
-	  if (!$w->privateData()->{'from_history'}) {
+	  if (!$calling_from_history) {
 	      $w->history_modify_entry;
 	      $w->history_add({text => $text}, "1.0");
 	  }
@@ -226,6 +240,9 @@ sub text {
 	  # XXX title: the 2nd part of the hack
 	  my $title = $w->cget(-title);
 	  $w->process(\$text, $title);
+	  if (!$calling_from_history) {
+	      $w->history_modify_current_title; # now the pod_title is known
+	  }
 	  if (defined $t) {
 	      print Benchmark::timediff(Benchmark->new, $t)->timestr,"\n";
 	  }
@@ -1259,6 +1276,21 @@ sub history_modify_entry {
     }
 }
 
+# Modify the pod title of the current history entry.
+sub history_modify_current_title {
+    my $w = shift;
+    my $pod_title = $w->{pod_title};
+    if (defined $pod_title) {
+	my $history_index = $w->privateData()->{'history_index'};
+	if ($history_index >= 0) {
+	    my $entry = $w->privateData()->{'history'}->[$history_index];
+	    $entry->pod_title($pod_title);
+	    $w->history_view_update;
+	    $w->history_view_select;
+	}
+    }
+}
+
 # Create a new history view toplevel or reuse an old one.
 sub history_view {
     my $w = shift;
@@ -1298,8 +1330,7 @@ sub history_view_update {
 	my $lb = $t->Subwidget('Lb');
 	$lb->delete(0, "end");
 	foreach my $histentry (@{$w->privateData()->{'history'}}) {
-	    (my $basename = $histentry->file) =~ s|^.*/([^/]+)$|$1|;
-	    $lb->insert("end", $basename);
+	    $lb->insert("end", $histentry->get_label);
 	}
     }
 }
