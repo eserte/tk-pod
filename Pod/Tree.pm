@@ -349,6 +349,7 @@ sub Fill {
 			      $w->_FillDone($pods, $args{'-fillcb'});
 			      $w->fileevent($rdr, 'readable', '');
 			      $w->Subwidget('UpdateLabel')->placeForget;
+			      require POSIX; waitpid $w->{FillPid}, &POSIX::WNOHANG; # zombie reaping
 			      $w->{FillPid} = undef;
 			  });
 	    return;
