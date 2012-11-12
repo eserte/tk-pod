@@ -1346,8 +1346,15 @@ sub _warn_dialog {
     );
 }
 
-END {
+sub cleanup_tempfiles {
     if (@tempfiles) {
+	# first get rid of all possible zombies
+	# before we can check with kill 0 => ...
+	require POSIX;
+	if (defined &POSIX::WNOHANG) { # defined everywhere?
+	    while (waitpid(-1, &POSIX::WNOHANG) > 0) { }
+	}
+
 	my $gv_running;
 	for my $pid (@gv_pids) {
 	    if (kill 0 => $pid) {
@@ -1362,8 +1369,13 @@ END {
 	    for my $temp (@tempfiles) {
 		unlink $temp;
 	    }
+	    @tempfiles = ();
 	}
     }
+}
+
+END {
+    cleanup_tempfiles();
 }
 
 1;
