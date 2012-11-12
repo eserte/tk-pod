@@ -935,6 +935,17 @@ sub SearchFullText {
 	# XXX A very rough solution:
 	$IDX->Button(-text => "Rebuild search index",
 		     -command => sub {
+		      my $installscriptdir = $Config{'installscript'};
+		      my $perlindex = 'perlindex';
+		      if (-d $installscriptdir)
+		       {
+			$perlindex = "$installscriptdir/perlindex";
+			if (!-f $perlindex)
+			 {
+			  $w->_error_dialog("perlindex was expected in the path '$perlindex', but not found. Cannot build search index.");
+			  return;
+			 }
+		       }
 		      my $pw_bg_msg = "The next dialog will ask for the root password. The search index building will happen in background.";
 		      if (!is_in_path("gksu"))
 		       {
@@ -947,7 +958,7 @@ sub SearchFullText {
 			if (fork == 0)
 		         {
 			  system('xsu',
-				 '--command', 'perlindex -index',
+				 '--command', "$perlindex -index",
 				 '--username', 'root',
 				 '--title' => 'Rebuild search index',
 				 '--set-display' => $w->screen,
@@ -963,7 +974,7 @@ sub SearchFullText {
 			  system('gksu',
 				 '--user', 'root',
 				 #'--description', 'Rebuild search index',
-				 'perlindex -index',
+				 "perlindex -index",
 				);
 			  CORE::exit(0);
 			 }
