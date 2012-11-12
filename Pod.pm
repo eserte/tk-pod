@@ -323,22 +323,37 @@ EOF
 
  {
   my $path = $w->toplevel->PathName;
+
+  # This is somewhat hackish: to make sure that the Tk::Pod bindings
+  # win over the embedded Tk::More/Tk::Text bindings, the bindtags of
+  # all child widgets are re-shuffled, so the Tk::Pod bindings come
+  # first. Additionally, all the Tk::Pod bindings need additionally a
+  # Tk->break call, so no other binding of embedded widgets is fired.
+  $p->Walk(sub {
+     my $w = shift;
+     my @bindtags = $w->bindtags;
+     if (grep { $_ eq $path } @bindtags)
+      {
+       $w->bindtags([$path, grep { $_ ne $path } @bindtags]);
+      }
+  });
+
   foreach my $mod (qw(Alt Meta))
    {
-    $w->bind($path, "<$mod-Left>"  => [$p, 'history_move', -1]);
-    $w->bind($path, "<$mod-Right>" => [$p, 'history_move', +1]);
+    $w->bind($path, "<$mod-Left>"  => sub { $p->history_move(-1); Tk->break });
+    $w->bind($path, "<$mod-Right>" => sub { $p->history_move(+1); Tk->break });
    }
 
-  $w->bind($path, "<Control-minus>" => [$w, 'zoom_out']);
-  $w->bind($path, "<Control-plus>" => [$w, 'zoom_in']);
-  $w->bind($path, "<F3>" => [$w,'openfile']);
-  $w->bind($path, "<Control-o>" => [$w,'openpod',$p]);
+  $w->bind($path, "<Control-minus>" => sub { $w->zoom_out; Tk->break });
+  $w->bind($path, "<Control-plus>"  => sub { $w->zoom_in; Tk->break });
+  $w->bind($path, "<F3>" => sub { $w->openfile; Tk->break });
+  $w->bind($path, "<Control-o>" => sub { $w->openpod($p); Tk->break });
   $w->bind($path, "<Control-n>" => sub { $w->newwindow($p); Tk->break });
-  $w->bind($path, "<Control-r>" => [$p, 'reload']);
+  $w->bind($path, "<Control-r>" => sub { $p->reload; Tk->break });
   $w->bind($path, "<Control-p>" => sub { $p->Print; Tk->break });
-  $w->bind($path, "<Print>"     => [$p, 'Print']);
-  $w->bind($path, "<Control-w>" => [$w, 'quit']);
-  $w->bind($path, "<Control-q>" => sub { $p->MainWindow->destroy })
+  $w->bind($path, "<Print>"     => sub { $p->Print; Tk->break });
+  $w->bind($path, "<Control-w>" => sub { $w->quit; Tk->break });
+  $w->bind($path, "<Control-q>" => sub { $p->MainWindow->destroy; Tk->break })
       if $exitbutton;
  }
 
