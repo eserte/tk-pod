@@ -5,6 +5,12 @@ while using tkpod (best viewed with Emacs' org-mode).
 
 * BUGS
 ** Tk::Pod
+*** Tk::Pod::Text should not manipulate the Toplevel's title [[cpanrt:67306]]
+    Idea: one can mark the PodText as "-embedded". In this case no
+    manipulations of the parent toplevel are done, especially the
+    title is set untouched. Ideally this would be the other way, one
+    should mark a "master toplevel" for the PodText, but well, because
+    of backward compatibility the current behavior will stay.
 *** S<> seems often to be ignored
     May be a core Tk::Text bug (i.e. -wrap => "none" in tags being
     sometimes ignored)
@@ -144,6 +150,10 @@ then do a case-sensitive search (like emacs)
 *** Build the tree in background, e.g. by using standard perl ipc (pipe+fork)
     This already happens for Unix, but it would be nice if it also
     implemented (and tested) on Windows systems.
+*** Show old cached contents while rebuilding the tree
+    But show a notice that the tree is updated. Once the new tree is
+    available, it should be displayed (and the currently opened leaves
+    should be restored), and the update notice should be removed.
 *** Some zoom functionality
     Maybe depending on the zoom factor of the main window, and/or an
     additional menu entry.
@@ -169,3 +179,6 @@ then do a case-sensitive search (like emacs)
    Also, Tk::Pod very often dumps core on this system in conjuction
    with perl5.8.0 and Tk800.025, but this might be a RedHat-related
    issue.
+* org-mode settings
+#+LINK: cpanrt http://rt.cpan.org/Public/Bug/Display.html?id=%s
+#+LINK: perlrt http://rt.perl.org/rt3/Ticket/Display.html?id=%s
