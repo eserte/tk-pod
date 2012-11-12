@@ -250,7 +250,7 @@ sub _get_editable_path
    my $text = $w->cget("-text");
    $w->_need_File_Temp;
    my($fh,$fname) = File::Temp::tempfile(UNLINK => 1,
-					 SUFFIX => ".pod");
+					 SUFFIX => "_tkpod.pod");
    print $fh $text;
    close $fh;
    $path = $fname;
@@ -970,7 +970,7 @@ sub Print {
 	$text = $w->cget("-text");
 	$w->_need_File_Temp;
 	my($fh,$fname) = File::Temp::tempfile(UNLINK => 1,
-					      SUFFIX => ".pod");
+					      SUFFIX => "_tkpod.pod");
 	print $fh $text;
 	close $fh;
 	$path = $fname;
@@ -1013,7 +1013,7 @@ sub _print_pod_unix {
 	if ($gv) {
 	    $w->_need_File_Temp;
 
-	    my($fh,$fname) = File::Temp::tempfile(SUFFIX => ".ps");
+	    my($fh,$fname) = File::Temp::tempfile(SUFFIX => "_tkpod.ps");
 	    system("$pod2ps_pipe > $fname");
 	    push @tempfiles, $fname;
 	    my $pid = fork;

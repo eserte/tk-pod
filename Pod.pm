@@ -738,7 +738,7 @@ sub SearchFAQ {
 	if ($go) {
 	    require File::Temp;
 	    my($fh, $pod) = File::Temp::tempfile(UNLINK => 1,
-						 SUFFIX => ".pod");
+						 SUFFIX => "_tkpod.pod");
 	    my $out = `perldoc -u -q $keyword`; # XXX protect keyword
 	    print $fh $out;
 	    close $fh;
