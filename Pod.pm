@@ -171,7 +171,7 @@ EOF
      '-command' => ['reload',$p],
     ],
     [Button => $compound->("~View source"),
-     # unfortunately Tk::More already uses Ctrl+U
+     '-accelerator' => 'Ctrl+U',
      '-command' => ['view_source',$p],
     ],
     '-',
@@ -352,6 +352,7 @@ EOF
   $w->bind($path, "<Control-r>" => sub { $p->reload; Tk->break });
   $w->bind($path, "<Control-p>" => sub { $p->Print; Tk->break });
   $w->bind($path, "<Print>"     => sub { $p->Print; Tk->break });
+  $w->bind($path, "<Control-u>" => sub { $p->view_source; Tk->break });
   $w->bind($path, "<Control-w>" => sub { $w->quit; Tk->break });
   $w->bind($path, "<Control-q>" => sub { $p->MainWindow->destroy; Tk->break })
       if $exitbutton;
