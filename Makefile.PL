@@ -96,16 +96,23 @@ WriteMakefile(
 		},
 	      },
 	      debugging => {
-		description => "Debugging helper",
+		description => "Debugging and development helper",
 		requires => {
 		  'Tk::WidgetDump' => 0,
 		  'Module::Refresh' => 0,
+		  'Devel::Hide' => 0,
 		},
 	      },
 	      gzip_support => {
 	        description => "gzip support in tkmore",
 		requires => {
 		  'PerlIO::gzip' => 0,
+		},
+	      },
+	      external_links => {
+	        description => "support for links using an external browser",
+		requires => {
+		  'URI::Escape' => 0,
 		},
 	      },
 	    },
