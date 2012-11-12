@@ -3,7 +3,7 @@
 use strict;
 use vars qw($VERSION);
 
-$VERSION = sprintf("%d.%02d", q$Revision: 5.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = 5.08;
 
 use Tk;
 use Tk::More;
@@ -12,7 +12,7 @@ use Getopt::Long;
 my %opt;
 
 Getopt::Long::config('pass_through');
-if (!GetOptions(\%opt, "font=s", "i|ignore-case!", "encoding=s")) {
+if (!GetOptions(\%opt, "font=s", "i|ignore-case!", "encoding=s", "S")) {
     require Pod::Usage;
     Pod::Usage::pod2usage(2);
 }
@@ -35,6 +35,7 @@ my $more = $mw->Scrolled("More",
 			 -font => $opt{font},
 			 -scrollbars => "osoe",
 			 -searchcase => !$opt{i},
+			 ($opt{S} ? (-wrap => 'none') : ()),
 			)->pack(-fill => "both", -expand => 1);
 
 my $menu = $more->menu;
@@ -114,6 +115,11 @@ Turn on case-insensitive search. Alias: C<-ignore-case>.
 
 Specify the encoding for the specified file and all subsequently
 loaded files. By default no encoding is assumed.
+
+=item -S
+
+Set wrap mode to B<none>. The effect is similar like the C<-S> option
+of C<less>.
 
 =back
 
