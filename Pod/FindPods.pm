@@ -35,7 +35,7 @@ use vars qw($VERSION @EXPORT_OK $init_done %arch $arch_re);
 
 @EXPORT_OK = qw/%pods $has_cache pod_find/;
 
-$VERSION = '5.15';
+$VERSION = '5.16';
 
 BEGIN {  # Make a DEBUG constant very first thing...
   if(defined &DEBUG) {

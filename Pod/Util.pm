@@ -14,7 +14,7 @@
 package Tk::Pod::Util;
 use strict;
 use vars qw($VERSION @EXPORT_OK);
-$VERSION = '5.04';
+$VERSION = '5.05';
 
 use base qw(Exporter);
 @EXPORT_OK = qw(is_in_path is_interactive detect_window_manager start_browser);

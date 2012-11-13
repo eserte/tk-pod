@@ -53,7 +53,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $ExtraFindPods);
-$VERSION = '5.09';
+$VERSION = '5.10';
 
 use base 'Tk::Tree';
 
