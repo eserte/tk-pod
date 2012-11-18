@@ -186,6 +186,17 @@ EOF
 	 Tk::Pod::Util::start_browser("http://search.cpan.org/perldoc?" . $url);
      },
     ],
+    [Button => $compound->('Pod on ~metacpan.org'),
+     '-command' => sub {
+	 require Tk::Pod::Util;
+	 my $url = $p->{pod_title};
+	 eval {
+	     require URI::Escape;
+	     $url = URI::Escape::uri_escape($url);
+	 };
+	 Tk::Pod::Util::start_browser("https://metacpan.org/module/" . $url);
+     },
+    ],
     [Button => $compound->('Pod on ~annocpan.org'),
      '-command' => sub {
 	 require Tk::Pod::Util;
