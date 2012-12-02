@@ -1,5 +1,9 @@
 History for Tk::Pod
 
+version 0.9941
+	o stable release with all changes in 0.9940_50
+	o added menu item with link to metacpan.org
+
 version 0.9940_50
 	o history view is showing the Pod title, not anymore the base
 	  filename
