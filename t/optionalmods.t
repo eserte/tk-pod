@@ -41,6 +41,7 @@ plan tests => 1;
 $mw->geometry("+0+0");
 
 my $pod = $mw->Pod;
+$pod->geometry('+10+10'); # for twm
 $pod->idletasks;
 ok(Tk::Exists($pod));
 
