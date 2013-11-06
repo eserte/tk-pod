@@ -9,7 +9,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 1999,2000,2001,2003,2005,2006,2007,2008,2009,2012 Slaven Rezic.
+# Copyright (C) 1999,2000,2001,2003,2005,2006,2007,2008,2009,2012,2013 Slaven Rezic.
 # All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -29,7 +29,7 @@ use vars qw(@unix_browsers @available_browsers
 	    $VERSION $VERBOSE $initialized $os $fork
 	    $ignore_config);
 
-$VERSION = 2.49;
+$VERSION = 2.51;
 
 @available_browsers = qw(_debian_browser _internal_htmlview
 			 _default_gnome _default_kde
@@ -136,9 +136,9 @@ sub start_browser {
 		    # Check whether Netscape stills lives:
 		    if (defined $pid && kill 0 => $pid) {
 			if ($args{-oldwindow}) {
-			    exec_bg("netscape", "-remote", "openURL($url)");
+			    exec_bg("netscape", "-remote", _openurl_cmd($url));
 			} else {
-			    exec_bg("netscape", "-remote", "openURL($url,new)");
+			    exec_bg("netscape", "-remote", _openurl_cmd($url,"new"));
 			}
 		        # XXX further options: mailto(to-adresses)
 			# XXX check return code?
@@ -194,7 +194,7 @@ sub start_browser {
 
 sub start_windows_browser_cygwin {
     my($url, %args) = @_;
-    system("cmd", "/c", "start", $url);
+    _system("cmd", "/c", "start", $url);
     if ($? == 0) {
 	return 1;
     } else {
@@ -213,19 +213,19 @@ sub start_browser_windows {
 
     for my $method (@methods) {
         if ($method eq 'rundll') {
-	    system("rundll32 url.dll,FileProtocolHandler \"$url\"");
+	    _system("rundll32 url.dll,FileProtocolHandler \"$url\"");
             if ($?/256 == 0) {
 	        return 1;
 	    }
         } elsif ($method eq 'start') {
 	    # XXX There are reports that "start" and Tk programms
 	    # do not work well together (slow startup and such).
-	    system("start /b \"$url\"");
+	    _system("start /b \"$url\"");
 	    if ($?/256 == 0) {
 		return 1;
 	    }
 	} elsif ($method eq 'explorer') {
-	    system("start explorer \"$url\"");
+	    _system("start explorer \"$url\"");
 	    # maybe: system("start", "explorer", $url);
 	    # or:    system("start explorer \"$url\"");
 	    if ($?/256 == 0) {
@@ -259,13 +259,13 @@ sub open_in_konqueror {
 	    }
 
 	    if (defined $konq_name) {
-		system(qw/dcop konqueror/, $konq_name, qw/openURL/, $url);
+		_system(qw/dcop konqueror/, $konq_name, qw/openURL/, $url);
 		return 1 if ($?/256 == 0);
 	    }
 	}
 
 	# then try to send to running konqueror process:
-	system(qw/dcop konqueror KonquerorIface openBrowserWindow/, $url);
+	_system(qw/dcop konqueror KonquerorIface openBrowserWindow/, $url);
 	return 1 if ($?/256 == 0);
 
 	# otherwise start a new konqueror
@@ -284,7 +284,7 @@ sub open_in_galeon {
 
 	# first try old window (if requested)
 	if ($args{-oldwindow}) {
-	    system("galeon", "-x", $url);
+	    _system("galeon", "-x", $url);
 	    return 1 if ($?/256 == 0);
 	}
 
@@ -299,10 +299,10 @@ sub _open_in_mozilloid {
     my($cmd, $url, %args) = @_;
     if (is_in_path($cmd)) {
 	if ($args{-oldwindow}) {
-	    system($cmd, "-remote", "openURL($url)");
+	    _system($cmd, "-remote", _openurl_cmd($url));
 	} else {
 	    # no new-tab support in older Mozillas (e.g. 1.0)!
-	    system($cmd, "-remote", "openURL($url,new-tab)");
+	    _system($cmd, "-remote", _openurl_cmd($url,"new-tab"));
 	}
 	return 1 if ($?/256 == 0);
 
@@ -337,22 +337,52 @@ sub open_in_opera {
 
 sub exec_bg {
     my(@cmd) = @_;
+    warn "Execute: @cmd\n" if $VERBOSE && $VERBOSE >= 2;
     if ($os eq 'unix' || $os eq 'macosx') {
 	eval {
-	    if (!$fork || fork == 0) {
-		exec @cmd;
-		warn "Can't exec @cmd: $!";
-		if (eval { require POSIX; 1 }) {
-		    POSIX::_exit(1);
-		} else {
-		    CORE::exit(1);
-		}
+	    my $pid = fork;
+	    if (!defined $pid) {
+		die "Fork failed: $!";
 	    }
+	    if ($pid == 0) {
+		my $pid2 = fork;
+		if (!defined $pid2) {
+		    _hard_die("Inner fork failed: $!");
+		}
+		if ($pid2 == 0) {
+		    exec(@cmd)
+			or _hard_die("Can't exec @cmd: $!");
+		}
+		_hard_exit(0);
+	    }
+	    waitpid $pid, 0;
 	};
+	warn "Forking/executing @cmd failed: $@" if $@;
     } else {
 	# XXX use Spawn
-	system(join(" ", @cmd) . ($fork ? "&" : ""));
+	_system(join(" ", @cmd) . ($fork ? "&" : ""));
     }
+}
+
+sub _hard_die {
+    my $msg = shift;
+    warn $msg;
+    _hard_exit(1);
+}
+
+sub _hard_exit {
+    my $code = shift;
+    if (eval { require POSIX; 1 }) {
+	POSIX::_exit($code);
+    } else {
+	CORE::exit($code);
+    }
+}
+
+sub _system {
+    my(@cmd) = @_;
+    warn "Execute: @cmd\n" if $VERBOSE && $VERBOSE >= 2;
+    system @cmd;
 }
 
 sub _get_cmdline_for_url_from_Gnome {
@@ -504,7 +534,7 @@ sub htmlview {
 	if (!defined $ENV{DISPLAY} || $ENV{DISPLAY} eq "") {
 	    for my $ttybrowser (@TTYBROWSERS) {
 		if (is_in_path($ttybrowser)) {
-		    system($ttybrowser, @args); # blocks in tty mode
+		    _system($ttybrowser, @args); # blocks in tty mode
 		    last TRY;
 		}
 	    }
@@ -558,10 +588,17 @@ sub open_in_terminal {
 	}
     } else {
 	# without X11: not in background!
-	system($browser, $url);
+	_system($browser, $url);
 	return 1;
     }
     0;
+}
+
+sub _openurl_cmd {
+    my($url, @args) = @_;
+    $url =~ s{,}{%2c}g; # collides with openURL argument separator
+    $url =~ s{\)}{%29}g; # collides with openURL function end token
+    "openURL($url" . (@args ? "," . join(",", @args) : "") . ")";
 }
 
 # REPO BEGIN
