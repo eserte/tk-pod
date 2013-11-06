@@ -33,6 +33,7 @@ if (!$mw) {
     print "1..0 # cannot create MainWindow\n";
     CORE::exit(0);
 }
+$mw->geometry("+1+1"); # for twm
 
 plan tests => 1;
 
@@ -68,6 +69,7 @@ plan tests => 1;
 
 $mw->withdraw;
 my $pod = $mw->MyPod;
+$pod->geometry('+1+1'); # for twm
 $pod->configure(-file => "perl.pod");
 $mw->update;
 ok(1);

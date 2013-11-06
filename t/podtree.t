@@ -28,6 +28,7 @@ if (!$mw) {
     print "1..0 # cannot create MainWindow\n";
     CORE::exit(0);
 }
+$mw->geometry("+1+1"); # for twm
 
 plan tests => 5;
 

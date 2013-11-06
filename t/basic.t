@@ -59,6 +59,7 @@ if (!Tk::Exists($mw))
       }
     CORE::exit(0);
   }
+$mw->geometry("+1+1"); # for twm
 
 my $w;
 foreach my $class (@class)
