@@ -26,9 +26,12 @@ if (!$mw) {
     CORE::exit(0);
 }
 
-plan tests => 2;
+plan tests => 4;
 
 {
+    my @warnings;
+    local $SIG{__WARN__} = sub { push @warnings, @_ };
+
     my $more = $mw->Scrolled("More",
 			     -font => "Courier 10",
 			     -scrollbars => "osoe",
@@ -37,9 +40,14 @@ plan tests => 2;
     $more->Load($INC{"Tk/More.pm"});
     $more->update;
     ok(Tk::Exists($more));
+    ok(!@warnings, "No warnings while loading")
+	or diag($warnings[0] . "...");
 }
 
 {
+    my @warnings;
+    local $SIG{__WARN__} = sub { push @warnings, @_ };
+
     my $more = $mw->More
 	(# -font: use default
 	 -width => 20,
@@ -48,6 +56,8 @@ plan tests => 2;
     $more->Load($0);
     $more->update;
     ok(Tk::Exists($more));
+    ok(!@warnings, "No warnings while loading")
+	or diag($warnings[0] . "...");
 }
 
 if (!$ENV{PERL_INTERACTIVE_TEST}) {
