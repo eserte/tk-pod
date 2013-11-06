@@ -87,6 +87,12 @@ use Tk::Pod::Text; # for findpod
 use Getopt::Long;
 #require Tk::ErrorDialog;
 
+my $geometry;
+# Do a pre-scan of cmdline to see if -geometry is used
+Getopt::Long::Configure('pass_through');
+GetOptions("geometry=s" => \$geometry);
+Getopt::Long::Configure('nopass_through');
+
 my $mw = MainWindow->new();
 my $orig_state = $mw->state; # may be iconic
 $mw->withdraw;
@@ -205,8 +211,7 @@ foreach $file (@ARGV)
    }
   else
    {
-    $tl = $mw->Pod(-tree => $tree,
-		   -exitbutton => 1);
+    $tl = make_tk_pod_window();
     # -file => ... should be called after creating the Pod window,
     # because -title => ... is set implicitly by Pod's new
     $tl->configure(-file => $file);
@@ -216,28 +221,22 @@ foreach $file (@ARGV)
 
 if (defined $function)
  {
-    $tl = $mw->Pod(-tree => $tree,
-		   -exitbutton => 1);
+    $tl = make_tk_pod_window();
     $tl->configure($tl->getpodargs(-f => $function));
     $opened++;
  }
 if (defined $question)
  {
-    $tl = $mw->Pod(-tree => $tree,
-		      -exitbutton => 1);
+    $tl = make_tk_pod_window();
     $tl->configure($tl->getpodargs(-q => $question));
     $opened++;
  }
 
 if (!$opened) # This may happen if all arguments are directories
  {
-  if ($tree)
+  $tl = make_tk_pod_window();
+  if (!$tree)
    {
-    $tl = $mw->Pod(-tree => 1, -exitbutton => 1);
-   }
-  else
-   {
-    $tl = $mw->Pod(-tree => $tree, -exitbutton => 1);
     $tl->configure(-file => "perl");
    }
  }
@@ -267,6 +266,19 @@ Tk::App::Reloader::check_loop() if $use_reloader;
 MainLoop;
 unlink($portfile);
 exit(0);
+
+sub make_tk_pod_window {
+    my $tl = $mw->Pod(
+		      -exitbutton => 1,
+		     );
+    if ($geometry) {
+	$tl->geometry($geometry);
+    }
+    if ($tree) {
+	$tl->tree($tree);
+    }
+    $tl;
+}
 
 sub start_server {
     my $sock = IO::Socket::INET->new(Listen => 5, Proto => 'tcp');
@@ -302,8 +314,7 @@ sub PodRequest {
     while (<$client>) {
 	chomp($_);
 	print STDERR "'$_'\n";
-	my $pod = $mw->Pod(-tree => $tree,
-			   -exitbutton => 1);
+	my $pod = make_tk_pod_window();
 	$pod->configure(-file => $_);
     }
     warn "Odd $!" unless eof($client);
