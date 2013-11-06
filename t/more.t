@@ -12,10 +12,10 @@ use Tk::More;
 
 BEGIN {
     if (!eval q{
-	use Test;
+	use Test::More;
 	1;
     }) {
-	print "1..0 # skip tests only work with installed Test module\n";
+	print "1..0 # skip tests only work with installed Test::More module\n";
 	CORE::exit(0);
     }
 }
