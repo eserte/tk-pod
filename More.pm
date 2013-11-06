@@ -219,11 +219,11 @@ sub LoadFH
    binmode $fh, ":encoding($encoding)";
   }
  $text->MainWindow->Busy;
- $text->SUPER::delete('1.0','end');
+ $text->delete('1.0','end');
  #yy delete $text->{UNDO};
  while (<$fh>)
   {
-   $text->SUPER::insert('end',$_);
+   $text->insert('end',$_);
   }
  #yy $text->{FILE} = $file;
  $text->markSet('insert', '@1,0');
