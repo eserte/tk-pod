@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9942
+	o stable release with all changes in 0.9941_50
+
 version 0.99941_50
 	o tkpod -geometry works now
 	o WWWBrowser update (avoid zombies, better debugging)
