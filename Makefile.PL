@@ -140,6 +140,15 @@ EOF
     if ($is_devel_host) {
 	$postamble .= <<'EOF';
 
+# Test::Distribution complains about Text::English (which is optional)
+# and a number of Tk::* widgets which are part of Tk
+#
+# "use" fails if Text::English is not installed which is needed
+# by Tk::Pod::Search_db (which is only optionally used)
+#
+# "version" automatically turns "use" on, so has to be turned off, too.
+PERL_TEST_DISTRIBUTION_OPTS=not podcover,prereq,use,versions
+
 .include "../../perl.release.mk"
 .include "../../perl.git.mk"
 
