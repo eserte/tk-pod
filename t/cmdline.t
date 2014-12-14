@@ -6,7 +6,7 @@
 #
 
 use strict;
-use Cwd qw(cwd);
+use Cwd qw(getcwd);
 use FindBin;
 use File::Basename qw(basename);
 use File::Spec;
@@ -42,7 +42,7 @@ my $tkmore_script = "$blib/script/tkmore";
 
 my $batch_mode = defined $ENV{BATCH} ? $ENV{BATCH} : 1;
 
-my $cwd = cwd;
+my $cwd = getcwd;
 # http://rt.cpan.org/Ticket/Display.html?id=41320 (have to chdir out
 # of temp directory before File::Temp cleans directories)
 END { chdir $cwd if defined $cwd }
