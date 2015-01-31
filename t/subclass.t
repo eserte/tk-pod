@@ -15,10 +15,10 @@ use Tk::Pod;
 
 BEGIN {
     if (!eval q{
-	use Test;
+	use Test::More;
 	1;
     }) {
-	print "1..0 # skip tests only work with installed Test module\n";
+	print "1..0 # skip tests only work with installed Test::More module\n";
 	CORE::exit(0);
     }
 
@@ -70,9 +70,15 @@ plan tests => 1;
 $mw->withdraw;
 my $pod = $mw->MyPod;
 $pod->geometry('+1+1'); # for twm
-$pod->configure(-file => "perl.pod");
-$mw->update;
-ok(1);
+SKIP: {
+    my $podfile = 'perl.pod';
+    my $podpath = Tk::Pod::Text::Find($podfile);
+    skip "Pod for $podfile not installed", 1
+	if !defined $podpath;
+    $pod->configure(-file => $podfile);
+    $mw->update;
+    pass 'Displayed derived MyPod widget';
+}
 
 if (!$ENV{PERL_INTERACTIVE_TEST}) {
     $mw->after(1*1000, sub { $mw->destroy });

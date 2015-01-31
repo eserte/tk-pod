@@ -12,10 +12,10 @@ use Tk::Pod::Text;
 
 BEGIN {
     if (!eval q{
-	use Test;
+	use Test::More;
 	1;
     }) {
-	print "1..0 # skip no Test module\n";
+	print "1..0 # skip no Test::More module\n";
 	CORE::exit(0);
     }
 }
@@ -36,8 +36,13 @@ for my $pod ('perl',       # pod in perl.pod
 	     'strict',     # sample pragma pod
 	     'File::Find', # sample module pod
 	    ) {
-    $pt->configure(-file => $pod);
-    ok($pt->cget(-file), $pod);
+    my $podpath = Tk::Pod::Text::Find($pod);
+ SKIP: {
+	skip "Pod for $pod not installed", 1
+	    if !defined $podpath;
+	$pt->configure(-file => $pod);
+	is $pt->cget(-file), $pod, "Render $pod Pod in PodText";
+    }
 }
 
 #MainLoop;
