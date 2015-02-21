@@ -20,6 +20,6 @@ before_install:
  - (sleep 10; twm) &
 install:
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq perl-tk || true'
-# XXX Tk + EUMM 7.00 problems, use the current development version (https://rt.cpan.org/Ticket/Display.html?id=100044)
- - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest SREZIC/Tk-804.032_501.tar.gz || true'
+## XXX Tk + EUMM 7.00 problems, use the current development version (https://rt.cpan.org/Ticket/Display.html?id=100044)
+# - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest SREZIC/Tk-804.032_501.tar.gz || true'
  - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest --installdeps . || true'
