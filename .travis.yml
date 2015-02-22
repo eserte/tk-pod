@@ -4,6 +4,8 @@ matrix:
     - perl: "5.14"
       env: USE_SYSTEM_PERL=1
     - perl: "5.20"
+    - perl: "5.20"
+      env: WITH_OPTIONAL_MODULES=1
     - perl: "5.18"
     - perl: "5.16"
     - perl: "5.14"
@@ -23,3 +25,6 @@ install:
 ## XXX Tk + EUMM 7.00 problems, use the current development version (https://rt.cpan.org/Ticket/Display.html?id=100044)
 # - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest SREZIC/Tk-804.032_501.tar.gz || true'
  - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest --installdeps . || true'
+# XXX would be nice to use cpanm's --with-all-features, but have to be checked first
+# XXX PerlIO::gzip is missing --- it's known to be broken with latest perls, see https://rt.cpan.org/Ticket/Display.html?id=92412
+ - '[ "$WITH_OPTIONAL_MODULES" = "1" ] && cpanm --quiet --notest Text::English Tk::HistEntry Tk::ToolBar Tk::WidgetDump Module::Refresh Devel::Hide URI::Escape || true'
