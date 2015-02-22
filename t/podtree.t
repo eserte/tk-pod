@@ -13,10 +13,10 @@ use Tk::Pod::FindPods;
 
 BEGIN {
     if (!eval q{
-	use Test;
+	use Test::More;
 	1;
     }) {
-	print "# tests only work with installed Test module\n";
+	print "# tests only work with installed Test::More module\n";
 	print "1..1\n";
 	print "ok 1\n";
 	CORE::exit(0);
@@ -42,25 +42,25 @@ $pt = $mw->Scrolled("PodTree",
 $mw->gridColumnconfigure(0, -weight => 1);
 $mw->gridRowconfigure(0, -weight => 1);
 
-warn <<EOF;
+diag <<EOF;
 #
 # Tests may take a long time (up to 10 minutes or so) if you have a lot
 # of modules installed.
 EOF
 
-ok(Tk::Exists($pt), 1);
+ok Tk::Exists($pt), 'PodTree widget exists';
 $pt->Fill;
-ok(1);
+pass 'after calling Fill method';
 
 my $FindPods = Tk::Pod::FindPods->new;
-ok($FindPods->isa("Tk::Pod::FindPods"));
+isa_ok $FindPods, 'Tk::Pod::FindPods';
 my $pods = $FindPods->pod_find(-categorized => 1, -usecache => 1);
-ok(UNIVERSAL::isa($pods, "HASH"));
+isa_ok $pods, 'HASH';
 my $path = $pods->{perl}{ (keys %{ $pods->{perl} })[0] };
 $pt->SeePath($path);
-ok(1);
+pass 'after calling SeePath method';
 
-$mw->after(1*1000,sub{$mw->destroy});
+$mw->afterIdle(sub{$mw->destroy});
 MainLoop;
 
 __END__
