@@ -3,7 +3,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2004,2007,2008,2012 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2004,2007,2008,2012,2015 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -53,7 +53,7 @@ in a tree.
 
 use strict;
 use vars qw($VERSION @ISA @POD %EXTRAPODDIR $ExtraFindPods);
-$VERSION = '5.10';
+$VERSION = '5.11';
 
 use base 'Tk::Tree';
 
@@ -321,6 +321,7 @@ sub Fill {
     }
 
     if ($forked) {
+	require POSIX;
 	my($rdr,$wtr);
 	pipe($rdr,$wtr);
 	$w->{FillPid} = fork;
@@ -336,7 +337,7 @@ sub Fill {
 		or die "While writing to pipe: $!";
 	    close $wtr
 		or die "While closing pipe: $!";
-	    CORE::exit(0);
+	    POSIX::_exit(0);
 	} else {
 	    # parent
 	    close $wtr;
@@ -349,7 +350,7 @@ sub Fill {
 			      $w->_FillDone($pods, $args{'-fillcb'});
 			      $w->fileevent($rdr, 'readable', '');
 			      $w->Subwidget('UpdateLabel')->placeForget;
-			      require POSIX; waitpid $w->{FillPid}, &POSIX::WNOHANG; # zombie reaping
+			      waitpid $w->{FillPid}, &POSIX::WNOHANG; # zombie reaping
 			      $w->{FillPid} = undef;
 			  });
 	    return;
