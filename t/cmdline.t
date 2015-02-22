@@ -77,26 +77,40 @@ my $obscurefile = "$testdir/$obscurepod.pod";
 	or die "While closing: $!";
 }
 
+# Does this perl has documentation installed at all?
+my $perl_has_doc = sub {
+    for (@INC) {
+	return 1 if -r "$_/pod/perl.pod";
+    }
+    0;
+}->();
+
 my @opt = (
-	   ['-tk'],
-	   ['-tree','-geometry','+0+0'],
-	   ['-notree'],
-	   ['-Mblib'],
-	   #['-Iblib/lib'],
-	   ['-d'],
-	   ['-server'],
-	   ['-xrm', '*font: {nimbus sans l} 24',
+	   # note: "-exit" should be the first option if used
+	   ['-tk'], # one call without -exit
+	   ['-thisIsAnInvalidOption', '__EXPECT_ERROR__'],
+	   ['-exit', 'ThIsMoDuLeDoEsNotExIsT', '__EXPECT_ERROR__'],
+	   ['-exit', '-tk'],
+	   ['-tree','-geometry','+0+0'], # no -exit here --- -tree may take long time, exceeding the default timeout of one minute
+	   ($perl_has_doc ? ['-exit'] : ()), # a call with implicite perl.pod
+	   ['-exit', $script], # the pod of tkpod itself
+	   ['-exit', '-notree', $script],
+	   ['-exit', '-Mblib',  $script],
+	   ['-exit', '-d',      $script],
+	   ['-exit', '-server', $script],
+	   ['-exit',
+	    '-xrm', '*font: {nimbus sans l} 24',
 	    '-xrm', '*serifFont: {nimbus roman no9 l}',
 	    '-xrm', '*sansSerifFont: {nimbus sans l}',
 	    '-xrm', '*monospaceFont: {nimbus mono l}',
+	    $script,
 	   ],
-	   [$script], # the pod of tkpod itself
 
 	   # Environment settings
-	   ['-tree', '__ENV__', TKPODCACHE => "$testdir/pods_%v_%o_%u"],
-	   ['__ENV__', TKPODDEBUG => 1],
-	   ['__ENV__', TKPODEDITOR => 'ptked'],
-	   [$obscurepod.".pod", '__ENV__', TKPODDIRS => $testdir],
+	   ['-exit', '-tree', '__ENV__', TKPODCACHE => "$testdir/pods_%v_%o_%u"],
+	   ['-exit', $script,            '__ENV__', TKPODDEBUG => 1],
+	   ['-exit', $script,            '__ENV__', TKPODEDITOR => 'ptked'],
+	   ['-exit', $obscurepod.".pod", '__ENV__', TKPODDIRS => $testdir],
 
 	   # tkmore
 	   ['__SCRIPT__', $tkmore_script, $0],
@@ -108,7 +122,7 @@ my @opt = (
 
 	   # This should be near end...
 	   ['__ACTION__', chdir => $testdir ],
-	   ["CPAN"],
+	   ['-exit', "CPAN"],
 
 	   # Cleanup (jump out of $testdir, so File::Temp cleanup does not fail)
 	   ['__ACTION__', chdir => $FindBin::RealBin ],
@@ -129,6 +143,8 @@ for my $opt (@opt) {
 	next;
     }
 
+    my $do_exit = $opt->[0] eq '-exit';
+
     local %ENV = %ENV;
     delete $ENV{$_} for qw(TKPODCACHE TKPODDEBUG TKPODDIRS TKPODEDITOR);
 
@@ -136,6 +152,7 @@ for my $opt (@opt) {
 
     my @this_opts;
     my @this_env;
+    my $expect_error;
     for(my $i = 0; $i<=$#$opt; $i++) {
 	if ($opt->[$i] eq '__ENV__') {
 	    $ENV{$opt->[$i+1]} = $opt->[$i+2];
@@ -144,39 +161,64 @@ for my $opt (@opt) {
 	} elsif ($opt->[$i] eq '__SCRIPT__') {
 	    $this_script = $opt->[$i+1];
 	    $i+=1;
+	} elsif ($opt->[$i] eq '__EXPECT_ERROR__') {
+	    $expect_error = 1;
 	} else {
 	    push @this_opts, $opt->[$i];
 	}
     }
 
-    my $testname = "Trying " . basename($this_script) . " with @this_opts";
-    if (@this_env) {
-	$testname .= ", environment " . join(", ", @this_env);
-    }
+    my $testname =
+	'Trying ' . basename($this_script) . " with @this_opts" .
+	(@this_env ? ', environment ' . join(', ', @this_env) : '') .
+	($expect_error ? ', expect error' : '')
+	;
 
     if ($batch_mode) {
 	my $pid = fork;
 	if ($pid == 0) {
 	    run_tkpod($this_script, \@this_opts);
 	}
-	for (1..10) {
-	    select(undef,undef,undef,0.05);
-	    my $kid = waitpid($pid, WNOHANG);
-	    if ($kid) {
-		is($?, 0, $testname);
-		next OPT;
+	if ($do_exit) {
+	    # wait much longer (a minute), but expect a clean exit
+	    for (1..1000) { 
+		select(undef,undef,undef,0.06);
+		my $kid = waitpid($pid, WNOHANG);
+		if ($kid) {
+		    if ($expect_error) {
+			isnt($?, 0, $testname);
+		    } else {
+			is($?, 0, $testname);
+		    }
+		    next OPT;
+		}
 	    }
-	}
-	kill TERM => $pid;
-	for (1..10) {
-	    select(undef,undef,undef,0.05);
-	    if (!kill 0 => $pid) {
-		pass($testname);
-		next OPT;
+	    kill KILL => $pid;
+	    fail("$testname seems to hang");
+	} else {
+	    for (1..10) {
+		select(undef,undef,undef,0.05);
+		my $kid = waitpid($pid, WNOHANG);
+		if ($kid) {
+		    if ($expect_error) {
+			isnt($?, 0, $testname);
+		    } else {
+			is($?, 0, $testname);
+		    }
+		    next OPT;
+		}
 	    }
+	    kill TERM => $pid;
+	    for (1..10) {
+		select(undef,undef,undef,0.05);
+		if (!kill 0 => $pid) {
+		    pass($testname);
+		    next OPT;
+		}
+	    }
+	    kill KILL => $pid;
+	    pass($testname);
 	}
-	kill KILL => $pid;
-	pass($testname);
     } else {
 	run_tkpod($this_script, \@this_opts);
 	pass($testname);

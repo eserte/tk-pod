@@ -100,6 +100,8 @@ $mw->withdraw;
 my $function;
 my $question;
 
+my $exit;
+
 $tree = 0;
 #XXX Getopt::Long::Configure ("bundling");
 if (!GetOptions("tk"           => \$tk_opt,
@@ -109,6 +111,7 @@ if (!GetOptions("tk"           => \$tk_opt,
 		"Mblib"        => \$Mblib,
 		"I=s@"         => \@I,
 		"d|debug!"     => \$debug,
+		'exit'         => \$exit,
 		"f=s"          => \$function,
 		"q=s"          => \$question,
 		"filedialog=s" => sub {
@@ -126,9 +129,10 @@ EOF
 		},
 	       )) {
     die <<EOT;
-Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-I dir] [-d|debug] [-s|server]
+Usage:	$0  [-tk] [[-no]tree] [-Mblib] [-I dir] [-s|server]
 	    [-filedialog module]
             [-f function | -q FAQRegex | directory | name [...]]
+            [-d|debug] [-exit]
         $0  -version
 
 EOT
@@ -146,6 +150,11 @@ if ($tk_opt) {
 
 if ($debug) {
     $ENV{'TKPODDEBUG'} = $debug;
+}
+
+if ($exit) {
+    local $^W = 0;
+    *Tk::Pod::Text::_error_dialog = sub { die @_ };
 }
 
 my $use_reloader = 0;
@@ -263,7 +272,7 @@ if ($mw->children) {
     $mw->destroy;
 }
 Tk::App::Reloader::check_loop() if $use_reloader;
-MainLoop;
+MainLoop unless $exit;
 unlink($portfile);
 exit(0);
 
@@ -377,10 +386,6 @@ the B<-s> option) will cause to load the requested Pods into the
 server program, thus minimizing startup time and memory usage. Note
 that there is no access control, so this might be a security hole!
 
-=item B<-d> or B<-debug>
-
-Turn debugging on.
-
 =item B<-Mblib>
 
 Add the C<blib> directories under the current directory to the Pod
@@ -403,6 +408,14 @@ Show the FAQ entry matching I<FAQRegex>.
 
 Use an alternative file dialog module, e.g. L<Tk::FileSelect>,
 L<Tk::FBox> or L<Tk::PathEntry::Dialog>.
+
+=item B<-d> or B<-debug>
+
+Turn debugging on.
+
+=item B<-exit>
+
+Only for internal testing: exit before entering C<MainLoop>.
 
 =back
 
@@ -453,8 +466,9 @@ Former maintainer: Achim Bohnet <F<ach@mpe.mpg.de>>.
 
 Code currently maintained by Slaven Rezic <F<slaven@rezic.de>>.
 
-Copyright (c) 1997-1998 Nick Ing-Simmons.  All rights reserved.  This program
-is free software; you can redistribute it and/or modify it under the same
-terms as Perl itself.
+Copyright (c) 1997-1998 Nick Ing-Simmons.
+Copyright (c) 2015 Slaven Rezic.
+All rights reserved. This program is free software; you can
+redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut
