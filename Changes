@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.9942_50
+	o geo URI handled now by OpenStreetMap
+	o WWWBrowser update
+	o use POSIX::_exist instead of CORE::exit in forked processes
+	  to avoid core dumps with newer perls
+	o more and better tests
+
 version 0.9942
 	o stable release with all changes in 0.9941_50
 
