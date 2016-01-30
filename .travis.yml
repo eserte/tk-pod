@@ -1,3 +1,6 @@
+branches:
+ except:
+  - /appveyor/
 language: perl
 matrix:
   include:
