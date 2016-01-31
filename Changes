@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9943
+	o stable release with all changes in 0.9942_50
+
 version 0.9942_50
 	o geo URI handled now by OpenStreetMap
 	o WWWBrowser update
