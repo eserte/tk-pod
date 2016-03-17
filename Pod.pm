@@ -355,8 +355,12 @@ EOF
     $w->bind($path, "<$mod-Right>" => sub { $p->history_move(+1); Tk->break });
    }
 
-  $w->bind($path, "<Control-minus>" => sub { $w->zoom_out; Tk->break });
-  $w->bind($path, "<Control-plus>"  => sub { $w->zoom_in; Tk->break });
+  for my $event ('<Control-minus>', '<Control-5>') {
+      $w->bind($path, $event => sub { $w->zoom_out; Tk->break });
+  }
+  for my $event ('<Control-plus>',  '<Control-4>') {
+      $w->bind($path, $event => sub { $w->zoom_in; Tk->break });
+  }
   $w->bind($path, "<F3>" => sub { $w->openfile; Tk->break });
   $w->bind($path, "<Control-o>" => sub { $w->openpod($p); Tk->break });
   $w->bind($path, "<Control-n>" => sub { $w->newwindow($p); Tk->break });
