@@ -290,7 +290,7 @@ sub make_tk_pod_window {
 }
 
 sub start_server {
-    my $sock = IO::Socket::INET->new(Listen => 5, Proto => 'tcp');
+    my $sock = IO::Socket::INET->new(LocalHost => 'localhost', Listen => 5, Proto => 'tcp');
     die "Cannot open listen socket: $!" unless defined $sock;
     binmode($sock);
 
