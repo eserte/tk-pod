@@ -1,5 +1,12 @@
 History for Tk::Pod
 
+version 0.9943_50
+	o zooming with Control-Mousewheel
+	o -server: bind to localhost only
+	o better current line number detection
+	  (for View Source or Edit Pod)
+	o WWWBrowser update
+
 version 0.9943
 	o stable release with all changes in 0.9942_50
 
