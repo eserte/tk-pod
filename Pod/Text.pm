@@ -377,11 +377,23 @@ sub edit_get_linenumber
 sub get_linenumber
 {
  my($w) = @_;
- for my $tag ($w->tagNames('@' . ($w->{MenuX} - $w->rootx) . ',' . ($w->{MenuY} - $w->rooty)))
+ my $coord;
+ if (defined $w->{MenuX}) # called from a popup menu
   {
-   if ($tag =~ m{start_line_(\d+)})
+   $coord = '@' . ($w->{MenuX} - $w->rootx) . ',' . ($w->{MenuY} - $w->rooty);
+  }
+ else # called from a keyboard shortcut
+  {
+   $coord = '@0,0';
+  }
+ for my $try_line (0 .. 3) # top line resp. line under cursor might be empty, without tags, so try also the following ones
+  {
+   for my $tag ($w->tagNames($coord . ($try_line ? " + $try_line lines" : '')))
     {
-     return $1;
+     if ($tag =~ m{start_line_(\d+)})
+      {
+       return $1;
+      }
     }
   }
  undef;
@@ -1671,7 +1683,7 @@ Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 Current maintainer is Slaven ReziE<0x107> <F<slaven@rezic.de>>.
 
 Copyright (c) 1998 Nick Ing-Simmons.
-Copyright (c) 2015 Slaven Rezic.
+Copyright (c) 2015,2016 Slaven Rezic.
 All rights reserved. This program is free software; you can
 redistribute it and/or modify it under the same terms as Perl itself.
 
