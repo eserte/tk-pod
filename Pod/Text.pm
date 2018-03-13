@@ -26,7 +26,7 @@ use Tk::Pod::Util qw(is_in_path is_interactive detect_window_manager start_brows
 use vars qw($VERSION @ISA @POD $IDX
 	    @tempfiles @gv_pids $terminal_fallback_warn_shown);
 
-$VERSION = '5.33';
+$VERSION = '5.34';
 
 @ISA = qw(Tk::Frame Tk::Pod::SimpleBridge Tk::Pod::Cache);
 
@@ -1433,6 +1433,8 @@ END {
 
 __END__
 
+=encoding iso-8859-1
+
 =head1 NAME
 
 Tk::Pod::Text - Pod browser widget
@@ -1683,7 +1685,7 @@ Nick Ing-Simmons <F<nick@ni-s.u-net.com>>
 Current maintainer is Slaven ReziE<0x107> <F<slaven@rezic.de>>.
 
 Copyright (c) 1998 Nick Ing-Simmons.
-Copyright (c) 2015,2016 Slaven Rezic.
+Copyright (c) 2015,2016,2018 Slaven Rezic.
 All rights reserved. This program is free software; you can
 redistribute it and/or modify it under the same terms as Perl itself.
 
