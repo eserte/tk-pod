@@ -18,9 +18,7 @@ install:
   - if %perl%==strawberryperl   set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
   - if not %perl%==cygwinperl perl -v
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
-# Try to install Tk with PPM first, as it's much faster
-  - ppm install Tk
-  - if %perl%==activeperl       ppm install dmake
+  - if %perl%==activeperl       ppm install dmake Tk
   - if %perl%==strawberryperl   cpanm --installdeps .
 
 build_script:
