@@ -1,17 +1,34 @@
 language: perl
+arch:
+ - arm64
 matrix:
-  include:
-    - perl: "5.14"
-      env: USE_SYSTEM_PERL=1
-    - perl: "5.20"
-    - perl: "5.20"
-      env: WITH_OPTIONAL_MODULES=1
-    - perl: "5.18"
-    - perl: "5.16"
-    - perl: "5.14"
-    - perl: "5.12"
-    - perl: "5.10"
-    - perl: "5.8"
+ include:
+  - dist: xenial
+    perl: 5.24
+  - dist: bionic
+    perl: 5.26
+  - dist: focal
+    perl: 5.32
+  - dist: focal
+    perl: 5.32
+    env: USE_SYSTEM_PERL=1
+  - dist: bionic
+    perl: 5.26
+    env: WITH_OPTIONAL_MODULES=1
+
+#matrix:
+#  include:
+#    - perl: "5.14"
+#      env: USE_SYSTEM_PERL=1
+#    - perl: "5.20"
+#    - perl: "5.20"
+#      env: WITH_OPTIONAL_MODULES=1
+#    - perl: "5.18"
+#    - perl: "5.16"
+#    - perl: "5.14"
+#    - perl: "5.12"
+#    - perl: "5.10"
+#    - perl: "5.8"
 
 before_install:
  - sudo apt-get update -qq
@@ -33,3 +50,5 @@ install:
 branches:
  except:
   - /appveyor/
+  - /github-actions/
+  - /doozer/
