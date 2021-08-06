@@ -9,7 +9,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 1999,2000,2001,2003,2005,2006,2007,2008,2009,2012,2013,2014,2016,2017 Slaven Rezic.
+# Copyright (C) 1999,2000,2001,2003,2005,2006,2007,2008,2009,2012,2013,2014,2016,2017,2021 Slaven Rezic.
 # All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -31,7 +31,7 @@ use vars qw(@unix_browsers @available_browsers
 
 my $no_process_checker_warned;
 
-$VERSION = 2.54;
+$VERSION = 2.55;
 
 @available_browsers = qw(_debian_browser _internal_htmlview
 			 _default_gnome _default_kde
@@ -119,6 +119,18 @@ sub start_browser {
 	    }
 	} elsif ($browser eq '_default_kde') {
 	    # NYI
+	} elsif ($browser =~ /^_exec\b(.*)/) {
+	    my $cmdline = $1;
+	    $cmdline =~ s/^\s+//;
+	    my @exec_bg_args;
+	    if ($cmdline =~ /\%s/) {
+		@exec_bg_args = sprintf $cmdline, $url;
+	    } else {
+		@exec_bg_args = (split(/\s+/, $cmdline), $url);
+	    }
+	    warn "EXEC: @exec_bg_args"; # XXX make conditional!
+	    exec_bg(@exec_bg_args);
+	    return 1;
 	} elsif ($browser eq 'konqueror') {
 	    return 1 if open_in_konqueror($url, %args);
 	} elsif ($browser eq 'galeon') {
