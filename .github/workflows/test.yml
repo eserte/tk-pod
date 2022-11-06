@@ -17,9 +17,9 @@ jobs:
         include:
           - os:             'ubuntu-20.04'
             window_manager: 'kwin'
-          - os:             'ubuntu-18.04'
+          - os:             'ubuntu-22.04'
             window_manager: 'fvwm'
-          - os:             'ubuntu-18.04'
+          - os:             'ubuntu-22.04'
             window_manager: 'twm'
 
     steps:
