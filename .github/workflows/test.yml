@@ -37,7 +37,7 @@ jobs:
       run: |
         set -e
         sudo apt-get install -qq --no-install-recommends cpanminus xvfb perl-tk $([ "$WINDOW_MANAGER" = "kwin" ] && echo -n "kwin-x11" || echo -n $WINDOW_MANAGER)
-        cpanm --sudo --quiet --installdeps --notest . || ( cat /github/home/.cpanm/work/*/build.log; false )
+        cpanm --sudo --quiet --installdeps --notest . || ( cat ~/.cpanm/work/*/build.log; false )
     - name: Configure, Build and Test
       env:
         HARNESS_TIMER:   1
@@ -72,7 +72,7 @@ jobs:
     - name: "build and test"
       run: |
         apt-get update -qq && apt-get install -qq --no-install-recommends cpanminus xvfb libx11-dev libfreetype6-dev libxft-dev libpng-dev libz-dev libjpeg-dev twm
-        cpanm --quiet --installdeps --notest . || ( cat /github/home/.cpanm/work/*/build.log; false )
+        cpanm --quiet --installdeps --notest . || ( cat ~/.cpanm/work/*/build.log; false )
         Xvfb :123 &
         export DISPLAY=:123
         (sleep 10; twm) &
