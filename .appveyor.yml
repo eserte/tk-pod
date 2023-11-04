@@ -19,7 +19,7 @@ install:
   - if not %perl%==cygwinperl perl -v
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   - if %perl%==activeperl       ppm install dmake Tk
-  - if %perl%==strawberryperl   cpanm --installdeps .
+  - if %perl%==strawberryperl (cpanm --installdeps . & for /R "C:\Users\appveyor\.cpanm\work" %%f in (build.log) do @type "%%f" & exit /b 1)
 
 build_script:
   - perl Makefile.PL
