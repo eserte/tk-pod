@@ -1,5 +1,10 @@
 History for Tk::Pod
 
+version 0.9943_51
+	o WWWBrowser update
+	o pod fix (encoding now specified)
+	o CI changes
+
 version 0.9943_50
 	o zooming with Control-Mousewheel
 	o -server: bind to localhost only

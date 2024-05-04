@@ -2,7 +2,7 @@
 
 use ExtUtils::MakeMaker;
 
-$DIST_VERSION = "0.9943_50";
+$DIST_VERSION = "0.9943_51";
 $is_devel_host = defined $ENV{USER} && $ENV{USER} eq 'eserte' && -f "../../perl.release.mk";
 $min_eumm_version = 6.54;
 $eumm_recent_enough = $ExtUtils::MakeMaker::VERSION >= $min_eumm_version;
