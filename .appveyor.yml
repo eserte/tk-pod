@@ -14,7 +14,7 @@ environment:
       make: gmake
 
 install:
-  - if %perl%==strawberryperl ( if not exist "C:\strawberry" cinst strawberryperl )
+  - if %perl%==strawberryperl ( if not exist "C:\strawberry" cinst --allow-empty-checksums strawberryperl --version=5.32.1.1 )
   - if %perl%==strawberryperl   set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
   - if not %perl%==cygwinperl perl -v
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
