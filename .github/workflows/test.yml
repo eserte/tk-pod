@@ -17,11 +17,11 @@ jobs:
       matrix:
         include:
           - os:             'ubuntu-20.04'
-            window_manager: 'kwin'
+            window_manager: 'twm'
           - os:             'ubuntu-22.04'
             window_manager: 'fvwm'
-          - os:             'ubuntu-22.04'
-            window_manager: 'twm'
+          - os:             'ubuntu-24.04'
+            window_manager: 'kwin'
 
     steps:
     - name: apt hacks
@@ -31,7 +31,7 @@ jobs:
         sudo rm -f /etc/apt/sources.list.d/*.list
         sudo apt-get update -qq
       if: "startsWith(matrix.os, 'ubuntu-')"
-    - uses: actions/checkout@v3
+    - uses: taiki-e/checkout-action@v1
     - name: Preinstall
       env:
         WINDOW_MANAGER: ${{ matrix.window_manager }}
@@ -73,7 +73,6 @@ jobs:
           - perlimage: 5.40.0-slim-bookworm
 
     steps:
-    - uses: actions/checkout@v3
     - name: apt hacks
       run: |
         set -e
@@ -85,6 +84,7 @@ jobs:
             echo "deb [check-valid-until=no] http://archive.debian.org/debian-security/ $CODENAME/updates main" >> /etc/apt/sources.list
             ;;
         esac
+    - uses: taiki-e/checkout-action@v1
     - name: "build and test"
       run: |
         apt-get update -qq && apt-get install -qq --no-install-recommends cpanminus gcc make xvfb libx11-dev libfreetype6-dev libxft-dev libpng-dev libz-dev libjpeg-dev twm
