@@ -7,6 +7,7 @@
 
 use strict;
 use Cwd qw(getcwd);
+use Config;
 use FindBin;
 use File::Basename qw(basename);
 use File::Spec;
@@ -37,8 +38,10 @@ BEGIN {
 my $DEBUG = 0;
 
 my $blib   = File::Spec->rel2abs("$FindBin::RealBin/../blib");
-my $script = "$blib/script/tkpod";
-my $tkmore_script = "$blib/script/tkmore";
+my $scriptdir = "$blib/script";
+$scriptdir = $Config{installscript} unless -d $scriptdir;
+my $script = "$scriptdir/tkpod";
+my $tkmore_script = "$scriptdir/tkmore";
 
 my $batch_mode = defined $ENV{BATCH} ? $ENV{BATCH} : 1;
 
@@ -95,7 +98,7 @@ my @opt = (
 	   ($perl_has_doc ? ['-exit'] : ()), # a call with implicite perl.pod
 	   ['-exit', $script], # the pod of tkpod itself
 	   ['-exit', '-notree', $script],
-	   ['-exit', '-Mblib',  $script],
+	   (-d $blib ? ['-exit', '-Mblib',  $script] : ()),
 	   ['-exit', '-d',      $script],
 	   ['-exit', '-server', $script],
 	   ['-exit',
@@ -227,7 +230,7 @@ for my $opt (@opt) {
 
 sub run_tkpod {
     my($script, $this_opts_ref) = @_;
-    my @cmd = ($^X, "-Mblib=$blib", $script, "-geometry", "+10+10", @$this_opts_ref);
+    my @cmd = ($^X, (-d $blib)?"-Mblib=$blib":(), $script, "-geometry", "+10+10", @$this_opts_ref);
     warn "@cmd\n" if $DEBUG;
     if ($batch_mode) {
 	open(STDERR, ">" . File::Spec->devnull) unless $DEBUG;
