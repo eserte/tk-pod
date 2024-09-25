@@ -1,5 +1,8 @@
 History for Tk::Pod
 
+version 0.9954_52 (2024-09-25)
+	o various CI and test related improvements
+
 version 0.9943_51
 	o WWWBrowser update
 	o pod fix (encoding now specified)
