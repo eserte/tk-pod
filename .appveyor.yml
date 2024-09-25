@@ -5,8 +5,8 @@ branches:
     - /doozer/
 skip_tags: true
 
-#cache:
-#  - C:\strawberry
+cache:
+  - C:\strawberry
 
 environment:
   matrix:
