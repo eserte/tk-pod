@@ -67,7 +67,7 @@ jobs:
           - perlimage: 5.16.3-buster
           - perlimage: 5.18.4-buster
           - perlimage: 5.22.4-stretch
-          - perlimage: 5.36.0-bullseye
+          - perlimage: 5.36.0-buster
             optional_deps: true
           - perlimage: 5.38.0-slim-bookworm
           - perlimage: 5.40.0-slim-bookworm
